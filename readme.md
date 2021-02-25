@@ -3,6 +3,8 @@
 2. 安装`GD_Link_Program`,解压完毕，修改`GD_Link_CLI.ex_`后缀为`GD_Link_CLI.exe`。修改`GD-Link Programmer.ex_`后缀为`GD-Link Programmer.exe`。打开`GD-Link Programmer.exe`,用法与ST_Link相似。路径：[共享文件夹/软件开发工具/GD相关软件/GD_Link上位机](https://pan.baidu.com/s/1nuifedz#list/path=%2F%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%2F%E8%BD%AF%E4%BB%B6%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7%2FGD%E7%9B%B8%E5%85%B3%E8%BD%AF%E4%BB%B6%2FGD_Link%E4%B8%8A%E4%BD%8D%E6%9C%BA&parentPath=%2F)；
 3. 打开keil新建工程选择设备`GD32F450VG`,可以在`Manage Run-Time Environment`中选择使用的外设库，也可以自己添加，目前是自己添加外设库;
 4. 使用开发板上`gd-link`调试时，在`Options for Target`窗口的Debug中选择`CMSIS-DAP Debugger`
+5. 底盘固件移植时需要将`Post Universe Chasis.bat`和`CalculFirmwareCRC.exe`，并且修改`Post Universe Chasis.bat`中的axf路径
+
 
 #### GD32F450工程移植注意事项
 
