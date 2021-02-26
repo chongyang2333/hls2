@@ -44,16 +44,16 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart3;
-extern UART_HandleTypeDef huart6;
+// extern UART_HandleTypeDef huart1;
+// extern UART_HandleTypeDef huart2;
+// extern UART_HandleTypeDef huart3;
+// extern UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN Private defines */
 

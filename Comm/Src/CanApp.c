@@ -14,12 +14,11 @@
 ----------------------------------------------------------------------*/
 
 /*------------------------- Include files ----------------------------*/
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 #include "CanApp.h"
 #include "Param.h"
 #include "Rgb.h"
 #include "BootloaderInfo.h"
-#include "delay.h"
 #include "gpio.h"
 #include "HardApi.h"
 
@@ -35,9 +34,9 @@ extern const struct ParameterStruct gDefaultParam_Left[10];
 
 struct CanAppStruct  sMyCan={0};
     
-extern CAN_HandleTypeDef hcan1;
-CAN_TxHeaderTypeDef   Can_TxHeader;
-CAN_RxHeaderTypeDef   Can_RxHeader;
+// extern CAN_HandleTypeDef hcan1;
+// CAN_TxHeaderTypeDef   Can_TxHeader;
+// CAN_RxHeaderTypeDef   Can_RxHeader;
 
 extern ST_VersionStruct NowSoftWareVersion;
 
@@ -47,8 +46,7 @@ PRIVATE void CanSendMachineInfo(UINT8 *pData);
 PRIVATE void CanSendMachineInfoWriteStatus(void);
 PRIVATE void CanSendMachineInfoCrcState(void);
 
-void can_tx(UINT8 *pData);
-
+PRIVATE void can_tx(UINT8 *pData);
 PRIVATE void CanSetTimeStamp(UINT8 *pData);
 PRIVATE void CanSetMotion(UINT8 *pData);
 PRIVATE void CanModifyMachineInfo(const UINT8 *pData);
@@ -57,7 +55,7 @@ PRIVATE void CanLedExec(void);
 PRIVATE void can_tx_no_block(UINT8 *pData);
 PRIVATE UINT8 GetSelfId(void);
 
-UINT8 BCC_CheckSum(const UINT8 *buf,UINT8 len);
+PRIVATE UINT8 BCC_CheckSum(const UINT8 *buf,UINT8 len);
 PRIVATE void CanSendData(UINT8 txd[8], UINT8 len);
 extern BootLoaderInfo bootloaderInfo;
 UINT8 g_CanTxEnable = 0;
@@ -121,14 +119,12 @@ void chassis_led_ctrl( uint8_t *buff );
  *
 ***********************************************************************/
 const unsigned char ucF_IAPorApp = EN_RUN_IN_APP;
-
-
 PUBLIC void CanAppDispatch(void)
 {
     UINT8  CmdType;
 		
 	CAN_RX_Message CanRxMessage;
-	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &Can_RxHeader, &CanRxMessage.RxData[0]);//数组参数传递？
+//	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &Can_RxHeader, &CanRxMessage.RxData[0]);//数组参数传递？
 	CmdType = CanRxMessage.RxData[0];
 
 //    if (!sMyCan.PcInitDone)  
@@ -155,15 +151,15 @@ PUBLIC void CanAppDispatch(void)
         break;
         
         case 0x40 :
-			if(!(sAxis[0].sAlarm.ErrReg.all || sAxis[0].sAlarm.ErrReg.all))
-			{
-				CanSetMotion(CanRxMessage.RxData);
-			}
-            else
-            {
-                sMyCan.PcCloseLoopEn = 0;
-            }
-			sMyCan.CanLostCnt = 0;
+						if(!(sAxis[0].sAlarm.ErrReg.all || sAxis[1].sAlarm.ErrReg.all))
+						{
+							CanSetMotion(CanRxMessage.RxData);
+						}
+                        else
+                        {
+                            sMyCan.PcCloseLoopEn = 0;
+                        }                        
+						sMyCan.CanLostCnt = 0;
         break;
         
         case 0x41 : // clear error
@@ -203,32 +199,28 @@ PUBLIC void CanAppDispatch(void)
             if(CanRxMessage.RxData[6]==CAN_SLAVE_ID)
             {
 				RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
-                HAL_NVIC_SystemReset();
+//                HAL_NVIC_SystemReset();
             }
         break;
 						
         case 0x75:
 					LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
 					CanSendLedStateFb(sLedFsm.curState);
-            break;
+        break;
         
         case 0x90:
-            if( CanRxMessage.RxData[1] == 12 )
+            if( CanRxMessage.RxData[1] == 13 || CanRxMessage.RxData[1] == 14 )
             {
                 chassis_led_ctrl( CanRxMessage.RxData );
             }
-        break;
+            break;
 				
         case 0x77:	
             LdsPowerCtrl(CanRxMessage.RxData[1], CanRxMessage.RxData[2]);
             CanSendLidarStateFb(ReadLidarPowerState());					
             break;	
-
-        case 0xB0:
-            FrameHeader0xB0Parser(&CanRxMessage.RxData[0]);
-            break;
-            
-        case 0x83:
+        
+        case 0x83:	
             DisinfectionModulePowerCtrl(CanRxMessage.RxData[1]);
             CanSendDisinfectionModuleStateFb(CanRxMessage.RxData[1]);					
             break;
@@ -346,6 +338,8 @@ void CMDCheckIapOrAppTreatment(CAN_RX_Message* CanRxMessage)
 	}
 }
 
+
+				
 void CMDSoftWareTreatment(CAN_RX_Message* CanRxMessage)
 {
 	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);	
@@ -357,10 +351,13 @@ void CMDSoftWareTreatment(CAN_RX_Message* CanRxMessage)
 		CMDResponseRegular(CanRxMessage);
 		g_CanTxEnable = 0;
 		delay_ms(10);
-		DisableInterrupt();   
+		DisableInterupt();
         EnableFirmwareUpdate();
 	}
 }
+
+
+
 PRIVATE void CMDGetSoftWareVersionTreatmentFromRam(CAN_RX_Message* CanRxMessage,ST_VersionStruct* st_ram_version)
 {
 		UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
@@ -526,6 +523,7 @@ PRIVATE void CarpetModeSet(UINT8 *pData)
         gParam[0].SaveParameter0x2401 = 1;
     }
 }
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -761,8 +759,8 @@ PUBLIC void CanSendBatteryChargeInfo(UINT8 ChargerState, UINT8 batteryLevelRaw, 
         batteryLevelState = 1;
     }
     datasend[2] = batteryLevelState;
-    datasend[3] = batteryLevelOptimized;
-    datasend[4] = batteryLevelRaw;
+    datasend[3] = batteryLevelRaw;
+    datasend[4] = batteryLevelOptimized;
     datasend[5] = 100;
     datasend[6] = batteryVoltage/1000;
     datasend[7] = BCC_CheckSum(datasend, 7);
@@ -928,7 +926,7 @@ PUBLIC void CanSendDisinfectionModuleStateFb(UINT8 EnState)
  * RETURNS:
  *
 ***********************************************************************/
-PUBLIC void CanSendBatteryInfo(UINT16 index, UINT32 data)
+PUBLIC void CanSendBatteryInfo(UINT8 index, UINT32 data)
 {
     UINT8 datasend[8]={0};
      
@@ -938,88 +936,10 @@ PUBLIC void CanSendBatteryInfo(UINT16 index, UINT32 data)
     datasend[3] = data>>16; 
     datasend[4] = data>>8;   
     datasend[5] = data;
-    datasend[6] = index >> 8;
+    datasend[6] = 0;
     datasend[7] = BCC_CheckSum(datasend, 7);	
     
     can_tx(datasend);		
-}
-
-PUBLIC void CanSendMergedBatteryInfo( struct PowerManagerStruct *pm )
-{
-    UINT8 datasend[8]={0};
-    uint8_t i;
-    uint16_t soc_total = 0;
-    int32_t cur_total = 0;
-    int32_t charge_cur = 0;
-    uint16_t soc_real_total = 0;
-    
-    for(i = 0; i < BATTERY_NUMBERS; i++ )
-    {
-       if( pm->sBatteryInfo[i].ComFailSet == 0 
-           && pm->sBatteryInfo[i].BMS_icType != NONE_RECOGNIZED
-       ){
-            soc_total += pm->sBatteryInfo[i].SocOptimized;
-           cur_total += pm->sBatteryInfo[i].DischargeCurrent;
-           soc_real_total += pm->sBatteryInfo[i].SocRaw;
-           charge_cur += pm->sBatteryInfo[i].ChargeCurrent;
-       }
-    }
-    soc_total = soc_total / 2;
-    pm->DevSocOptimized = soc_total;
-    soc_real_total = soc_real_total / 2;
-    charge_cur = charge_cur / 2;
-    
-//    datasend[0] = 0x09;
-//    datasend[1] = (uint8_t)soc_total;   
-//    datasend[2] = pm->sBoardPowerInfo.ParallelVoltage >> 8;  
-//    datasend[3] = (uint8_t)pm->sBoardPowerInfo.ParallelVoltage; 
-//    datasend[4] = (uint8_t)( cur_total >> 8 );   
-//    datasend[5] = (uint8_t)cur_total;
-//    datasend[6] = 0;
-//    datasend[7] = BCC_CheckSum(datasend, 7);	
-//    
-//    can_tx(datasend);    
-    
-    datasend[0] = 0x74;
-    datasend[1] = pm->sChargeInfo.ChargeVoltage >> 8;
-    datasend[2] = (uint8_t)pm->sChargeInfo.ChargeVoltage; 
-    datasend[3] = (uint8_t)(charge_cur >> 8);   
-    datasend[4] = (uint8_t)charge_cur;  
-     
-    datasend[5] = (uint8_t)( cur_total >> 8 );
-    datasend[6] = (uint8_t)cur_total;
-    datasend[7] = BCC_CheckSum(datasend, 7);	
-    
-    can_tx(datasend);    
-    
-    CanSendBatteryChargeInfo( pm->sChargeInfo.eChargerConnectState, soc_real_total, soc_total, pm->sBoardPowerInfo.ParallelVoltage );
-}
-
-PUBLIC void CanCloseSprayUv( void )
-{
-    UINT8 datasend[8]={0};
-     
-    datasend[0] = 0x87;
-    datasend[1] = 7;   
-    datasend[2] = 2;  
-    datasend[3] = 0; 
-    datasend[4] = 0;   
-    datasend[5] = 0;
-    datasend[6] = 0;
-    datasend[7] = BCC_CheckSum(datasend, 7);	
-    
-    can_tx(datasend);
-    
-    datasend[0] = 0x88;
-    datasend[1] = 8;   
-    datasend[2] = 2;  
-    datasend[3] = 0; 
-    datasend[4] = 0;   
-    datasend[5] = 0;
-    datasend[6] = 0;
-    datasend[7] = BCC_CheckSum(datasend, 7);	
-    
-    can_tx(datasend);	
 }
 
 /***********************************************************************
@@ -1165,41 +1085,44 @@ PRIVATE void CanSendMachineInfoCrcState(void)
  * RETURNS:
  *
 ***********************************************************************/
-void can_tx(UINT8 *pData)
+PRIVATE void can_tx(UINT8 *pData)
 {
-    uint32_t TxMailbox=0;
-    CAN_TxHeaderTypeDef *ptx=&Can_TxHeader;
-    
-    if (!ReadPadPowerState())
-    {
-        g_CanTxEnable = 0;
-    }
-	
-	if( !g_CanTxEnable || !ReadPadPowerState() || sMyCan.CanBreakErr )
-	{
-		return;
-	}
-	
-    ptx->StdId = CAN_SLAVE_ID;
-    ptx->RTR = CAN_RTR_DATA;
-    ptx->IDE = CAN_ID_STD;
-    ptx->DLC = 8;
-     
-    UINT32 StartTime = ReadTimeStampTimer();
-    /* Wait transmission complete */
-    while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) == 0) 
-    {
-        if((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
-        {
-            sMyCan.CanBreakErr = 1;
-            break;
-        }
-    }
-    
-    sMyCan.CanRxTxState |= 0x01;
-      
-    HAL_CAN_AddTxMessage(&hcan1, &Can_TxHeader, pData, &TxMailbox);
+//    uint32_t TxMailbox=0;
+//    CAN_TxHeaderTypeDef *ptx=&Can_TxHeader;
+//	
+//    if(!ReadPadPowerState() || sMyCan.CanBreakErr)
+//    {
+//        return;
+//    }
+//    
+//    if (!g_CanTxEnable)
+//    {
+//            return;
+//    }
+//    
+//    ptx->StdId = CAN_SLAVE_ID;
+//    ptx->RTR = CAN_RTR_DATA;
+//    ptx->IDE = CAN_ID_STD;
+//    ptx->DLC = 8;
+//     
+//    UINT32 StartTime = ReadTimeStampTimer();
+//    /* Wait transmission complete */
+//    while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) == 0) 
+//    {
+//        if((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+//        {
+//            sMyCan.CanBreakErr = 1;
+//            break;
+//        }
+//    }
+//    
+//    sMyCan.CanRxTxState |= 0x01;
+//      
+//    HAL_CAN_AddTxMessage(&hcan1, &Can_TxHeader, pData, &TxMailbox);
+
 }
+
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -1208,33 +1131,33 @@ void can_tx(UINT8 *pData)
 ***********************************************************************/
 PRIVATE void can_tx_no_block(UINT8 *pData)
 {
-    uint32_t TxMailbox=0;
-    CAN_TxHeaderTypeDef *ptx=&Can_TxHeader;
-	
-    if(!ReadPadPowerState() || sMyCan.CanBreakErr)
-    {
-        return;
-    }
+//    uint32_t TxMailbox=0;
+//    CAN_TxHeaderTypeDef *ptx=&Can_TxHeader;
+//	
+//    if(!ReadPadPowerState() || sMyCan.CanBreakErr)
+//    {
+//        return;
+//    }
 
-    ptx->StdId = CAN_SLAVE_ID;
-    ptx->RTR = CAN_RTR_DATA;
-    ptx->IDE = CAN_ID_STD;
-    ptx->DLC = 8;
-     
-    UINT32 StartTime = ReadTimeStampTimer();
-    /* Wait transmission complete */
-    while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) == 0) 
-    {
-        if((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
-        {
-            sMyCan.CanBreakErr = 1;
-            break;
-        }
-    }
-    
-    sMyCan.CanRxTxState |= 0x01;
-      
-    HAL_CAN_AddTxMessage(&hcan1, &Can_TxHeader, pData, &TxMailbox);
+//    ptx->StdId = CAN_SLAVE_ID;
+//    ptx->RTR = CAN_RTR_DATA;
+//    ptx->IDE = CAN_ID_STD;
+//    ptx->DLC = 8;
+//     
+//    UINT32 StartTime = ReadTimeStampTimer();
+//    /* Wait transmission complete */
+//    while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) == 0) 
+//    {
+//        if((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+//        {
+//            sMyCan.CanBreakErr = 1;
+//            break;
+//        }
+//    }
+//    
+//    sMyCan.CanRxTxState |= 0x01;
+//      
+//    HAL_CAN_AddTxMessage(&hcan1, &Can_TxHeader, pData, &TxMailbox);
 
 }
 
@@ -1466,30 +1389,30 @@ PRIVATE void CanLedExec(void)
 ***********************************************************************/
 PRIVATE void CanSendData(UINT8 txd[8], UINT8 len)
 {	
-			CAN_TxHeaderTypeDef   TxHeader;
-			UINT32                TxMailbox;
-			UINT8                 waitEmptyMailboxTimeoutCnt = 0;
-		
-			TxHeader.StdId = CAN_SLAVE_ID;
-			TxHeader.RTR = CAN_RTR_DATA;
-			TxHeader.IDE = CAN_ID_STD;
-			TxHeader.DLC = len;
-			TxHeader.TransmitGlobalTime = DISABLE;
+//			CAN_TxHeaderTypeDef   TxHeader;
+//			UINT32                TxMailbox;
+//			UINT8                 waitEmptyMailboxTimeoutCnt = 0;
+//		
+//			TxHeader.StdId = CAN_SLAVE_ID;
+//			TxHeader.RTR = CAN_RTR_DATA;
+//			TxHeader.IDE = CAN_ID_STD;
+//			TxHeader.DLC = len;
+//			TxHeader.TransmitGlobalTime = DISABLE;
 	
 			if(g_CanTxEnable)//有可能被命令关闭了CAN发送
 			{
 					/*if waitEmptyMailboxTimeoutCnt >= 50, Should Be Alarm*/
-					while((HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) == 0) && (waitEmptyMailboxTimeoutCnt < 30))
-					{
-							waitEmptyMailboxTimeoutCnt++;
-							delay_us(100);
-					}
-					
-					if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, txd, (unsigned int* )&TxMailbox) != HAL_OK)
-					{
-							/* Transmission request Error */
-							//_Error_Handler(__FILE__, __LINE__);
-					}
+//					while((HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) == 0) && (waitEmptyMailboxTimeoutCnt < 30))
+//					{
+//							waitEmptyMailboxTimeoutCnt++;
+//							delay_us(100);
+//					}
+//					
+//					if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, txd, (unsigned int* )&TxMailbox) != HAL_OK)
+//					{
+//							/* Transmission request Error */
+//							//_Error_Handler(__FILE__, __LINE__);
+//					}
 			}
 			
 }
@@ -1504,78 +1427,6 @@ PRIVATE void CanSendData(UINT8 txd[8], UINT8 len)
 PRIVATE UINT8 GetSelfId(void)
 {
   return EN_SELF_ID;
-}
-
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PUBLIC void CanLowPowerConsumeMode(UINT8 lowPowerConsumeMode)
-{
-    UINT8 datasend[8];
-
-    if (lowPowerConsumeMode)
-    {
-        datasend[1] = 0x04;
-    }
-    else
-    {
-        datasend[1] = 0x06;
-    }
-
-    datasend[0] = 0xB0;
-    datasend[2] = CAN_SLAVE_ID;
-    datasend[3] = lowPowerConsumeMode; 
-    datasend[4] = 0x00;
-    datasend[5] = 0x00;
-    datasend[6] = 0x00;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx_no_block(datasend);
-}
-
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PUBLIC void CanUploadLowPoweroffEvent(void)
-{
-    UINT8 datasend[8];
-
-    datasend[0] = 0xB0;
-    datasend[1] = 0x07;
-    datasend[2] = 0x00;
-    datasend[3] = 0x00; 
-    datasend[4] = 0x00;
-    datasend[5] = 0x00;
-    datasend[6] = 0x00;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx_no_block(datasend);    
-}
-
-
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PUBLIC void CanUploadKeyPoweroffEvent(void)
-{
-    UINT8 datasend[8];
-
-    datasend[0] = 0xB0;
-    datasend[1] = 0x01;
-    datasend[2] = 0x00;
-    datasend[3] = 0x00; 
-    datasend[4] = 0x00;
-    datasend[5] = 0x00;
-    datasend[6] = 0x00;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx_no_block(datasend); 
 }
 
 /***********************************************************************

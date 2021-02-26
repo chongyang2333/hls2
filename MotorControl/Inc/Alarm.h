@@ -20,23 +20,23 @@
 
 struct AlarmBits  // bits   description
 {   		    
-    UINT32 HardCurOver:1;  		// 
-    UINT32 BusCurOver:1;    	// 
-	UINT32 VdcOver:1;			// 
-    UINT32 VdcUnder:1;			// 
-    UINT32 TempOver:1;			//   
-	UINT32 EncCount:1;			// 
-	UINT32 AbzBreak:1;			// 
-	UINT32 HallErr:1; 			//          
+    UINT32 HardCurOver:1;  
+    UINT32 BusCurOver:1;    
+	UINT32 VdcOver:1;
+    UINT32 VdcUnder:1;
+    UINT32 TempOver:1;	  
+	UINT32 EncCount:1;		
+	UINT32 AbzBreak:1;
+	UINT32 HallErr:1;           
 	
-    UINT32 SpdOver:1;			// 
-    UINT32 MotorStall:1;		// 
-    UINT32 MotorIIt:1;			// 
-    UINT32 SpeedFollow:1;		// 
-	UINT32 CanLost:1;			// 
-    UINT32 CanBreakErr:1; 		// 
+    UINT32 SpdOver:1;
+    UINT32 MotorStall:1;
+    UINT32 MotorIIt:1;
+    UINT32 SpeedFollow:1;
+	UINT32 CanLost:1;	
+    UINT32 CanBreakErr:1; 
     UINT32 PartnerErr:1;        // Indicate the other axis error
-    UINT32 FatalErr:1;      	// 
+    UINT32 FatalErr:1;            
     
     // Fatal Error bit
     UINT32 CurInit:1;      	    // can't be reset by soft clear	
@@ -47,9 +47,8 @@ struct AlarmBits  // bits   description
 	UINT32 MotorTempOver:1;
 	UINT32 MosTempOver:1;
     UINT32 VbusSSMosOpenCircuitFailure:1; // Mos for Soft Start Open Circuit Failure
-    UINT32 TactSwitchSet:1; //foot_Press Protect Key Press Down
     
-	UINT32 Rsv31:6;
+	UINT32 Rsv31:7;
 	UINT32 StutterStop:1;
 };
 
@@ -63,7 +62,7 @@ struct AlarmStruct
 	union AlarmReg  ErrReg;
   
     REAL32  I2T_Setpoint;
-    REAL32  I2T_accumulator;  // 
+    REAL32  I2T_accumulator;
     
     REAL32  VdcMax;
     REAL32  VdcMin;
@@ -88,17 +87,16 @@ struct AlarmStruct
 	UINT16  EmergencyStopRstCnt;
     UINT16  EmergencyStopSetCnt;
     
-    UINT16  TactSwitchSetCnt;
     UINT16  PhaseCurrentLimit;
-    
+
 	UINT16  IuOverCnt;
 	UINT16  IvOverCnt;
 	UINT16  IwOverCnt;
 
-	REAL32  IuTotle;			 //  uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¼ï¿½Öµ
-	REAL32  IvTotle;			 //  vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¼ï¿½Öµ
-	REAL32  IwTotle;			 //  wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¼ï¿½Öµ
-	REAL32  phaselose_time;		 //  È±ï¿½ï¿½ï¿½Û¼ï¿½Öµï¿½ï¿½ï¿½Ê±ï¿½ï¿½    
+	REAL32  IuTotle;			 //  uÏàµçÁ÷ÀÛ¼ÓÖµ
+	REAL32  IvTotle;			 //  vÏàµçÁ÷ÀÛ¼ÓÖµ
+	REAL32  IwTotle;			 //  wÏàµçÁ÷ÀÛ¼ÓÖµ
+	REAL32  phaselose_time;		 //  È±ÏàÀÛ¼ÓÖµ¼ì²âÊ±¼ä
 };
 
 

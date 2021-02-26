@@ -44,13 +44,13 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-extern CAN_HandleTypeDef hcan1;
+// extern CAN_HandleTypeDef hcan1;
 
 /* USER CODE BEGIN Private defines */
 

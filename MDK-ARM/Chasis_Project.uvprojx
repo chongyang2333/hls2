@@ -80,10 +80,10 @@
             <nStopB2X>0</nStopB2X>
           </BeforeMake>
           <AfterMake>
-            <RunUserProg1>1</RunUserProg1>
-            <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>Post Universe Chassis.bat</UserProg1Name>
-            <UserProg2Name></UserProg2Name>
+            <RunUserProg1>0</RunUserProg1>
+            <RunUserProg2>1</RunUserProg2>
+            <UserProg1Name></UserProg1Name>
+            <UserProg2Name>Post Universe Chassis.bat</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -273,8 +273,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
-                <Size>0x100000</Size>
+                <StartAddress>0x8020000</StartAddress>
+                <Size>0x80000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -298,8 +298,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x20000000</StartAddress>
-                <Size>0x30000</Size>
+                <StartAddress>0x20000080</StartAddress>
+                <Size>0x2ff80</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -539,6 +539,58 @@
         </Group>
         <Group>
           <GroupName>HardWare</GroupName>
+          <Files>
+            <File>
+              <FileName>adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>battery_iic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\battery_iic.c</FilePath>
+            </File>
+            <File>
+              <FileName>can.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\can.c</FilePath>
+            </File>
+            <File>
+              <FileName>dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>myiic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\myiic.c</FilePath>
+            </File>
+            <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>gd_hal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\gd_hal.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>User</GroupName>
@@ -567,15 +619,153 @@
         </Group>
         <Group>
           <GroupName>Comm</GroupName>
+          <Files>
+            <File>
+              <FileName>CanApp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Comm\Src\CanApp.c</FilePath>
+            </File>
+            <File>
+              <FileName>UartApp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Comm\Src\UartApp.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Function</GroupName>
+          <Files>
+            <File>
+              <FileName>BootloaderInfo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\BootloaderInfo.c</FilePath>
+            </File>
+            <File>
+              <FileName>Eeprom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\Eeprom.c</FilePath>
+            </File>
+            <File>
+              <FileName>ErrorLog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\ErrorLog.c</FilePath>
+            </File>
+            <File>
+              <FileName>Gyro.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\Gyro.c</FilePath>
+            </File>
+            <File>
+              <FileName>LedDriver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\LedDriver.c</FilePath>
+            </File>
+            <File>
+              <FileName>MachineAdditionalInfo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\MachineAdditionalInfo.c</FilePath>
+            </File>
+            <File>
+              <FileName>Param.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\Param.c</FilePath>
+            </File>
+            <File>
+              <FileName>PowerManager.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\PowerManager.c</FilePath>
+            </File>
+            <File>
+              <FileName>Rgb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\Rgb.c</FilePath>
+            </File>
+            <File>
+              <FileName>Temperature.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\Temperature.c</FilePath>
+            </File>
+            <File>
+              <FileName>Ultrasonic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\Ultrasonic.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>MotorControl</GroupName>
+          <Files>
+            <File>
+              <FileName>Alarm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\Alarm.c</FilePath>
+            </File>
+            <File>
+              <FileName>ControlRun.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\ControlRun.c</FilePath>
+            </File>
+            <File>
+              <FileName>CurrentLoop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\CurrentLoop.c</FilePath>
+            </File>
+            <File>
+              <FileName>Encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\Encoder.c</FilePath>
+            </File>
+            <File>
+              <FileName>Filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\Filter.c</FilePath>
+            </File>
+            <File>
+              <FileName>HardApi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\HardApi.c</FilePath>
+            </File>
+            <File>
+              <FileName>InnerCtrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\InnerCtrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>PositionLoop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\PositionLoop.c</FilePath>
+            </File>
+            <File>
+              <FileName>SinTable.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\SinTable.c</FilePath>
+            </File>
+            <File>
+              <FileName>SpeedLoop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\SpeedLoop.c</FilePath>
+            </File>
+            <File>
+              <FileName>StateMachine.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\StateMachine.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>SysternCommon</GroupName>
+          <Files>
+            <File>
+              <FileName>check_firmware.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SystemCommon\check_firmware.c</FilePath>
+            </File>
+            <File>
+              <FileName>system_common.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SystemCommon\system_common.c</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>

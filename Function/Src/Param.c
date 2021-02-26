@@ -14,7 +14,7 @@
 ----------------------------------------------------------------------*/
 
 /*------------------------- Include files ----------------------------*/
-#include "stm32f7xx_hal.h"
+
 #define _OBJD_
 #include "Param.h"
 #undef _OBJD_
@@ -25,6 +25,7 @@
 #include "ErrorLog.h"
 #include "CanApp.h"
 #include "MachineAdditionalInfo.h"
+#include "gd32f4xx.h"
 
 #define OBJ_NUM (sizeof(ApplicationObjDic)/sizeof(OBJ_ENTRY))
     
@@ -32,16 +33,12 @@
 #define AXIS_Right_PARAM_EEPROM_ADDR  256
 #define MACHINE_INFO_EEPROM_ADDR      512
 
-#define AXIS_BLOCK_MAX_SIZE               ( 256 )
-#define MACHINE_INFO_BLOCK_MAX_SIZE       ( 512 )
-#define REDUNDANCY_BLOCK_OFFSET           ( 1024 )
-
 struct ParameterStruct    gParam[2];
 struct MachineInfoStruct  gMachineInfo;
 struct SoftwareVersionStruct gSoftVersion = {21,0,2};
 struct SensorDataStruct gSensorData = {0};
 
-RTC_HandleTypeDef 				hrtc1;
+//RTC_HandleTypeDef 				hrtc1;
 
 UINT16 EepromErrorFlag=0;
 UINT8 MotorVersionParam = 0;
@@ -51,6 +48,7 @@ PRIVATE void SaveParamToEeprom(UINT16 AxisID);
 
 PRIVATE void SaveMachineInfo(void);
 PRIVATE UINT8 LoadMachineInfo(void);
+PRIVATE UINT8 MachineInfoFactoryCheck(void);
 PRIVATE UINT8 RestoreMachineInfo(void);
 PRIVATE UINT8 EraseMachineInfo(void);
 /***********************************************************************
@@ -68,8 +66,7 @@ PUBLIC void ParamInit(void)
 	
     LoadMachineAddInfo();
     gMachineInfo.Odometer = MachineAddInfo.Odometer.Value;
-    gMachineInfo.CumulativeTime = MachineAddInfo.CumulativeTime.Value;  
-
+    gMachineInfo.CumulativeTime = MachineAddInfo.CumulativeTime.Value;         
     gMachineInfo.MachineInfoSaveState = MACHINE_INFO_NO_CMD;
     
     ErrorLogInit();
@@ -82,9 +79,10 @@ PUBLIC void ParamInit(void)
     gMachineInfo.reductionRatio = 1;
     gMachineInfo.MotorVersionLast = gMachineInfo.motorVersion;
     
-    hrtc1.Instance = RTC;
+//    hrtc1.Instance = RTC;
     BKP_Init();
 }
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -102,7 +100,7 @@ PUBLIC void ParamExec(void)
  * RETURNS:
  *
 ***********************************************************************/
-#define DEFAULT_MACHINE_MOTOR_TYPE 3
+#define DEFAULT_MACHINE_MOTOR_TYPE 1
 PUBLIC void ParamLoop(void)
 {
     if(gParam[0].RestoreDefaults0x2400)
@@ -159,30 +157,6 @@ PUBLIC void ParamLoop(void)
         LoadParamFromEeprom(0);
         LoadParamFromEeprom(1);
         gParam[0].ReadEepromParam0x2404 = 0;
-    } 
-
-    //电机左右两轴坏块检查，发现坏块时，拷贝数据CRC合法的数据至坏块区域
-    for( int Index = 0; Index < PARAM_BLOCK_NUM; Index++ )
-    {
-        if( ( 0 != gParam[Index].EEPROM_GoodBlock ) && ( PARAM_BLOCK_BITS != gParam[Index].EEPROM_GoodBlock ) )
-        {
-            void SaveParamToEepromBlock( UINT16 AxisID, UINT8 Option );
-            void LoadParamFromEepromBlock( UINT16 AxisID, UINT8 Option );
-
-            if( gParam[Index].EEPROM_BlockRetryCnt < PARAM_RETRY_NUM )
-            {
-                LoadParamFromEepromBlock( Index, gParam[Index].EEPROM_GoodBlock ^ PARAM_BLOCK_BITS );
-                if( PARAM_BLOCK_BITS != gParam[Index].EEPROM_GoodBlock ) 
-                {
-                    gParam[Index].EEPROM_BlockRetryCnt++;
-                    SaveParamToEepromBlock( Index, gParam[Index].EEPROM_GoodBlock ^ PARAM_BLOCK_BITS );
-                }
-                else
-                {
-                    gParam[Index].EEPROM_BlockRetryCnt = 0;
-                }
-            }
-        }
     }
     
     if(gMachineInfo.RestoreDefault)
@@ -190,14 +164,14 @@ PUBLIC void ParamLoop(void)
         UINT32 len= (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
         UINT32 Tmp = gMachineInfo.batteryVersion;
         memcpy(&gMachineInfo, &gDefaultMachineInfo, len);
-        //HLS Robot:Motor Type->3
+        //HLS Robot:Motor Type->1
         memcpy(&gMachineInfo, &gMotor_basicData[DEFAULT_MACHINE_MOTOR_TYPE], sizeof(struct MotorDataInMachineInfoStruct));
         gMachineInfo.batteryVersion = Tmp;
         SaveMachineInfo();
         LoadMachineInfo();
         gMachineInfo.RestoreDefault = 0;
     }
-
+    
     if(gMachineInfo.SaveMachineInfo)
     {
         gMachineInfo.MachineInfoSaveState = MACHINE_INFO_WRITING;
@@ -214,31 +188,8 @@ PUBLIC void ParamLoop(void)
                 gMachineInfo.MachineInfoSaveState = MACHINE_INFO_FAULT;
             }
             gMachineInfo.SaveMachineInfo = 0;
-        } 
+        }        
     }
-    //machineInfo eeprom 坏块管理,检查是否存在坏块，如果存在，需要将信息完好的数据拷贝到坏块
-    else if( PARAM_BLOCK_BITS != gMachineInfo.EEPROM_GoodBlock )
-    {
-        extern UINT8 LoadMachineInfoBlock( unsigned char Option );
-        extern void  SaveMachineInfoBlock( unsigned char Option );
-
-        if( gMachineInfo.EEPROM_BlockRetryCnt < PARAM_RETRY_NUM )
-        {
-            gMachineInfo.EEPROM_BlockRetryCnt++;
-            gMachineInfo.EEPROM_GoodBlock |= LoadMachineInfoBlock( gMachineInfo.EEPROM_GoodBlock ^ PARAM_BLOCK_BITS );
-            if( 0 == gMachineInfo.EEPROM_GoodBlock ) 
-            {
-                UINT32 len = (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
-                memcpy(&gMachineInfo,&gDefaultMachineInfo,len+2);
-            }
-            SaveMachineInfoBlock( gMachineInfo.EEPROM_GoodBlock ^ PARAM_BLOCK_BITS );
-        }
-    }
-    else
-    {
-        gMachineInfo.EEPROM_BlockRetryCnt = 0;
-    }
-
     
     if(gParam[0].ClearErrorLog0x2402)
     {
@@ -249,7 +200,7 @@ PUBLIC void ParamLoop(void)
     if(gParam[0].SystemReset0x2403)
     {
 		RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
-        HAL_NVIC_SystemReset();
+        // HAL_NVIC_SystemReset();
     }
 
     MachineAddInfoProcess();    
@@ -265,91 +216,7 @@ PUBLIC UINT16 GetEepromErrorCode(void)
 {
     return EepromErrorFlag;
 }
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PRIVATE void SaveParamToEepromBlock( UINT16 AxisID, UINT8 Option )
-{
-    if( AxisID < 2 )
-    {
-        int i;
-        int Index;
-        int Address;
-        UINT32 len= (UINT32)&gParam[0].EepromCRC - (UINT32)&gParam[0].PositionLimitMin0x2000;
-        
-        if( 0 == AxisID )
-        {
-            Index = AXIS_LEFT;
-            Address = AXIS_Left_PARAM_EEPROM_ADDR;
-        }
-        else
-        {
-            Index = AXIS_RIGHT;
-            Address = AXIS_Right_PARAM_EEPROM_ADDR;
-        }
 
-        gParam[Index].EepromCRC = GetCRC16((unsigned char*)&gParam[Index], len );
-        for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += REDUNDANCY_BLOCK_OFFSET )
-        {
-            if( Option & ( 1 << i ) )
-            {
-                EEPROM_Serial_Write( Address, (UINT8*)&gParam[Index], len+2 );
-            }
-        }
-    }
-}
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PRIVATE void LoadParamFromEepromBlock(UINT16 AxisID, UINT8 Option )
-{
-    if( AxisID < 2 )
-    {
-        int i;
-        int n;
-        int Address;
-        int Index;
-        struct ParameterStruct  gParam_tmp;
-        UINT32 len = (UINT32)&gParam[AXIS_LEFT].EepromCRC - (UINT32)&gParam[AXIS_LEFT].PositionLimitMin0x2000;
-        
-        if( 0 == AxisID )
-        {
-            Index = AXIS_LEFT;
-            Address = AXIS_Left_PARAM_EEPROM_ADDR;
-        }
-        else 
-        {
-            Index = AXIS_RIGHT;
-            Address = AXIS_Right_PARAM_EEPROM_ADDR;
-        }
-        
-        for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += REDUNDANCY_BLOCK_OFFSET )
-        {
-            if( Option & ( 1 << i ) )
-            {
-                for( n = 0; n < 3; n++ )
-                {
-                    EEPROM_Serial_Read( Address, (UINT8*)&gParam_tmp, len+2);
-                    if( GetCRC16( ( UINT8 * )&gParam_tmp.PositionLimitMin0x2000, len ) == gParam_tmp.EepromCRC )
-                    {
-                        gParam[Index].EEPROM_GoodBlock |= ( 1 << i );
-                        break;
-                    }
-                    else
-                    {
-                        gParam[Index].EEPROM_GoodBlock &= ~( 1 << i );
-                    }
-                }
-            }
-        }
-    }
-}
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -358,31 +225,21 @@ PRIVATE void LoadParamFromEepromBlock(UINT16 AxisID, UINT8 Option )
 ***********************************************************************/
 PRIVATE void SaveParamToEeprom(UINT16 AxisID)
 {
-    if( AxisID < 2 )
+    UINT32 len= (UINT32)&gParam[AXIS_LEFT].EepromCRC - (UINT32)&gParam[AXIS_LEFT].PositionLimitMin0x2000;
+    
+    if(AxisID == 0)
     {
-        int i;
-        int Index;
-        int Address;
-        UINT32 len= (UINT32)&gParam[AXIS_LEFT].EepromCRC - (UINT32)&gParam[AXIS_LEFT].PositionLimitMin0x2000;
-        
-        if( 0 == AxisID )
-        {
-            Index = AXIS_LEFT;
-            Address = AXIS_Left_PARAM_EEPROM_ADDR;
-        }
-        else
-        {
-            Index = AXIS_RIGHT;
-            Address = AXIS_Right_PARAM_EEPROM_ADDR;
-        }
-
-        gParam[Index].EepromCRC = GetCRC16((unsigned char*)&gParam[Index], len );
-        for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += REDUNDANCY_BLOCK_OFFSET )
-        {
-            EEPROM_Serial_Write( Address, (UINT8*)&gParam[Index], len+2 );
-        }
+        gParam[AXIS_LEFT].EepromCRC = GetCRC16((unsigned char*)&gParam[AXIS_LEFT], len);
+        EEPROM_Serial_Write(AXIS_Left_PARAM_EEPROM_ADDR, (UINT8*)&gParam[AXIS_LEFT], len+2);
     }
+    else if(AxisID == 1)
+    {
+        gParam[AXIS_RIGHT].EepromCRC = GetCRC16((unsigned char*)&gParam[AXIS_RIGHT], len);
+        EEPROM_Serial_Write(AXIS_Right_PARAM_EEPROM_ADDR, (UINT8*)&gParam[AXIS_RIGHT], len+2);
+    }
+    
 }
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -391,57 +248,39 @@ PRIVATE void SaveParamToEeprom(UINT16 AxisID)
 ***********************************************************************/
 PRIVATE void LoadParamFromEeprom(UINT16 AxisID)
 {
-    if( AxisID < 2 )
+    struct ParameterStruct  gParam_tmp;
+    
+    UINT32 len= (UINT32)&gParam[AXIS_LEFT].EepromCRC - (UINT32)&gParam[AXIS_LEFT].PositionLimitMin0x2000;
+ 
+    if(AxisID == 0)
     {
-        int i;
-        int n;
-        int Index;
-        int Address;
-        struct ParameterStruct  gParam_tmp;
-        UINT32 len = (UINT32)&gParam[AXIS_LEFT].EepromCRC - (UINT32)&gParam[AXIS_LEFT].PositionLimitMin0x2000;
         
-        if( 0 == AxisID )
+        EEPROM_Serial_Read(AXIS_Left_PARAM_EEPROM_ADDR, (UINT8*)&gParam_tmp, len+2);
+        if(GetCRC16((UINT8*)&gParam_tmp.PositionLimitMin0x2000, len) == gParam_tmp.EepromCRC )
         {
-            Index = AXIS_LEFT;
-            Address = AXIS_Left_PARAM_EEPROM_ADDR;
+            memcpy(&gParam[AXIS_LEFT], &gParam_tmp, len+2);
         }
-        else 
+        else
         {
-            Index = AXIS_RIGHT;
-            Address = AXIS_Right_PARAM_EEPROM_ADDR;
+            EepromErrorFlag |= (0x1<<0);
         }
-
-        gParam[Index].EEPROM_GoodBlock = 0;
-        gParam[Index].EEPROM_BlockRetryCnt = 0;
-        for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += REDUNDANCY_BLOCK_OFFSET )
+    }
+    else if(AxisID == 1)
+    {
+        EEPROM_Serial_Read(AXIS_Right_PARAM_EEPROM_ADDR, (UINT8*)&gParam_tmp, len+2);
+        if(GetCRC16((UINT8*)&gParam_tmp.PositionLimitMin0x2000, len) == gParam_tmp.EepromCRC )
         {
-            for( n = 0; n < 3; n++ )
-            {
-                EEPROM_Serial_Read( Address, (UINT8*)&gParam_tmp, len+2);
-                if( GetCRC16( ( UINT8 * )&gParam_tmp.PositionLimitMin0x2000, len ) == gParam_tmp.EepromCRC )
-                {
-                    memcpy(&gParam[Index], &gParam_tmp, len+2);
-                    gParam[Index].EEPROM_GoodBlock |= 1 << i;
-                    break;
-                }
-            }
-
-            if( 0 != gParam[Index].EEPROM_GoodBlock )
-            {
-                break;
-            }
+            memcpy(&gParam[AXIS_RIGHT], &gParam_tmp, len+2);
         }
-
-        if( 0 == gParam[Index].EEPROM_GoodBlock )
+        else
         {
-            EepromErrorFlag |= ( 0x1 << AxisID );
+            EepromErrorFlag |= (0x1<<1);
         }
-        
-        gParam[Index].QuickStopDec0x6085 = gDefaultParam_Left[3].QuickStopDec0x6085;
     }
     
     gParam[AxisID].QuickStopDec0x6085 = gDefaultParam_Left[gMachineInfo.motorVersion].QuickStopDec0x6085;
 }
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -450,74 +289,13 @@ PRIVATE void LoadParamFromEeprom(UINT16 AxisID)
 ***********************************************************************/
 PRIVATE void SaveMachineInfo(void)
 {
-    int i;
-    int Address;
     UINT32 len= (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
     
     gMachineInfo.EepromCRC = GetCRC16((unsigned char*)&gMachineInfo, len);
-    Address = MACHINE_INFO_EEPROM_ADDR;
-    for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += REDUNDANCY_BLOCK_OFFSET )
-    {
-        EEPROM_Serial_Write( Address, (UINT8*)&gMachineInfo, len+2);
-    }
-}
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PRIVATE void SaveMachineInfoBlock( unsigned char Option )
-{
-    int i;
-    int Address;
-    UINT32 len= (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
-    
-    gMachineInfo.EepromCRC = GetCRC16((unsigned char*)&gMachineInfo, len);
-    Address = MACHINE_INFO_EEPROM_ADDR;
-    for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += REDUNDANCY_BLOCK_OFFSET )
-    {
-        if( Option & ( 0x01 << i ) )
-        {
-            EEPROM_Serial_Write( Address, (UINT8*)&gMachineInfo, len+2);
-        }
-    }
-}
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PRIVATE UINT8 LoadMachineInfoBlock( unsigned char Option )
-{
-    int i;
-    int Flag;
-    int Address;
-    struct MachineInfoStruct MachineInfo_tmp;
-    
-    UINT32 len = (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
+    EEPROM_Serial_Write(MACHINE_INFO_EEPROM_ADDR, (UINT8*)&gMachineInfo, len+2);
 
-    Flag = 0;
-    Address = MACHINE_INFO_EEPROM_ADDR;
-    for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += REDUNDANCY_BLOCK_OFFSET )
-    {
-        if( Option & ( 1 << i ) )
-        {
-            for( int n = 0; n < 3; n++ )
-            {
-                EEPROM_Serial_Read( Address, (UINT8*)&MachineInfo_tmp, len+2);
-                if( GetCRC16((UINT8*)&MachineInfo_tmp, len) == MachineInfo_tmp.EepromCRC )
-                {
-                    Flag |= 1 << i;
-                    break;
-                }
-            }
-        }
-    }
-
-    return( Flag );
 }
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -526,46 +304,46 @@ PRIVATE UINT8 LoadMachineInfoBlock( unsigned char Option )
 ***********************************************************************/
 PRIVATE UINT8 LoadMachineInfo(void)
 {
-    int i;
-    unsigned int Address = 0;
     struct MachineInfoStruct MachineInfo_tmp;
     
-    UINT32 len = (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
-
-    gMachineInfo.EEPROM_GoodBlock = 0;
-    gMachineInfo.EEPROM_BlockRetryCnt = 0;
-    Address = MACHINE_INFO_EEPROM_ADDR;
-    for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += REDUNDANCY_BLOCK_OFFSET )
+    UINT32 len= (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
+    
+    EEPROM_Serial_Read(MACHINE_INFO_EEPROM_ADDR, (UINT8*)&MachineInfo_tmp, len+2);
+    
+    if(GetCRC16((UINT8*)&MachineInfo_tmp, len) == MachineInfo_tmp.EepromCRC )
     {
-        int n;
-        
-        for( n = 0; n < 3; n++ )
-        {
-            EEPROM_Serial_Read( Address, (UINT8*)&MachineInfo_tmp, len + 2 );
-            if( GetCRC16((UINT8*)&MachineInfo_tmp, len) == MachineInfo_tmp.EepromCRC )
-            {
-                memcpy( &gMachineInfo, &MachineInfo_tmp, len + 2 );
-                gMachineInfo.EEPROM_GoodBlock |= 1 << i;
-                break;
-            }
-        }
-
-        if( 0 != gMachineInfo.EEPROM_GoodBlock )
-        {
-            break;
-        }
-    }
-
-    if( 0 == gMachineInfo.EEPROM_GoodBlock )
-    {
-        gMachineInfo.CrcState = 2;
-        EepromErrorFlag |= 1<<2;
-        return( FALSE );
+        memcpy(&gMachineInfo, &MachineInfo_tmp, len+2);
+        return TRUE;
     }
     else
     {
-        return( TRUE );
+        gMachineInfo.CrcState = 2;
+        EepromErrorFlag = 0x03;
+        return FALSE;
     }
+    
+}
+
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE UINT8 MachineInfoFactoryCheck(void)
+{
+		struct MachineInfoStruct MachineInfo_tmp;
+    
+    UINT32 len= (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
+    
+    EEPROM_Serial_Read(MACHINE_INFO_EEPROM_ADDR, (UINT8*)&MachineInfo_tmp, len+2);
+    
+    if(GetCRC16((UINT8*)&MachineInfo_tmp, len) != MachineInfo_tmp.EepromCRC )
+    {
+        return FALSE;
+    }
+    return TRUE;
 }
 
 /***********************************************************************
@@ -589,13 +367,12 @@ PRIVATE UINT8 RestoreMachineInfo(void)
  * RETURNS:
  *
 ***********************************************************************/
-UINT8 EraseMachineInfo(void)
+PRIVATE UINT8 EraseMachineInfo(void)
 {
 		struct MachineInfoStruct MachineInfo_tmp;
 		UINT32 len = (UINT32)&gMachineInfo.EepromCRC - (UINT32)&gMachineInfo;
 		memset(&MachineInfo_tmp,0xFF,len+2);
     EEPROM_Serial_Write(MACHINE_INFO_EEPROM_ADDR, (UINT8*)&MachineInfo_tmp, len+2);
-	return( TRUE );
 }
 
 /***********************************************************************
@@ -642,25 +419,25 @@ PUBLIC UINT8 GetResetType(void)
 
 PUBLIC void BKP_Init(void)
 {
-		__HAL_RCC_PWR_CLK_ENABLE();
-		HAL_PWR_EnableBkUpAccess(); // YCHP ADD
-		__HAL_RCC_BKPSRAM_CLK_ENABLE();
-		HAL_PWREx_EnableBkUpReg();
+		// __HAL_RCC_PWR_CLK_ENABLE();
+		// HAL_PWR_EnableBkUpAccess();
+		// __HAL_RCC_BKPSRAM_CLK_ENABLE();
+		// HAL_PWREx_EnableBkUpReg();
 	
-		RTC->TAMPCR |= (0xFF << 17);
+		// RTC->TAMPCR |= (0xFF << 17);
  		
 }
 
 
 PUBLIC void RTC_BKP_Write(UINT32 uiAddr0_19,UINT32 uiDataToWrite)
 {
-		HAL_PWR_EnableBkUpAccess();
-		HAL_RTCEx_BKUPWrite(&hrtc1,uiAddr0_19,uiDataToWrite);
-		HAL_PWR_DisableBkUpAccess();
+		// HAL_PWR_EnableBkUpAccess();
+		// HAL_RTCEx_BKUPWrite(&hrtc1,uiAddr0_19,uiDataToWrite);
+		// HAL_PWR_DisableBkUpAccess();
 }
 
 PUBLIC UINT32 RTC_BKP_Read(UINT32 uiAddr0_19)
 {
-		return HAL_RTCEx_BKUPRead(&hrtc1,uiAddr0_19);
+		// return HAL_RTCEx_BKUPRead(&hrtc1,uiAddr0_19);
 }
 

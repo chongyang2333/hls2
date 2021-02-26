@@ -7,7 +7,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 
 typedef struct{
 		void        (*SDA_WritePin)(uint8_t PinState);

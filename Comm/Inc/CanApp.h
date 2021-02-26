@@ -16,11 +16,8 @@
 #ifndef _CAN_APP_H_
 #define _CAN_APP_H_
 
-#include <stdint.h>
 #include "UserDataTypes.h"
 #include "BootloaderInfo.h"
-#include "PowerManager.h"
-
 #define  STD_CAN_ID  0x02
 struct CanAppStruct
 {
@@ -85,7 +82,7 @@ void IAPCmdTreatment(CAN_RX_Message* pstCanRxMessage);
 UINT8 GetCheckSum8(UINT8* pData,UINT8 len);
 void CmdReadFlashTreatment(CAN_RX_Message* CanRxMessage);
 void CMDGetSoftWareVersionTreatment(CAN_RX_Message* CanRxMessage,BootLoaderInfo* pst_bootLoaderInfo);
-#define DisableInterrupt() __set_FAULTMASK(1);//�ر��ж�
+#define DisableInterupt() __set_FAULTMASK(1);//关闭异常
 #define EnableInterrupt()  __set_FAULTMASK(0);
 #define EN_IAP_CMD 0x16
 #define EN_SELF_ID 0x02
@@ -99,12 +96,7 @@ PUBLIC void CanSendBatteryChargeInfo(UINT8 ChargerState, UINT8 batteryLevelRaw, 
 PUBLIC void CanSendBatteryChargeExInfo(UINT16 temperature);
 PUBLIC void CanSendSupplyChargeVI_Info(UINT16 ChargeVoltage, INT16 ChargeCur, UINT16 supplyCur);
 PUBLIC void CanCarpetModeFdb(UINT16 MotorRatedCurrent0x2209);
-PUBLIC void CanSendBatteryInfo(UINT16 index, UINT32 data);
+PUBLIC void CanSendBatteryInfo(UINT8 index, UINT32 data);
 PUBLIC void JumpAppFb(UINT8 RstType);
-PUBLIC void CanLowPowerConsumeMode(UINT8 lowPowerConsumeMode);
-PUBLIC void CanUploadLowPoweroffEvent(void);
-PUBLIC void CanUploadKeyPoweroffEvent(void);
-
-PUBLIC void CanSendMergedBatteryInfo( struct PowerManagerStruct *pm );
 
 #endif  

@@ -9,7 +9,7 @@ auther:
 #ifndef      __MACHINE_ADDITIONAL_INFO_H__
     #define  __MACHINE_ADDITIONAL_INFO_H__
 /***************************************************************************************************
-                                   本模块EXTERN宏定义区
+                                   鏈ā鍧桬XTERN瀹忓畾涔夊尯
 ***************************************************************************************************/ 
     #ifdef      EXTERN
         #undef  EXTERN
@@ -23,6 +23,9 @@ auther:
 /***************************************************************************************************
                                         
 ***************************************************************************************************/
+#define AXIS_BLOCK_MAX_SIZE                   ( 256 )
+#define MACHINE_INFO_BLOCK_MAX_SIZE           ( 512 )
+#define REDUNDANCY_BLOCK_OFFSET               ( 1024 )
 #define MACHINE_ADD_INFO_ADDR                 ( 2048 )
 #define MACHINE_ADD_INFO_REDUNDANCY_OFFSET    ( 256 )
 #define MACHINE_ADD_INFO_AREA_NUM             ( 4 )

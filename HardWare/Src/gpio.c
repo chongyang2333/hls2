@@ -39,7 +39,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
-#include "delay.h"
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -65,261 +64,245 @@
 */
 UINT8 MX_GPIO_Init(void)
 {
-    GPIO_InitTypeDef GPIO_InitStruct;
+//     GPIO_InitTypeDef GPIO_InitStruct;
     UINT8 TmpChar = 0;
 
-    /* GPIO Ports Clock Enable */  
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE(); 
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOG_CLK_ENABLE();
-    __HAL_RCC_GPIOH_CLK_ENABLE();
+//     /* GPIO Ports Clock Enable */  
+//     __HAL_RCC_GPIOA_CLK_ENABLE();
+//     __HAL_RCC_GPIOB_CLK_ENABLE();
+//     __HAL_RCC_GPIOC_CLK_ENABLE(); 
+//     __HAL_RCC_GPIOD_CLK_ENABLE();
+//     __HAL_RCC_GPIOE_CLK_ENABLE();
+//     __HAL_RCC_GPIOF_CLK_ENABLE();
+//     __HAL_RCC_GPIOG_CLK_ENABLE();
+//     __HAL_RCC_GPIOH_CLK_ENABLE();
 
-    /*Configure Right HALL GPIO pins :PF9:HA  PF7:HB  PF8:HC */
-    GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+//     /*Configure Right HALL GPIO pins :PF9:HA  PF7:HB  PF8:HC */
+//     GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
     
-    /*Configure Left HALL GPIO pins :PC12:HA  PC10:HB  PC11:HC */
-    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_10;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+//     /*Configure Left HALL GPIO pins :PC12:HA  PC10:HB  PC11:HC */
+//     GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_10;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : PF5 :DRVE_PW_EN(12V)*/
-    GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_15;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct); 
-    DrvPwDisable();
-    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_15, GPIO_PIN_RESET);  
+//     /*Configure GPIO pins : PF5 :DRVE_PW_EN(12V)*/
+//     GPIO_InitStruct.Pin = GPIO_PIN_5;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct); 
+//     DrvPwDisable();
    
-    /*Configure GPIO pins : PG0 :MOTOR POWER ENABLE, PD15:MOTOR POWER BUFF ENABLE*/
-    GPIO_InitStruct.Pin = GPIO_PIN_15;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-    VbusBufferDisable();
+//     /*Configure GPIO pins : PG0 :MOTOR POWER ENABLE, PD15:MOTOR POWER BUFF ENABLE*/
+//     GPIO_InitStruct.Pin = GPIO_PIN_15;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+//     VbusBufferDisable();
 
-    GPIO_InitStruct.Pin = GPIO_PIN_0;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-    VbusDisable();
+//     GPIO_InitStruct.Pin = GPIO_PIN_0;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+//     VbusDisable();
 
-    /*Configure GPIO pins : PG11 :PRE_PWR_EN, 12v/5A power en */
-    GPIO_InitStruct.Pin = GPIO_PIN_11;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(GPIOG, GPIO_PIN_11, GPIO_PIN_RESET);
+//     /*Configure GPIO pins : PG11 :PRE_PWR_EN, 5v/5A power en */
+//     GPIO_InitStruct.Pin = GPIO_PIN_11;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+//     HAL_GPIO_WritePin(GPIOG, GPIO_PIN_11, GPIO_PIN_RESET);
     
-    /*Configure GPIO pins : PG12 :SYS_12V_EN (12V)*/
-    GPIO_InitStruct.Pin = GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct); 
+//     /*Configure GPIO pins : PG12 :SYS_12V_EN (12V)*/
+//     GPIO_InitStruct.Pin = GPIO_PIN_12;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct); 
+    
+//     /*Configure GPIO pins : PG14 :SYS_24V_EN (24V)*/
+//     GPIO_InitStruct.Pin = GPIO_PIN_14;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct); 
+//     PadPowerOn();
 
-    /*Configure GPIO pins : PF15 : RST_ACS711 */
-    GPIO_InitStruct.Pin = GPIO_PIN_15;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct); 
+//     /*Configure GPIO pins : PF15 : RST_ACS711 */
+//     GPIO_InitStruct.Pin = GPIO_PIN_15;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct); 
  
-    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_15, GPIO_PIN_RESET);
+//     HAL_GPIO_WritePin(GPIOF, GPIO_PIN_15, GPIO_PIN_RESET);
     
-    /*Configure GPIO pins : PF2 :BEMF DISCHARGE */
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
-    // disable BEMF discharge by default
-    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_2, GPIO_PIN_RESET);
+//     /*Configure GPIO pins : PF2 :BEMF DISCHARGE */
+//     GPIO_InitStruct.Pin = GPIO_PIN_2;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+//     // disable BEMF discharge by default
+//     HAL_GPIO_WritePin(GPIOF, GPIO_PIN_2, GPIO_PIN_RESET);
 
-    /*Configure GPIO pins : PE0 PE1 :led1,2 */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct); 
+//     /*Configure GPIO pins : PE0 PE1 :led1,2 */
+//     GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct); 
 
-    /*Configure GPIO pins : PC13 :CAN_LED  PC14: STM32 heartbeat led*/
-    GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_14;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);  
+//     /*Configure GPIO pins : PC13 :CAN_LED  PC14: STM32 heartbeat led*/
+//     GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_14;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);  
     
-    /*Configure GPIO pins : PF4 : DC Voltage State */
-    GPIO_InitStruct.Pin = GPIO_PIN_4;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);  
-
-    /*Configure GPIO pins : PB15:RK3399 HEART */
-    GPIO_InitStruct.Pin = GPIO_PIN_15;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
-
-    /*Configure GPIO pins : PD10:Battery Cover */
-    GPIO_InitStruct.Pin = GPIO_PIN_10;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct); 
-
-    /*Configure GPIO pins : PF13:L_IU_FO, PF14 : L_IV_FO */
-    GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);  
+//     /*Configure GPIO pins : PF4 : DC Voltage State */
+//     GPIO_InitStruct.Pin = GPIO_PIN_4;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);  
     
-    /*Configure GPIO pins : PG1 : R_IU_FO */
-    GPIO_InitStruct.Pin = GPIO_PIN_1;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);  
+//     /*Configure GPIO pins : PF13:L_IU_FO, PF14 : L_IV_FO */
+//     GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);  
     
-    /*Configure GPIO pins : PE7 : R_IV_FO */
-    GPIO_InitStruct.Pin = GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);  
+//     /*Configure GPIO pins : PG1 : R_IU_FO */
+//     GPIO_InitStruct.Pin = GPIO_PIN_1;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);  
+    
+//     /*Configure GPIO pins : PE7 : R_IV_FO */
+//     GPIO_InitStruct.Pin = GPIO_PIN_7;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);  
  
-    /*Configure GPIO pins : PF10 : IBUS_FO */
-    GPIO_InitStruct.Pin = GPIO_PIN_10;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);  
+//     /*Configure GPIO pins : PF10 : IBUS_FO */
+//     GPIO_InitStruct.Pin = GPIO_PIN_10;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);  
      
-    /*Configure GPIO pins : PB10: CHARGE_FO */
-    GPIO_InitStruct.Pin = GPIO_PIN_10;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);  
+//     /*Configure GPIO pins : PB10: CHARGE_FO */
+//     GPIO_InitStruct.Pin = GPIO_PIN_10;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);  
   
-     /*Configure GPIO pins : PB7 PB6: EEPROM SDA SCL */
-    GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
+//      /*Configure GPIO pins : PB7 PB6: EEPROM SDA SCL */
+//     GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_6;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
     
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    /*Configure GPIO pins : PF11,PF12: KEY_IN_DET, CHARGE_IN_DET */
-    GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct); 
+//     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+//     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+
+//     /*Configure GPIO pins : PF11,PF12: KEY_IN_DET, CHARGE_IN_DET */
+//     GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct); 
  
     
-    /*Configure GPIO pins : PB2 :WAKE_IO*/
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
-    McuPowerOn();
+//     /*Configure GPIO pins : PB2 :WAKE_IO*/
+//     GPIO_InitStruct.Pin = GPIO_PIN_2;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
+//     McuPowerOn();
     
-    /*Configure GPIO pins : PC15 : Tlc59108 RSTn*/
-    GPIO_InitStruct.Pin = GPIO_PIN_15;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct); 
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
+//     /*Configure GPIO pins : PC15 : Tlc59108 RSTn*/
+//     GPIO_InitStruct.Pin = GPIO_PIN_15;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_PULLUP;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct); 
+//     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
 
-	/*Configure GPIO pins : PF15 : RST_ACS711 */
-    GPIO_InitStruct.Pin = GPIO_PIN_15;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct); 
+// 	/*Configure GPIO pins : PF15 : RST_ACS711 */
+//     GPIO_InitStruct.Pin = GPIO_PIN_15;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_PULLUP;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct); 
 
-	/**********************************************************/
-	/*Configure GPIO pins : PD14、G6 : 电机老化测试输入给定引脚 */
-    GPIO_InitStruct.Pin = GPIO_PIN_14;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+// 	/**********************************************************/
+// 	GPIO_InitStruct.Pin = GPIO_PIN_14;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+// 	GPIO_InitStruct.Pin = GPIO_PIN_6;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+// 	GPIO_InitStruct.Pin = GPIO_PIN_5;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_PULLUP;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct); 
+//     HAL_GPIO_WritePin(GPIOG, GPIO_PIN_5, GPIO_PIN_SET);
+// 	/**************************************************************/
     
-	GPIO_InitStruct.Pin = GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+//     /*Configure GPIO pins : PB14: 消毒模块 En */
+//     GPIO_InitStruct.Pin = GPIO_PIN_14;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
+//     DisinfectionModulePowerOff();
     
-	GPIO_InitStruct.Pin = GPIO_PIN_5;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct); 
-    HAL_GPIO_WritePin(GPIOG, GPIO_PIN_5, GPIO_PIN_SET);
-	/**************************************************************/
+//     /*Configure GPIO pins : PG2:S1 PG4:S2：ApplicationMode*/
+//     GPIO_InitStruct.Pin = GPIO_PIN_2 |GPIO_PIN_4;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+//     TmpChar = ReadApplicationMode();
     
-    /*Configure foot_protect GPIO pins :PG8 */
-    GPIO_InitStruct.Pin = GPIO_PIN_8;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-    
-    /*Configure GPIO pins : PB14: 消毒模块 En */
-    GPIO_InitStruct.Pin = GPIO_PIN_14;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
-    DisinfectionModulePowerOn();
-    
-    /*Configure GPIO pins : PG2:S1 PG4:S2：ApplicationMode*/
-    GPIO_InitStruct.Pin = GPIO_PIN_2 |GPIO_PIN_4;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-    TmpChar = ReadApplicationMode();
-    
-//    /*Configure GPIO pin : PF4 */
-//    GPIO_InitStruct.Pin = GPIO_PIN_4;
-//    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-//    GPIO_InitStruct.Pull = GPIO_NOPULL;
-//    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+// //    /*Configure GPIO pin : PF4 */
+// //    GPIO_InitStruct.Pin = GPIO_PIN_4;
+// //    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+// //    GPIO_InitStruct.Pull = GPIO_NOPULL;
+// //    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-//    /* EXTI interrupt init*/
-//    HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);   
+// //    /* EXTI interrupt init*/
+// //    HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);   
     
-    /*Configure GPIO pins : PB12 :CHARGE_EN */
-    GPIO_InitStruct.Pin = GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
-	DisableCharge(TmpChar);
+//     /*Configure GPIO pins : PB12 :CHARGE_EN */
+//     GPIO_InitStruct.Pin = GPIO_PIN_12;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+//     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct); 
+// 	DisableCharge(TmpChar);
     
     return TmpChar;
 }
@@ -328,87 +311,47 @@ UINT8 MX_GPIO_Init(void)
 void battery_I2C_GPIO_Init(void)
 {  
     
-    GPIO_InitTypeDef GPIO_InitStruct;
+    // GPIO_InitTypeDef GPIO_InitStruct;
     
-    /*Configure GPIO pins : PA8 : BATTERY SCL*/
-    GPIO_InitStruct.Pin = GPIO_PIN_8;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
-    /*Configure GPIO pins :PC9: BATTERY SDA*/   
-    GPIO_InitStruct.Pin = GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct); 
+    // /*Configure GPIO pins : PA8 : BATTERY SCL*/
+    // GPIO_InitStruct.Pin = GPIO_PIN_8;
+    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    // GPIO_InitStruct.Pull = GPIO_PULLUP;
+    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    // HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
+    // /*Configure GPIO pins :PC9: BATTERY SDA*/   
+    // GPIO_InitStruct.Pin = GPIO_PIN_9;
+    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    // GPIO_InitStruct.Pull = GPIO_PULLUP;
+    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    // HAL_GPIO_Init(GPIOC, &GPIO_InitStruct); 
     
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);   
 }
 
 // Battery module: SDA
-#if 0
 void Battery_SDA_WritePin(uint8_t PinState)
 {
-		if(PinState)
-				GPIOC->BSRR = (1<<9);
-		else
-				GPIOC->BSRR = (1<<25);
+		// if(PinState)
+		// 		GPIOC->BSRR = (1<<9);
+		// else
+		// 		GPIOC->BSRR = (1<<25);
 }
 
 // Battery module: SCL
 void Battery_SCL_WritePin(uint8_t PinState)
 {
-		if(PinState)
-				GPIOA->BSRR = (1<<8);
-		else
-				GPIOA->BSRR = (1<<24);
+		// if(PinState)
+		// 		GPIOA->BSRR = (1<<8);
+		// else
+		// 		GPIOA->BSRR = (1<<24);
 }
-#else
-void Battery_SDA_WritePin(uint8_t PinState)
-{
-	if( PinState )
-	{
-        GPIOC->BSRR = (1<<9);
-	}
-	else
-	{
-		GPIOC->BSRR = (1<<25);
-	}
-}
-
-// Battery module: SCL
-void Battery_SCL_WritePin(uint8_t PinState)
-{
-	if( PinState )
-	{
-        GPIOA->BSRR = (1<<8);
-	}
-	else
-	{
-		GPIOA->BSRR = (1<<24);
-	}
-}
-
-#endif
 
 // Battery module: SDA Read
 uint8_t Battery_SDA_ReadPin(void)
 {
     return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9);
-}
-
-uint8_t is_charger_cur_over( void )
-{
-    return (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == 0? 1:0);
-}
-
-void VCS_711_reset(void)
-{
-    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_15, GPIO_PIN_SET);  
-    delay_ms(50);
-    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_15, GPIO_PIN_RESET);  
 }
 
 // Battery module: SCL Read
@@ -435,16 +378,16 @@ void VbusEnable(void)
     HAL_GPIO_WritePin(GPIOG, GPIO_PIN_0, GPIO_PIN_SET);    
 }
 
+// Disable Vbus Buffer Voltage
+void VbusDisable(void)
+{
+    HAL_GPIO_WritePin(GPIOG, GPIO_PIN_0, GPIO_PIN_RESET);  
+}
+
 // Read Vbus Enable State
 UINT8 ReadVbusEnableState(void)
 {
     return HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_0);    
-}
-
-// Disable DC Voltage
-void VbusDisable(void)
-{
-    HAL_GPIO_WritePin(GPIOG, GPIO_PIN_0, GPIO_PIN_RESET);  
 }
 
 // Enable DC Voltage Buffer
@@ -510,14 +453,27 @@ PRIVATE UINT8 ChargeMosState = 0;
 void EnableCharge(UINT8 ApplicationMode)
 {
     ChargeMosState = 1;
-    //Use LTC4367 Control Charge Mos, IO state should be overturn
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    if (!ApplicationMode)
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    }
 }
 
 void DisableCharge(UINT8 ApplicationMode)
 {
     ChargeMosState = 0;
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+    if (!ApplicationMode)
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+    }
 }
 
 
@@ -540,26 +496,6 @@ uint8_t ReadChargeInPinState(void)
     return HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12);
 }
 
-PUBLIC void PadPowerOnInit(UINT8 PowerEn)
-{
-	GPIO_InitTypeDef GPIO_InitStruct;
-    
-    /*Configure GPIO pins : PG14 :SYS_24V_EN (24V)*/
-    GPIO_InitStruct.Pin = GPIO_PIN_14;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct); 
-    if (PowerEn)
-    {
-        PadPowerOn();
-    }
-    else
-    {
-        PadPowerOff();
-    }
-}
-
 // turn on pad power 
 void PadPowerOn(void)
 {
@@ -572,7 +508,7 @@ void PadPowerOff(void)
     HAL_GPIO_WritePin(GPIOG, GPIO_PIN_14, GPIO_PIN_RESET);
 }
 
-// turn on Disinfection Module power  消毒模块电源开启
+// turn on Disinfection Module power 
 void DisinfectionModulePowerOn(void)
 {
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
@@ -588,18 +524,6 @@ void DisinfectionModulePowerOff(void)
 uint8_t ReadPadPowerState(void)
 {
     return HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_14);
-}
-
-// Read Rk3399 Heart State
-uint8_t ReadRk3399HeartState(void)
-{
-    return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);
-}
-
-// Read Battery Cover State
-uint8_t ReadBatteryCoverState(void)
-{
-    return HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_10);
 }
 
 UINT16 VeneerAgingTestState(void)

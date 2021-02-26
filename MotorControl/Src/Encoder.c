@@ -293,7 +293,7 @@ PRIVATE void IncEncoderCal(struct EncoderStruct *P)
         P->MultiTurn++;
         P->VirtualPhaseZTrig = 1;
 	}
-    else if(P->MechAngle < 0)//((P->MechAngle + P->PulseMax) < 0)//
+    else if(P->MechAngle < 0)
 	{
 		P->MechAngle = P->MechAngle + P->PulseMax;
         P->MultiTurn--;
@@ -304,7 +304,6 @@ PRIVATE void IncEncoderCal(struct EncoderStruct *P)
     
 //    INT32 mechAngle = P->MechAngle;
 
-
 //	if(mechAngle < 0)
 //	{
 //		mechAngle = mechAngle + P->PulseMax;
@@ -312,7 +311,6 @@ PRIVATE void IncEncoderCal(struct EncoderStruct *P)
 
 	Tmp = (P->MechAngle * P->PolePairs) % P->PulseMax;
 	P->ElecAngle = (Tmp * P->SinUnit) / P->PulseMax;
-		
     
 //    UINT16 HallState = GetHallState();
 //    

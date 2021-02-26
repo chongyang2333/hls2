@@ -17,7 +17,7 @@
 #define _EEPROM_H_
 
 #include "UserDataTypes.h"
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 
 extern PUBLIC void EepromInit(void);
 extern PUBLIC void EEPROM_Serial_Write(UINT16 Writeaddr,UINT8 *Str,UINT16 Len);

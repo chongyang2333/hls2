@@ -7,7 +7,7 @@ auther:
                              
 ***************************************************************************************************/ 
 #define  __SYSTEM_COMMON_C__
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 #include "signature_code.h"
 #include "system_common.h"
 #undef   __SYSTEM_COMMON_C__
@@ -31,7 +31,7 @@ const STRUCT_BOOTLOADER_INFO BootloaderInfo  __attribute__( ( at( BOOTLOADER_INF
     .InfoSize = sizeof( STRUCT_BOOTLOADER_INFO ),
     .ValidSignature = { BOOTLOADER_SIGNATURE0_VALID, BOOTLOADER_SIGNATURE1_VALID },
 	.Company = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "PuDu", .Value = 0 },
-    .Product = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "HuiGou", .Value = 0 },
+    .Product = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "HLS_PLUS", .Value = 0 },
     .HardwareVersion = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "Hardware", .Value = 0x00010001 },
     .BootloaderVersion = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "Bootloader", .Value = 0x00010001 },
 };

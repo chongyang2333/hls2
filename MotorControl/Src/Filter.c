@@ -184,7 +184,6 @@ PUBLIC void FilterFIR8SetStates(struct FIR8Struct *P, REAL32 States)
 	return p->out;
 }
 */
-
 /***********************************************************************
  * DESCRIPTION:
  *

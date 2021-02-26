@@ -17,7 +17,6 @@
 
 #include "Gyro.h"
 #include "i2c.h"
-#include "delay.h"
 #include "CanApp.h"
 
 PRIVATE void I2C_Gyro_ByteWrite(UINT8 WriteAddr, UINT8 WriteData);
@@ -56,26 +55,26 @@ PUBLIC void GyroInit(void)
 INT16 gyro[3], accel[3];
 PUBLIC void GyroExec(void)
 {
-    UINT8 DataBuffer[14] = {0};	//Êý¾Ý»º´æ
-/****************************¼ÓËÙ¶È****************************************/
+    UINT8 DataBuffer[14] = {0};	//ï¿½ï¿½ï¿½Ý»ï¿½ï¿½ï¿½
+/****************************ï¿½ï¿½ï¿½Ù¶ï¿½****************************************/
 	I2C_Gyro_BufferRead(DataBuffer, ACCEL_XOUT_H, 14);
-	accel[0]  = (short)((DataBuffer[0]<<8)+DataBuffer[1]);	  //¶ÁÈ¡XÖá¼ÓËÙ¶È
+	accel[0]  = (short)((DataBuffer[0]<<8)+DataBuffer[1]);	  //ï¿½ï¿½È¡Xï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 	
 //	I2C_Gyro_BufferRead(DataBuffer, ACCEL_YOUT_H, 2);
-	accel[1]  = -(short)((DataBuffer[2]<<8)+DataBuffer[3]);	  //¶ÁÈ¡YÖá¼ÓËÙ¶È
+	accel[1]  = -(short)((DataBuffer[2]<<8)+DataBuffer[3]);	  //ï¿½ï¿½È¡Yï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 	
 //	I2C_Gyro_BufferRead(DataBuffer, ACCEL_ZOUT_H, 2);
-	accel[2]  = -(short)((DataBuffer[4]<<8)+DataBuffer[5]);	  //¶ÁÈ¡ZÖá¼ÓËÙ¶È
+	accel[2]  = -(short)((DataBuffer[4]<<8)+DataBuffer[5]);	  //ï¿½ï¿½È¡Zï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 	
-/****************************½ÇËÙ¶È****************************************/
+/****************************ï¿½ï¿½ï¿½Ù¶ï¿½****************************************/
 //	I2C_Gyro_BufferRead(DataBuffer, GYRO_XOUT_H, 2);
-	gyro[0] = (short)((DataBuffer[8]<<8)+DataBuffer[9]);	      //¶ÁÈ¡XÖá½ÇËÙ¶È
+	gyro[0] = (short)((DataBuffer[8]<<8)+DataBuffer[9]);	      //ï¿½ï¿½È¡Xï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 	
 //	I2C_Gyro_BufferRead(DataBuffer, GYRO_YOUT_H, 2);
-	gyro[1] = -(short)((DataBuffer[10]<<8)+DataBuffer[11]);	      //¶ÁÈ¡YÖá½ÇËÙ¶È
+	gyro[1] = -(short)((DataBuffer[10]<<8)+DataBuffer[11]);	      //ï¿½ï¿½È¡Yï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 	
 //	I2C_Gyro_BufferRead(DataBuffer, GYRO_ZOUT_H, 2);
-	gyro[2] = -(short)((DataBuffer[12]<<8)+DataBuffer[13]);	      //¶ÁÈ¡ZÖá½ÇËÙ¶È
+	gyro[2] = -(short)((DataBuffer[12]<<8)+DataBuffer[13]);	      //ï¿½ï¿½È¡Zï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 
 
     CanSendGyro(gyro, accel);
@@ -107,8 +106,8 @@ PUBLIC void GetGyroData(INT16 *pData)
 ***********************************************************************/
 PRIVATE void I2C_Gyro_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
 {
-    HAL_I2C_Mem_Write(&hi2c2, I2C2_MPU6050,WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData,1,500);
-    while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+    // HAL_I2C_Mem_Write(&hi2c2, I2C2_MPU6050,WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData,1,500);
+    // while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -119,7 +118,7 @@ PRIVATE void I2C_Gyro_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
 ***********************************************************************/
 PRIVATE void I2C_Gyro_BufferRead(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumByteToRead)
 {
-    HAL_I2C_Mem_Read(&hi2c2, I2C2_MPU6050, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead,1000);
-    while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+    // HAL_I2C_Mem_Read(&hi2c2, I2C2_MPU6050, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead,1000);
+    // while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 

@@ -19,9 +19,8 @@
 #include "HardApi.h"
 #include "UartApp.h"
 #include "stdio.h"
-#include "CanopenApp.h"
 #include "StateMachine.h"
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 #include "myiic.h"
 #include "Gyro.h"
 #include "Rgb.h"
@@ -174,7 +173,6 @@ PUBLIC void ControlRunExec(void)
             if(Cnt_1ms++>=2)
             {
                 Cnt_1ms = 0;
-                timerForCan1MS();
             }
 		break;
 	}
@@ -223,12 +221,15 @@ PUBLIC void ControlRunExec(void)
 
 }
 
+void led_bar_driver( void );
+
 /***********************************************************************
  * DESCRIPTION:general timer interrupt . 40HZ
  *
  * RETURNS:
  *
 ***********************************************************************/
+UINT16 KeyStateCnt=0;
 PUBLIC void TimerIsrExec(void)
 {   
     UINT32 StartTime = ReadTimeStampTimer();
@@ -242,7 +243,6 @@ PUBLIC void TimerIsrExec(void)
     GyroExec();
     
     LedDriverExec();
-    
     led_bar_driver();
     // StateMachine
     CiA402_StateMachine();
@@ -272,7 +272,8 @@ PUBLIC void TimerIsrExec(void)
     {
         sAxis[0].sAlarm.ErrReg.bit.InnerErr = 1;
         sAxis[1].sAlarm.ErrReg.bit.InnerErr = 1;
-    }    
+    }
+    
 }
 
 /***********************************************************************
@@ -742,7 +743,7 @@ PUBLIC INT32 DataCollectGetValue(UINT16 Index)
             break;
         
         case 0x2303 :
-            res = sAxis[0].sCurLoop.IqFdb*1000;//sAxis[0].sCurLoop.IValidFdb*1000;//
+            res = sAxis[0].sCurLoop.IqFdb*1000;
             break;
         
         case 0x2304 :
@@ -840,3 +841,4 @@ PUBLIC INT32 DataCollectGetValue(UINT16 Index)
     
     return res;
 }
+

@@ -17,7 +17,6 @@
 
 #include "LedDriver.h"
 #include "i2c.h"
-#include "delay.h"
 #include "CanApp.h"
 #include "PowerManager.h"
 
@@ -60,8 +59,7 @@ static  LedFsmTableStruct sLedFsmTable[] = {
     { LED_EVENT_REMOTE_CONTROL, EVENT_REMOTE_CONTROL_CUR_STATE_MASK,  EVENT_REMOTE_CONTROL_NEXT_STATE_MASK, NULL},		
     { LED_EVENT_MCU_POWEROFF,   EVENT_MCU_POWEROFF_CUR_STATE_MASK,  	EVENT_MCU_POWEROFF_NEXT_STATE_MASK, 	NULL},
     { LED_EVENT_CHARGE_ING,     EVENT_CHARGE_ING_CUR_STATE_MASK,  		EVENT_CHARGE_ING_NEXT_STATE_MASK, 		NULL},
-    { LED_EVENT_CHARGE_OUT,     EVENT_CHARGE_OUT_CUR_STATE_MASK,  		EVENT_CHARGE_OUT_NEXT_STATE_MASK, 		NULL}, 
-    
+    { LED_EVENT_CHARGE_OUT,     EVENT_CHARGE_OUT_CUR_STATE_MASK,  		EVENT_CHARGE_OUT_NEXT_STATE_MASK, 		NULL},    
 };
 
 LedFsmStruct sLedFsm;
@@ -77,8 +75,8 @@ static UINT8 TimeCnt = 0;
 ***********************************************************************/
 PRIVATE void I2C_LedDriver_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
 {
-	HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData, 1, 1000);
-	while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+	// HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData, 1, 1000);
+	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -89,8 +87,8 @@ PRIVATE void I2C_LedDriver_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
 ***********************************************************************/
 PRIVATE void I2C_sTlc59108fAllRegUpDate(void)
 {
-	HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg,18,1000);
-	while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+	// HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg,18,1000);
+	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -101,8 +99,8 @@ PRIVATE void I2C_sTlc59108fAllRegUpDate(void)
 ***********************************************************************/
 PRIVATE void I2C_LedDriver_BufferRead(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumByteToRead)
 {
-	HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead,1000);
-	while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+	// HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead,1000);
+	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -113,8 +111,8 @@ PRIVATE void I2C_LedDriver_BufferRead(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumB
 ***********************************************************************/
 PRIVATE void I2C_sTlc59108fAllRegRead()
 {
-	HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg, 18,1000);
-	while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+	// HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg, 18,1000);
+	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -488,8 +486,8 @@ PUBLIC void LedDriverExec(void)
 		case LED_STATE_CHARGE_20_39://left and right show orange with 6s breathing period
 			if(sLedFsm.stateTransferFlag)
 			{
-				LedBreathePwmConfig(&sRedBreathePwm, 25, 120, 0xFF, 0x00, 0);
-				LedBreathePwmConfig(&sGreenBreathePwm, 25, 120, 0x40, 0x00, 0);
+				LedBreathePwmConfig(&sRedBreathePwm, 25, 120, 0xD2, 0x00, 0);
+				LedBreathePwmConfig(&sGreenBreathePwm, 25, 120, 0x0A, 0x00, 0);
 				LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm), GetBreathePwmValue(&sGreenBreathePwm), 0x00);
 				I2C_sTlc59108fAllRegUpDate();
 				
@@ -505,8 +503,8 @@ PUBLIC void LedDriverExec(void)
 		case LED_STATE_CHARGE_40_59://left and right show yellow with 4.5s breathing period
 			if(sLedFsm.stateTransferFlag)
 			{
-				LedBreathePwmConfig(&sRedBreathePwm, 25, 90, 0xFF, 0x00, 0);
-				LedBreathePwmConfig(&sGreenBreathePwm, 25, 90, 0xB4, 0x00, 0);
+				LedBreathePwmConfig(&sRedBreathePwm, 25, 90, 0xD2, 0x00, 0);
+				LedBreathePwmConfig(&sGreenBreathePwm, 25, 90, 0x32, 0x00, 0);
 				LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm), GetBreathePwmValue(&sGreenBreathePwm), 0x00);
 				I2C_sTlc59108fAllRegUpDate();
 				
@@ -621,76 +619,63 @@ void chassis_led_ctrl( uint8_t *buff )
     uint8_t bar_id = buff[1];
     uint8_t idx = 0;
 
-    if (bar_id != 12)
+    if( bar_id != 13 && bar_id != 14 )
     {
         return;
     }
-    
+
+    idx = bar_id - 13;
     if( ReadChargeAppState() )
     {
         return;
     }
-    
+
     if( lcolor > 6 || lmode > 6 )
     {
         return;
     }
-    
+
     if( lcolor == 1)
     {
-        bar_param[1].r_color = bar_param[0].r_color = 0xFF;
-        bar_param[1].g_color = bar_param[0].g_color = 0xFF;
-        bar_param[1].b_color = bar_param[0].b_color = 0xFF;
+        bar_param[idx].r_color = 0xFF;
+        bar_param[idx].g_color = 0xFF;
+        bar_param[idx].b_color = 0xFF;
     } else if( lcolor == 2 ) {
-        bar_param[1].r_color = bar_param[0].r_color = 0xFF;
-        bar_param[1].g_color = bar_param[0].g_color = 0;
-        bar_param[1].b_color = bar_param[0].b_color = 0;
+        bar_param[idx].r_color = 0xFF;
+        bar_param[idx].g_color = 0;
+        bar_param[idx].b_color = 0;
     } else if( lcolor == 3 ) {
-        bar_param[1].r_color = bar_param[0].r_color = 0;
-        bar_param[1].g_color = bar_param[0].g_color = 0xFF;
-        bar_param[1].b_color = bar_param[0].b_color = 0;
+        bar_param[idx].r_color = 0;
+        bar_param[idx].g_color = 0xFF;
+        bar_param[idx].b_color = 0;
     } else if( lcolor == 4 ) {
-        bar_param[1].r_color = bar_param[0].r_color = 0;
-        bar_param[1].g_color = bar_param[0].g_color = 0;
-        bar_param[1].b_color = bar_param[0].b_color = 0xFF;
+        bar_param[idx].r_color = 0;
+        bar_param[idx].g_color = 0;
+        bar_param[idx].b_color = 0xFF;
     } else if( lcolor == 5 ) {
-        bar_param[1].r_color = bar_param[0].r_color = 0xFF;
-        bar_param[1].g_color = bar_param[0].g_color = 0xA5;
-        bar_param[1].b_color = bar_param[0].b_color = 0;
+        bar_param[idx].r_color = 0xFF;
+        bar_param[idx].g_color = 0xA5;
+        bar_param[idx].b_color = 0;
     } else if( lcolor == 6 ){
-        bar_param[1].r_color = bar_param[0].r_color = 0xFF;
-        bar_param[1].g_color = bar_param[0].g_color = 0xFF;
-        bar_param[1].b_color = bar_param[0].b_color = 0;
+        bar_param[idx].r_color = 0xFF;
+        bar_param[idx].g_color = 0xFF;
+        bar_param[idx].b_color = 0;
     }
-    bar_param[1].mode = bar_param[0].mode = lmode;
-    bar_param[1].arg = bar_param[0].arg = larg / 40;
-    
-    if( bar_param[0].mode == 5 )
+    bar_param[idx].mode = lmode;
+    bar_param[idx].arg = larg / 40;
+
+    if( bar_param[idx].mode == 5 )
     {
-        bar_param[0].r_color = buff[4];
-        bar_param[0].g_color = buff[5];
-        bar_param[0].b_color = buff[6];
-        bar_param[0].mode = 1;
+        bar_param[idx].r_color = buff[4];
+        bar_param[idx].g_color = buff[5];
+        bar_param[idx].b_color = buff[6];
+        bar_param[idx].mode = 1;
     }
-    
-    if( bar_param[1].mode == 5 )
+    if( bar_param[idx].mode == 1 || bar_param[idx].mode == 0 )
     {
-        bar_param[1].r_color = buff[4];
-        bar_param[1].g_color = buff[5];
-        bar_param[1].b_color = buff[6];
-        bar_param[1].mode = 1;
+        bar_param[idx].toggled = 0;
     }
-    
-    
-    if( bar_param[0].mode == 1 || bar_param[0].mode == 0 )
-    {
-        bar_param[0].toggled = 0;
-    }
-    
-    if( bar_param[1].mode == 1 || bar_param[1].mode == 0 )
-    {
-        bar_param[1].toggled = 0;
-    }
+
 }
 
 void led_bar_driver( void )
@@ -699,6 +684,7 @@ void led_bar_driver( void )
     
     bar_param[0].timer++;
     bar_param[1].timer++;
+    
     
     if( bar_param[0].mode == 2)
     {
@@ -745,6 +731,7 @@ void led_bar_driver( void )
     }
     
 }
+
 
 /***********************************************************************
  * DESCRIPTION: Handle LedFsm event

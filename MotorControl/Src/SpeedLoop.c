@@ -16,17 +16,16 @@
 /*------------------------- Include files ----------------------------*/
 #include "ControlRun.h"
 #include "Param.h"
+#include "math.h"
 
-#define SpeedPeriod    (SPEED_FRQ/10)	//500.0f  // ÿ������
+#define SpeedPeriod    (SPEED_FRQ/10)	//500.0f  //  每个周期
 
-#define S_curve		0	// s���߼Ӽ���   
-#define Trapezoid	1	// ���μӼ���
-#define Quintics	0	// �������
+#define S_curve		0	// s曲线加减速
+#define Trapezoid	1	// 梯形曲线加减速
+#define Quintics	0	// 五次曲线
 
 PRIVATE void SpeedRefSelect(struct AxisCtrlStruct *P);
-//PRIVATE void SpeedPICal(struct SpeedLoopStruct *P);
 PRIVATE void SpeedPICal(struct SpeedLoopStruct *P);
-
 
 /***********************************************************************
  * DESCRIPTION:
@@ -59,8 +58,8 @@ PUBLIC void SpeedLoopInit(struct AxisCtrlStruct *P)
     pSpd->DisturGain = (float)gParam[P->AxisID].DisturGainFc0x210D*0.01f;
     pSpd->DisturFilterCoff = (float)gParam[P->AxisID].DisturFilterFc0x210C*2*PI*SPEED_PRD;
 	
-  	pCurve->Acc = 0.0f;	// ʵ�ʼ��ٶ�
-	pCurve->Counts = 0.0f; // ����ֵ
+  	pCurve->Acc = 0.0f;	//
+	pCurve->Counts = 0.0f; // 
 	
     IIR1LPFParameterCal(&pSpd->sSpdRefFilter, gParam[P->AxisID].SpdRefFilterFc0x2107, SPEED_PRD);    
     IIR1LPFParameterCal(&pSpd->sSpdFdbFilter, gParam[P->AxisID].SpdFdbFilterFc0x2108, SPEED_PRD);
@@ -88,6 +87,8 @@ PUBLIC void SpeedLoopExec(struct AxisCtrlStruct *P)
 	//Speed feedback calculation
     float RawSpdFdb = pSpd->IncToRpmUnit*P->sEncoder.SpdFdbPulseInc;
 	P->sEncoder.SpdFdbPulseInc = 0;
+  
+//    pSpd->SpdFdb = FilterFIR8Exec(&pSpd->sSpdFdbFilter2, RawSpdFdb);
     
 	//Speed feedback filter
 	if(P->sFilterCfg.bit.SpdFdbFilter)
@@ -196,6 +197,10 @@ PRIVATE void SpeedRefSelect(struct AxisCtrlStruct *P)
 	            {
 	                pSpd->SpdRefNoFilter = pSpd->SpdRefOld - (pSpd->DecMax/SpeedPeriod);
 	            }
+				else
+				{
+					pSpd->SpdRefNoFilter = pSpd->SpdRef;
+				}
 
 				tmp = (pSpd->SpdRefNoFilter - pSpd->SpdRefOld )*pSpd->TorFFGain;
 	            pSpd->TorFF = FilterIIR1LPFExec(&pSpd->sTorFFFilter, tmp);
@@ -204,7 +209,11 @@ PRIVATE void SpeedRefSelect(struct AxisCtrlStruct *P)
 	            
 	            //Speed reference filter
 	            if(P->sFilterCfg.bit.SpdRefFilter)
-	                pSpd->SpdRefActul = FilterIIR1LPFExec(&pSpd->sSpdRefFilter, pSpd->SpdRefNoFilter );	
+	                pSpd->SpdRefActul = FilterIIR1LPFExec(&pSpd->sSpdRefFilter, pSpd->SpdRefNoFilter );
+				if( fabs(pSpd->SpdRefActul- pSpd->SpdRefNoFilter)<1.0)
+				{
+					pSpd->SpdRefActul = pSpd->SpdRefNoFilter;
+				}	
 			}
             if(!P->PowerFlag)
             {
@@ -242,62 +251,6 @@ PRIVATE void SpeedRefSelect(struct AxisCtrlStruct *P)
 	}
 }
 
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-/*PRIVATE void SpeedPICal(struct SpeedLoopStruct *P)
-{
-
-	P->SpdErr = P->SpdRefActul - P->SpdFdb;;
-    
-	// PDFF control
-	P->SpdKpPart = P->Vp* (P->Kpdff* P->SpdRefActul - P->SpdFdb);
-	P->SpdKiPart = P->SpdKiPart + P->Vi * P->SpdErr;
-
-	if(P->SpdKiPart > P->OutMax)
-	{
-		P->SpdKiPart = P->OutMax;
-	}
-
-	if(P->SpdKiPart < P->OutMin)
-	{
-		P->SpdKiPart = P->OutMin;
-	}
-
-	P->OutPreSat = P->SpdKpPart + P->SpdKiPart + P->TorFF + P->DisturbanceComp;
-
-	if(P->SpdKpPart > P->OutMax)
-	{
-		P->Output = P->OutMax;
-		P->SpdKiPart = 0.0f;
-	}
-	else if(P->SpdKpPart < P->OutMin)
-	{
-		P->Output = P->OutMin;
-		P->SpdKiPart = 0.0f;
-	}
-	else if(P->OutPreSat > P->OutMax)
-	{
-		P->Output = P->OutMax;
-//		P->SpdKiPart = P->OutMax - P->SpdKpPart;
-        P->SpdKiPart = P->SpdKiPart - P->Vi * P->SpdErr;
-	}
-	else if(P->OutPreSat < P->OutMin)
-	{
-		P->Output = P->OutMin;
-//		P->SpdKiPart = P->OutMin - P->SpdKpPart;
-        P->SpdKiPart = P->SpdKiPart - P->Vi * P->SpdErr;
-	}
-	else
-	{
-		P->Output = P->OutPreSat;
-	}
-
-
-}*/
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -354,6 +307,5 @@ PRIVATE void SpeedPICal(struct SpeedLoopStruct *P)
 
 
 }
-
 
 

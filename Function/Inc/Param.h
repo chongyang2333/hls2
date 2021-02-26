@@ -18,11 +18,8 @@
 
 #include "UserDataTypes.h"
 #include "ControlRun.h"
-#include "stm32f7xx_hal.h"
-#include "stm32f7xx_hal_rtc.h"
-#include "stm32f7xx_hal_rtc_ex.h"
+#include "gd32f4xx.h"
 
-//#include "stm32f7xx_hal.h"
 
 /*---------------------------------------------
 -    DataTypes
@@ -68,7 +65,6 @@
 #define 		EN_RESET_TYPE_PORRSTF				0x02
 
 
-
 #define 		EN_RESET_TYPE_BKP_ADDR			0U
 #define         EN_BATTERY_PROTECT_BKP_ADDR     4U
 
@@ -85,7 +81,6 @@ struct SoftwareVersionStruct
 #define MACHINE_INFO_WRITING  1
 #define MACHINE_INFO_SUCCESS  2
 #define MACHINE_INFO_FAULT    3
-#define MACHINE_INFO_CHECK    4
 
 typedef struct
 {
@@ -137,7 +132,6 @@ struct MachineInfoStruct
     UINT8   ESP32Version;
     /*INSERT->20190716*/
     UINT8   RGBDVersion;
-
     /*INSERT->2019*/
     UINT8   type; //machine type 6:plus,8:bella
     UINT8   AudioVersion;  // Index 23 第四个字节
@@ -163,15 +157,12 @@ struct MachineInfoStruct
     UINT16  RestoreDefault;
     UINT16  SaveMachineInfo;
     UINT16  MachineInfoSaveState;
-    UINT16  EEPROM_GoodBlock;
-    UINT16  EEPROM_BlockRetryCnt;
     UINT32  MotorVersionLast;   
 };
 
 /*
 	sensor data struct 
 */
-#pragma pack (1)
 struct SensorDataStruct
 { 
     INT16  GyroSpeedX0x4000;
@@ -186,59 +177,15 @@ struct SensorDataStruct
     UINT8  InfraRed30x4008;
     UINT8  InfraRed40x4009;
     
-    UINT16  ParallelVoltage0x400A;
+    UINT16  BatteryVoltage0x400A;
     UINT16  BatteryCurrent0x400B;
-    INT16   ChargeCurrent0x400C;
+    INT16  ChargeCurrent0x400C;
     UINT16  BatteryLevel0x400D;
     UINT16  ChargeState0x400E;
     UINT16  ChargeVoltage0x400F;
     INT16   BatteryTemp0x4010;
-    
-    UINT32  PowerManageAlarm0x4011;
-    
-    UINT8   No1_Type0x4012;
-    UINT16  No1_PackVoltage0x4013;
-    INT16   No1_DischargeCurrent0x4014;
-    INT16   No1_ChargeCurrent0x4015;
-    UINT8   No1_SocRaw0x4016;
-    INT16   No1_CellTemp0x4017;
-    UINT16  No1_Fcc0x4018;
-    UINT16  No1_Soh0x4019;
-    UINT16  No1_Cycle0x401A;
-    UINT16  No1_Cell1Voltage0x401B;
-    UINT16  No1_Cell2Voltage0x401C;
-    UINT16  No1_Cell3Voltage0x401D;
-    UINT16  No1_Cell4Voltage0x401E;
-    UINT16  No1_Cell5Voltage0x401F;
-    UINT16  No1_Cell6Voltage0x4020;
-    UINT16  No1_Cell7Voltage0x4021;
-    UINT32  No1_Protect0x4022;
-    UINT32  No1_Fault0x4023;
-    UINT8   No1_ComFailSet0x4024;
-    UINT8   No1_LowPowerSet0x4025;
-    
-    UINT8   No2_Type0x4026;
-    UINT16  No2_PackVoltage0x4027;
-    INT16   No2_DischargeCurrent0x4028;
-    INT16   No2_ChargeCurrent0x4029;
-    UINT8   No2_SocRaw0x402A;
-    INT16   No2_CellTemp0x402B;
-    UINT16  No2_Fcc0x402C;
-    UINT16  No2_Soh0x402D;
-    UINT16  No2_Cycle0x402E;
-    UINT16  No2_Cell1Voltage0x402F;
-    UINT16  No2_Cell2Voltage0x4030;
-    UINT16  No2_Cell3Voltage0x4031;
-    UINT16  No2_Cell4Voltage0x4032;
-    UINT16  No2_Cell5Voltage0x4033;
-    UINT16  No2_Cell6Voltage0x4034;
-    UINT16  No2_Cell7Voltage0x4035;
-    UINT32  No2_Protect0x4036;
-    UINT32  No2_Fault0x4037;
-    UINT8   No2_ComFailSet0x4038;
-    UINT8   No2_LowPowerSet0x4039;
+    INT16 AverageBatteryCurrent0x4011;
 };
-#pragma pack ()
 
 
 struct ParameterStruct 
@@ -288,7 +235,7 @@ struct ParameterStruct
     UINT32  ProfileDec0x6084;
     UINT32  QuickStopDec0x6085;
     UINT8   QuickStopEn0x6086;
-
+    
     /* for eeprom save param */  
     UINT16  EepromCRC;
 
@@ -337,9 +284,6 @@ struct ParameterStruct
     INT16   ActualCurrent0x6078; 
     INT32   TargetPosition0x607A;
     INT32   TargetVelocity0x60FF;
-    
-    UINT16  EEPROM_GoodBlock;
-    UINT16  EEPROM_BlockRetryCnt;
 };
 
 
@@ -510,60 +454,13 @@ const OBJ_ENTRY ApplicationObjDic[] = {
 {NULL, NULL, 0x4007, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READ_ONLY, &gSensorData.InfraRed20x4007},
 {NULL, NULL, 0x4008, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READ_ONLY, &gSensorData.InfraRed30x4008},
 {NULL, NULL, 0x4009, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READ_ONLY, &gSensorData.InfraRed40x4009},
-{NULL, NULL, 0x400A, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.ParallelVoltage0x400A},
+{NULL, NULL, 0x400A, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.BatteryVoltage0x400A},
 {NULL, NULL, 0x400B, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.BatteryCurrent0x400B},
 {NULL, NULL, 0x400C, DEFTYPE_INTEGER16, 0x10, ACCESS_READ_ONLY, &gSensorData.ChargeCurrent0x400C},
 {NULL, NULL, 0x400D, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.BatteryLevel0x400D},
 {NULL, NULL, 0x400E, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.ChargeState0x400E},
 {NULL, NULL, 0x400F, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.ChargeVoltage0x400F},
 {NULL, NULL, 0x4010, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.BatteryTemp0x4010},
-
-/*INSERT->20201102*/
-{NULL, NULL, 0x4011, DEFTYPE_UNSIGNED32, 0x08, ACCESS_READ_ONLY, &gSensorData.PowerManageAlarm0x4011},
-
-{NULL, NULL, 0x4012, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READ_ONLY, &gSensorData.No1_Type0x4012},
-{NULL, NULL, 0x4013, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_PackVoltage0x4013},
-{NULL, NULL, 0x4014, DEFTYPE_INTEGER16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_DischargeCurrent0x4014},
-{NULL, NULL, 0x4015, DEFTYPE_INTEGER16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_ChargeCurrent0x4015},
-{NULL, NULL, 0x4016, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READ_ONLY, &gSensorData.No1_SocRaw0x4016},
-{NULL, NULL, 0x4017, DEFTYPE_INTEGER16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_CellTemp0x4017},
-{NULL, NULL, 0x4018, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Fcc0x4018},
-{NULL, NULL, 0x4019, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Soh0x4019},
-{NULL, NULL, 0x401A, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Cycle0x401A},
-{NULL, NULL, 0x401B, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Cell1Voltage0x401B},
-{NULL, NULL, 0x401C, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Cell2Voltage0x401C},
-{NULL, NULL, 0x401D, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Cell3Voltage0x401D},
-{NULL, NULL, 0x401E, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Cell4Voltage0x401E},
-{NULL, NULL, 0x401F, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Cell5Voltage0x401F},
-{NULL, NULL, 0x4020, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Cell6Voltage0x4020},
-{NULL, NULL, 0x4021, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No1_Cell7Voltage0x4021},
-{NULL, NULL, 0x4022, DEFTYPE_UNSIGNED32, 0x20, ACCESS_READ_ONLY, &gSensorData.No1_Protect0x4022},
-{NULL, NULL, 0x4023, DEFTYPE_UNSIGNED32, 0x20, ACCESS_READ_ONLY, &gSensorData.No1_Fault0x4023},
-{NULL, NULL, 0x4024, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READ_ONLY, &gSensorData.No1_ComFailSet0x4024},
-{NULL, NULL, 0x4025, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READ_ONLY, &gSensorData.No1_LowPowerSet0x4025},
-
-{NULL, NULL, 0x4026, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READ_ONLY, &gSensorData.No2_Type0x4026},
-{NULL, NULL, 0x4027, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_PackVoltage0x4027},
-{NULL, NULL, 0x4028, DEFTYPE_INTEGER16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_DischargeCurrent0x4028},
-{NULL, NULL, 0x4029, DEFTYPE_INTEGER16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_ChargeCurrent0x4029},
-{NULL, NULL, 0x402A, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READ_ONLY, &gSensorData.No2_SocRaw0x402A},
-{NULL, NULL, 0x402B, DEFTYPE_INTEGER16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_CellTemp0x402B},
-{NULL, NULL, 0x402C, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Fcc0x402C},
-{NULL, NULL, 0x402D, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Soh0x402D},
-{NULL, NULL, 0x402E, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Cycle0x402E},
-{NULL, NULL, 0x402F, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Cell1Voltage0x402F},
-{NULL, NULL, 0x4030, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Cell2Voltage0x4030},
-{NULL, NULL, 0x4031, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Cell3Voltage0x4031},
-{NULL, NULL, 0x4032, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Cell4Voltage0x4032},
-{NULL, NULL, 0x4033, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Cell5Voltage0x4033},
-{NULL, NULL, 0x4034, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Cell6Voltage0x4034},
-{NULL, NULL, 0x4035, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gSensorData.No2_Cell7Voltage0x4035},
-{NULL, NULL, 0x4036, DEFTYPE_UNSIGNED32, 0x20, ACCESS_READ_ONLY, &gSensorData.No2_Protect0x4036},
-{NULL, NULL, 0x4037, DEFTYPE_UNSIGNED32, 0x20, ACCESS_READ_ONLY, &gSensorData.No2_Fault0x4037},
-{NULL, NULL, 0x4038, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READ_ONLY, &gSensorData.No2_ComFailSet0x4038},
-{NULL, NULL, 0x4039, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READ_ONLY, &gSensorData.No2_LowPowerSet0x4039},
-
-
 
 {NULL, NULL, 0x4100, DEFTYPE_REAL32, 0x20, ACCESS_READWRITE, &gMachineInfo.machineWheelDiameter},
 {NULL, NULL, 0x4101, DEFTYPE_REAL32, 0x20, ACCESS_READWRITE, &gMachineInfo.machineWheelPerimeter},
@@ -593,8 +490,6 @@ const OBJ_ENTRY ApplicationObjDic[] = {
 {NULL, NULL, 0x4117, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READWRITE, &gMachineInfo.ESP32Version},
 /*INSERT->20190716*/
 {NULL, NULL, 0x4118, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READWRITE, &gMachineInfo.RGBDVersion},
-/*INSERT->20190905*/
-{NULL, NULL, 0x4119, DEFTYPE_UNSIGNED8, 0x08, ACCESS_READWRITE, &gMachineInfo.type},
 
 {NULL, NULL, 0x4119, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.type},
 {NULL, NULL, 0x411A, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.AudioVersion},
@@ -652,7 +547,7 @@ const OBJ_ENTRY ApplicationObjDic[] = {
 
 #endif // _OBJD_
 #ifdef _OBJD_
-
+#warning "print not define OBJD"
 const struct ParameterStruct gDefaultParam_Left[10] = {
 //Motor Type:1->ZL 5.5" 1024PRD
 [1] = {0x80000000, 0x7FFFFFFF, 300, 12000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
@@ -798,21 +693,21 @@ const struct MotorDataInMachineInfoStruct gMotor_basicData[10] = {
 
 
 const struct MachineInfoStruct gDefaultMachineInfo = {
-0.173f, 0.534071f, 0.4003f,     // R, L, D
+0.14f, 0.439823f, 0.386f,     // R, L, D
 1024, 4, 1, 0,                 // Line, factor, ratio, inv
 2, 3,   //Tag Pcb Version
 2, 4,   //Chassis Pcb Version
 2,
-5,      //LDS version
-3,
+7,      //LDS version
+1,
 0, 
 1,
 {2019, 5, 27},
 {2019, 5, 22},
 1,    //markerCameraVersion
 1,    //ESP32Version
-1,    //RGBDVersion
-10,    //machine type
+0,    //RGBDVersion
+6,    //machine type
 };
 #endif // _OBJD_
 

@@ -18,10 +18,6 @@
 
 #include "UserDataTypes.h"
 
-#define ADC1_JDR1_GAIN  0.01859225f    // Battery Voltage coff
-#define ADC1_JDR2_GAIN  0.01859225f    // Moter Dc Voltage coff
-#define ADC3_JDR4_GAIN  0.01859225f    // Charge Voltage coff
-
 #define ADC2_JDR4_GAIN  0.01859225f    // Motor Bus Voltage coff
 
 /* Time stamp module */
@@ -47,7 +43,7 @@ extern PUBLIC float GetChargeCurrent(void);
 extern PUBLIC float GetBatteryCurrent(void);
 extern PUBLIC float GetBatteryVoltage(void);
 extern PUBLIC void GetDcVoltage(float *Vbus);
-extern PUBLIC REAL32 GetDcVoltageNoFilter(void);
+PUBLIC REAL32 GetDcVoltageNoFilter(void);
 extern PUBLIC float GetChargeVoltage(void);
 
 /* Encoder module */

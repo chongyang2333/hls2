@@ -45,7 +45,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 
 /* DMA memory to memory transfer handles -------------------------------------*/
 extern void _Error_Handler(char*, int);

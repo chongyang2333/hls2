@@ -86,7 +86,4 @@ extern PUBLIC REAL32 FilterIIR1LPFExec(struct IIR1LPFStruct *P, REAL32 In);
 extern void IIR1LPFParameterCal(struct IIR1LPFStruct *P ,INT16 Fc, REAL32 Ts);
 extern void IIR2NotchParameterCal(struct IIR2Struct *P ,INT16 Fc, REAL32 Ts, REAL32 u);
 
-//extern PUBLIC void AveFilterResetState(struct AverageFilter *P);
-
-
 #endif  // _FILTER_H_

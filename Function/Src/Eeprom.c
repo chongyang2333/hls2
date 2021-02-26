@@ -17,7 +17,6 @@
 
 #include "Eeprom.h"
 #include "myiic.h"
-#include "delay.h"
 #include "gpio.h"
 
 MyIICStruct sMyIIC;
@@ -25,7 +24,6 @@ MyIICStruct sMyIIC;
 #define EEPROM_WADDR   0XA0
 #define EEPROM_RADDR   0XA1
 #define EEPROM_PAGE_SIZE  32
-#define EEPROM_RETRY_NUM        ( 3 )
 
 PRIVATE void At24c02_Init(void);
 //PRIVATE void At24c02_Write_Byte(UINT16 addr,UINT8 dat);
@@ -42,23 +40,7 @@ PUBLIC void EepromInit(void)
 {
     At24c02_Init();
 }
-/*==================================================================================================
-名称：EEPROM_IsBusy
-功能：判断EEPROM芯片是否在内部忙状态
-输入：无
-输出：0:不忙,非0：忙
-==================================================================================================*/
- unsigned char EEPROM_IsBusy( void )
-{
-    unsigned char i = 0;
-    
-    myiic_start(&sMyIIC);    
-    myiic_WriteByte(&sMyIIC,EEPROM_WADDR);  
-    i = myiic_waitack(&sMyIIC);  
-    myiic_stop(&sMyIIC);
-    
-    return( !i );
-}
+
 /***********************************************************************
  * DESCRIPTION: This function can not write eeprom across page
  *
@@ -67,75 +49,34 @@ PUBLIC void EepromInit(void)
 ***********************************************************************/
 PRIVATE void EEPROM_Page_Write(UINT16 Writeaddr,UINT8 *Str,UINT16 Len)
 {
-    unsigned int  Num;
-    unsigned char RetryCnt = 0;
-    unsigned char *pBuff;
-
-    if( 0 == Len )
-    {
-        return;
-    }
+    myiic_start(&sMyIIC);    
+    myiic_WriteByte(&sMyIIC,EEPROM_WADDR);  
+    myiic_waitack(&sMyIIC);  
+    myiic_WriteByte(&sMyIIC,Writeaddr>>8);  
+    myiic_waitack(&sMyIIC);
+    myiic_WriteByte(&sMyIIC,Writeaddr);  
+    myiic_waitack(&sMyIIC);
+ 
+	while(Len--)
+	{
+        myiic_WriteByte(&sMyIIC,*Str);  
+        myiic_waitack(&sMyIIC);
+		Str++;		
+	}
+	myiic_stop(&sMyIIC);
+	delay_ms(10);  
     
-    for( RetryCnt = 0; RetryCnt < 10; RetryCnt++ )
-	{
-        if( !EEPROM_IsBusy() )
-        {
-            break;
-        }
-
-        delay_ms(1);
-    }
-
-    for( RetryCnt = 0; RetryCnt < EEPROM_RETRY_NUM; RetryCnt++ )
+#if 0   
+    while(Len--)
     {
-        Num = Len;
-        pBuff = ( unsigned char * )Str;
-        myiic_start( &sMyIIC );    
-        myiic_WriteByte( &sMyIIC,EEPROM_WADDR);  
-        if( !myiic_waitack(&sMyIIC) )
-        {
-            myiic_stop(&sMyIIC);
-            continue;
-        }
-        
-        myiic_WriteByte(&sMyIIC,Writeaddr>>8);  
-        if( !myiic_waitack(&sMyIIC) )
-        {
-            myiic_stop(&sMyIIC);
-            continue;
-        }
-        myiic_WriteByte(&sMyIIC,Writeaddr);  
-        if( !myiic_waitack(&sMyIIC) )
-        {
-            myiic_stop(&sMyIIC);
-            continue;
-        }
-     
-    	while( Num--)
-    	{
-            myiic_WriteByte(&sMyIIC, *pBuff++ );  
-            if( !myiic_waitack(&sMyIIC) )
-            {
-                break;
-            }
-    	}
-
-        myiic_stop(&sMyIIC);
-        if( 0 == Num )
-        {
-            break;
-        }
+        At24c02_Write_Byte(Writeaddr,*Str);
+        Writeaddr++;
+        Str++;
     }
-
-    for( RetryCnt = 0; RetryCnt < 10; RetryCnt++ )
-	{
-        delay_ms(1);
-        if( !EEPROM_IsBusy() )
-        {
-            break;
-        }
-    }
+#endif
 }
+
+
 /***********************************************************************
  * DESCRIPTION: This function can write eeprom across page
  *
@@ -229,67 +170,52 @@ PUBLIC void EEPROM_Serial_Write(UINT16 Writeaddr,UINT8 *Str,UINT16 Len)
 ***********************************************************************/
 PUBLIC void EEPROM_Serial_Read(UINT16 Readaddr,UINT8 *Str,UINT16 Len)
 {
-    unsigned int  Num;
-    unsigned char RetryCnt;
-    unsigned char *pBuff;
-
-    if( ( ( UINT8 * )0 == Str ) || ( 0 == Len ) )
-    {
-        return;
-    }
+    myiic_start(&sMyIIC); 
+	myiic_WriteByte(&sMyIIC,EEPROM_WADDR);  
+    myiic_waitack(&sMyIIC);    
+    myiic_WriteByte(&sMyIIC,Readaddr>>8);  
+    myiic_waitack(&sMyIIC);
+    myiic_WriteByte(&sMyIIC,Readaddr);  
+    myiic_waitack(&sMyIIC);
+    myiic_start(&sMyIIC); 
+    myiic_WriteByte(&sMyIIC,EEPROM_RADDR);
+    myiic_waitack(&sMyIIC);
     
-    for( RetryCnt = 0; RetryCnt < EEPROM_RETRY_NUM; RetryCnt++ )
+	while(Len)
+	{
+		*Str = myiic_ReadByte(&sMyIIC);
+		if(Len==1) myiic_noack(&sMyIIC);
+		else myiic_ack(&sMyIIC);
+		Str++;
+		Len--;
+	}
+	myiic_stop(&sMyIIC);
+
+#if 0
+    while(Len)
     {
-        Num = Len;
-        pBuff = ( unsigned char * )Str;
-        myiic_start(&sMyIIC); 
-    	myiic_WriteByte(&sMyIIC,EEPROM_WADDR);  
-        if( !myiic_waitack(&sMyIIC) )
-        {
-            myiic_stop(&sMyIIC);
-            continue;
-        }
-        myiic_WriteByte(&sMyIIC,Readaddr>>8);  
-        if( !myiic_waitack(&sMyIIC) )
-        {
-            myiic_stop(&sMyIIC);
-            continue;
-        }
-        myiic_WriteByte(&sMyIIC,Readaddr);  
-        if( !myiic_waitack(&sMyIIC) )
-        {
-            myiic_stop(&sMyIIC);
-            continue;
-        }
-        
-        myiic_start(&sMyIIC); 
-        myiic_WriteByte(&sMyIIC,EEPROM_RADDR);
-        if( !myiic_waitack(&sMyIIC) )
-        {
-            myiic_stop(&sMyIIC);
-            continue;
-        }
-        
-    	for( ; Num > 0; Num-- )
-    	{
-    		*pBuff++ = myiic_ReadByte(&sMyIIC);
-    		if( 1 == Num ) 
-            {
-                myiic_noack( &sMyIIC );
-    		}
-    		else
-            {
-                myiic_ack( &sMyIIC );
-    		}
-    	}
-        
-    	myiic_stop(&sMyIIC);
-        break;
+        *Str++ = At24c02_Read_Byte(Readaddr++);
+        Len--;
     }
+#endif
+    
 }
 
 
 
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void At24c02_Init(void)
+{
+    sMyIIC.SDA_WritePin = EEPROM_SDA_WritePin;
+    sMyIIC.SCL_WritePin = EEPROM_SCL_WritePin;
+    sMyIIC.SDA_ReadPinState = EEPROM_SDA_ReadPin;
+}
 
 #if 0
 /***********************************************************************
@@ -343,71 +269,17 @@ PRIVATE UINT8 At24c02_Read_Byte(UINT16 addr)
 // Eeprom module: SDA
 void EEPROM_SDA_WritePin(uint8_t PinState)
 {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, PinState);
+    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, PinState);
 }
 
 // Eeprom module: SCL
 void EEPROM_SCL_WritePin(uint8_t PinState)
 {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, PinState);
+    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, PinState);
 }
 
 // Eeprom module: SDA Read
 uint8_t EEPROM_SDA_ReadPin(void)
 {
-    return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
+    // return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
 }
-
-void EEPROM_SDA_SetPinDir( uint8_t IsOut )
-{
-    GPIO_InitTypeDef GPIO_Config;
-    
-    /*Configure GPIO pins : PB7 PB6: EEPROM SDA SCL */
-    GPIO_Config.Pin = GPIO_PIN_7;
-    if( IsOut )
-    {
-        GPIO_Config.Mode = GPIO_MODE_OUTPUT_OD;
-    }
-    else
-    {
-        GPIO_Config.Mode = GPIO_MODE_INPUT;
-    }
-    GPIO_Config.Pull = GPIO_NOPULL;
-    GPIO_Config.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init( GPIOB, &GPIO_Config ); 
-}
-
-void EEPROM_SCL_SetPinDir( uint8_t IsOut )
-{
-    GPIO_InitTypeDef GPIO_Config;
-    
-    /*Configure GPIO pins : PB7 PB6: EEPROM SDA SCL */
-    GPIO_Config.Pin = GPIO_PIN_6;
-    if( IsOut )
-    {
-        GPIO_Config.Mode = GPIO_MODE_OUTPUT_OD;
-    }
-    else
-    {
-        GPIO_Config.Mode = GPIO_MODE_INPUT;
-    }
-    GPIO_Config.Pull = GPIO_NOPULL;
-    GPIO_Config.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init( GPIOB, &GPIO_Config ); 
-}
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PRIVATE void At24c02_Init(void)
-{
-    sMyIIC.SDA_WritePin = EEPROM_SDA_WritePin;
-    sMyIIC.SCL_WritePin = EEPROM_SCL_WritePin;
-    sMyIIC.SDA_ReadPinState = EEPROM_SDA_ReadPin;
-    sMyIIC.SCL_SetPinDir = EEPROM_SCL_SetPinDir;
-    sMyIIC.SDA_SetPinDir = EEPROM_SDA_SetPinDir;
-}
-
-

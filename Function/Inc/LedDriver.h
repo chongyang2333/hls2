@@ -200,7 +200,6 @@ typedef struct
 
 extern LedFsmStruct sLedFsm;
 
-extern PUBLIC void led_bar_driver( void );
 extern PUBLIC void LedDriverInit(void);
 extern PUBLIC void LedDriverExec(void);
 extern PUBLIC void LedFsmEventHandle(LedFsmStruct *pLedFsm, UINT8 event, LedStateEnum aimState, void *parm);

@@ -8,7 +8,7 @@ auther:
 ***************************************************************************************************/ 
 #define  __MACHINE_ADDITIONAL_INFO_C__
 #include <stdlib.h>
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 #include "UserDataTypes.h"
 #include "Param.h"
 #include "UartApp.h"

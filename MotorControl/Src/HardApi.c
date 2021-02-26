@@ -18,7 +18,6 @@
 #include "ControlRun.h"
 #include "adc.h"
 #include "tim.h"
-#include "delay.h"
 
 PRIVATE INT16 ADC2_JDR1_Offset = 2160;
 PRIVATE INT16 ADC2_JDR2_Offset = 2070;
@@ -33,6 +32,9 @@ PRIVATE INT16 ADC1_JDR4_Offset = 2048;
 #define ADC3_JDR2_GAIN  0.01464844f    // (+/-)30A/2048
 
 #define ADC1_JDR4_GAIN  0.01464844f    // (+/-)30A/2048
+
+#define ADC1_JDR1_GAIN  0.01859225f    // Dc Voltage coff
+#define ADC3_JDR4_GAIN  0.01859225f    // Charge Voltage coff
 
 extern PUBLIC UINT8 ApplicationMode;
 
@@ -56,7 +58,7 @@ PUBLIC void TimeStampTimerInit(void)
 ***********************************************************************/
 PUBLIC UINT32 ReadTimeStampTimer(void)
 {
-    return TIM5->CNT;
+//    return TIM5->CNT;
 }
 
 /***********************************************************************
@@ -82,14 +84,14 @@ PUBLIC void PwmInit(void)
 ***********************************************************************/
 PUBLIC void PwmEnable(UINT16 AxisID)
 {
-    if(AXIS_LEFT == AxisID)
-    {
-        TIM1->CCER = 0x555;
-    }
-    else if(AXIS_RIGHT == AxisID)
-    {
-        TIM8->CCER = 0x555;
-    }
+    // if(AXIS_LEFT == AxisID)
+    // {
+    //     TIM1->CCER = 0x555;
+    // }
+    // else if(AXIS_RIGHT == AxisID)
+    // {
+    //     TIM8->CCER = 0x555;
+    // }
 }
 
 /***********************************************************************
@@ -100,14 +102,14 @@ PUBLIC void PwmEnable(UINT16 AxisID)
 ***********************************************************************/
 PUBLIC void PwmDisable(UINT16 AxisID)
 {
-    if(AXIS_LEFT == AxisID)
-    {
-        TIM1->CCER = 0x0;
-    }
-    else if(AXIS_RIGHT == AxisID)
-    {
-        TIM8->CCER = 0x0;
-    }
+    // if(AXIS_LEFT == AxisID)
+    // {
+    //     TIM1->CCER = 0x0;
+    // }
+    // else if(AXIS_RIGHT == AxisID)
+    // {
+    //     TIM8->CCER = 0x0;
+    // }
 }
 
 /***********************************************************************
@@ -123,18 +125,18 @@ PUBLIC void PwmUpdate(UINT16 AxisID, UINT16 PowerFlag, UINT16 Ta, UINT16 Tb, UIN
         Ta = Tb = Tc = 0;
     }
     
-    if(AXIS_LEFT == AxisID)
-    {
-        TIM1->CCR1 = Ta;
-        TIM1->CCR2 = Tb;
-        TIM1->CCR3 = Tc;
-    }
-    else if(AXIS_RIGHT == AxisID)
-    {
-        TIM8->CCR1 = Ta;
-        TIM8->CCR2 = Tb;
-        TIM8->CCR3 = Tc;
-    }
+    // if(AXIS_LEFT == AxisID)
+    // {
+    //     TIM1->CCR1 = Ta;
+    //     TIM1->CCR2 = Tb;
+    //     TIM1->CCR3 = Tc;
+    // }
+    // else if(AXIS_RIGHT == AxisID)
+    // {
+    //     TIM8->CCR1 = Ta;
+    //     TIM8->CCR2 = Tb;
+    //     TIM8->CCR3 = Tc;
+    // }
 }
 
 /***********************************************************************
@@ -161,9 +163,9 @@ PUBLIC void AdcInit(void)
 ***********************************************************************/
 PUBLIC void AdcSampleStart(void)
 {
-    ADC3->CR2 |= (1<<22);
-	ADC2->CR2 |= (1<<22);
-	ADC1->CR2 |= (1<<22);  
+    // ADC3->CR2 |= (1<<22);
+	// ADC2->CR2 |= (1<<22);
+	// ADC1->CR2 |= (1<<22);  
 }
 
 /***********************************************************************
@@ -174,12 +176,12 @@ PUBLIC void AdcSampleStart(void)
 ***********************************************************************/
 PUBLIC void AdcSampleClearFlag(void)
 {
-	while(!(ADC3->SR&(1<<2)));
-	ADC3->SR&=~(1<<2);
-	while(!(ADC2->SR&(1<<2)));
-	ADC2->SR&=~(1<<2);
-	while(!(ADC1->SR&(1<<2)));
-	ADC1->SR&=~(1<<2);
+	// while(!(ADC3->SR&(1<<2)));
+	// ADC3->SR&=~(1<<2);
+	// while(!(ADC2->SR&(1<<2)));
+	// ADC2->SR&=~(1<<2);
+	// while(!(ADC1->SR&(1<<2)));
+	// ADC1->SR&=~(1<<2);
     
 //    LeftMotorAdc = ADC3->JDR3;
 //    RightMotorAdc = ADC2->JDR3;
@@ -193,8 +195,8 @@ PUBLIC void AdcSampleClearFlag(void)
 ***********************************************************************/
 PUBLIC void GetMotorAdc(UINT16 *leftAdc, UINT16 *rightAdc)
 {
-    *leftAdc = ADC3->JDR3;
-    *rightAdc = ADC2->JDR3;
+    // *leftAdc = ADC3->JDR3;
+    // *rightAdc = ADC2->JDR3;
 }
   
 /***********************************************************************
@@ -205,8 +207,8 @@ PUBLIC void GetMotorAdc(UINT16 *leftAdc, UINT16 *rightAdc)
 ***********************************************************************/
 PUBLIC void GetMosAdc(UINT16 *leftMosAdc, UINT16 *rightMosAdc)
 {
-    *leftMosAdc = ADC1->JDR2;
-    *rightMosAdc = ADC1->JDR3;
+    // *leftMosAdc = ADC1->JDR2;
+    // *rightMosAdc = ADC1->JDR3;
 }
 
 /***********************************************************************
@@ -225,10 +227,10 @@ PUBLIC void AdcOffsetCal(void)
     {
         AdcSampleStart();
         AdcSampleClearFlag();
-        sum[0] += ADC2->JDR1;
-        sum[1] += ADC2->JDR2;
-        sum[2] += ADC3->JDR1;
-        sum[3] += ADC3->JDR2;
+        // sum[0] += ADC2->JDR1;
+        // sum[1] += ADC2->JDR2;
+        // sum[2] += ADC3->JDR1;
+        // sum[3] += ADC3->JDR2;
         
         delay_ms(2);
     }
@@ -239,7 +241,7 @@ PUBLIC void AdcOffsetCal(void)
     if((ADC2_JDR1_Offset > 2248) || (ADC2_JDR1_Offset <1848)
         || (ADC2_JDR2_Offset > 2248) || (ADC2_JDR2_Offset <1848))
     {
-        Right_AdcInitState = 1;
+        Left_AdcInitState = 1;
     }
     
     ADC3_JDR1_Offset = sum[2]/16;
@@ -248,7 +250,7 @@ PUBLIC void AdcOffsetCal(void)
     if((ADC3_JDR1_Offset > 2248) || (ADC3_JDR1_Offset <1848)
         || (ADC3_JDR2_Offset > 2248) || (ADC3_JDR2_Offset <1848))
     {
-        Left_AdcInitState = 1;
+        Right_AdcInitState = 1;
     }
     
 //    ADC2_JDR4_Offset = sum[4]/16;
@@ -286,13 +288,13 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 { 
     if(AXIS_LEFT == AxisID)
     {
-        *Ia = ((INT16)ADC3->JDR1 - ADC3_JDR1_Offset)*ADC3_JDR1_GAIN;
-        *Ib = ((INT16)ADC3->JDR2 - ADC3_JDR2_Offset)*ADC3_JDR2_GAIN;
+        // *Ia = ((INT16)ADC3->JDR1 - ADC3_JDR1_Offset)*ADC3_JDR1_GAIN;
+        // *Ib = ((INT16)ADC3->JDR2 - ADC3_JDR2_Offset)*ADC3_JDR2_GAIN;
     }
     else if(AXIS_RIGHT == AxisID)
     { 
-        *Ia = ((INT16)ADC2->JDR1 - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
-        *Ib = ((INT16)ADC2->JDR2 - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
+        // *Ia = ((INT16)ADC2->JDR1 - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
+        // *Ib = ((INT16)ADC2->JDR2 - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
     }
     
 }
@@ -306,7 +308,7 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 PUBLIC float GetChargeCurrent(void)
 { 
     float Res = 0;
-    Res = ((INT16)ADC1->JDR4 - ADC1_JDR4_Offset)*ADC1_JDR4_GAIN;
+    // Res = ((INT16)ADC1->JDR4 - ADC1_JDR4_Offset)*ADC1_JDR4_GAIN;
     return Res;
 }
 
@@ -329,8 +331,9 @@ PUBLIC float GetBatteryCurrent(void)
 ***********************************************************************/
 PUBLIC float GetBatteryVoltage(void)
 { 
-    float Vbattery_tmp = ADC1->JDR1*ADC1_JDR1_GAIN;
-    
+    float Vbattery_tmp; 
+   
+    // Vbattery_tmp = ADC1->JDR1*ADC1_JDR1_GAIN;
     return Vbattery_tmp;
 }
 
@@ -343,14 +346,17 @@ PUBLIC float GetBatteryVoltage(void)
 PRIVATE REAL32 Vbus_local_voltage = 0.0f;
 PUBLIC void GetDcVoltage(float *Vbus)
 { 
-    float Vbus_tmp;
+    float Vbus_tmp = 0.0f;
+    
     if (!ApplicationMode)
     {
-       Vbus_tmp = ADC1->JDR2*ADC1_JDR2_GAIN;
+        /*<= B04, Use ADC1->JDR1, PA4*/
+        // Vbus_tmp = ADC1->JDR1*ADC1_JDR1_GAIN;
     }
     else
     {
-        Vbus_tmp = ADC2->JDR4*ADC2_JDR4_GAIN;
+        /*>= A06, Use ADC2->JDR4, PA3*/
+        // Vbus_tmp = ADC2->JDR4*ADC2_JDR4_GAIN;
     }
     
     Vbus_local_voltage = Vbus_tmp;
@@ -376,9 +382,10 @@ PUBLIC REAL32 GetDcVoltageNoFilter(void)
 ***********************************************************************/
 PUBLIC float GetChargeVoltage(void)
 { 
-    float Vtmp = ADC3->JDR4*ADC3_JDR4_GAIN;
+    float Vtmp;
+    // Vtmp = ADC3->JDR4*ADC3_JDR4_GAIN;
     
-    return Vtmp;//Vtmp;
+    return Vtmp;
 }
 
 /***********************************************************************
@@ -404,11 +411,11 @@ PUBLIC UINT32 GetIncEncoderPulse(UINT16 AxisID)
     UINT32 res = 0;
     if(AXIS_LEFT == AxisID)
     {
-        res = TIM2->CNT;
+        // res = TIM2->CNT;
     }
     else if(AXIS_RIGHT == AxisID)
     {
-        res = TIM4->CNT;
+        // res = TIM4->CNT;
     }
     
     return res;
@@ -424,11 +431,11 @@ PUBLIC void ClearIncEncoderPulse(UINT16 AxisID)
 {
     if(AXIS_LEFT == AxisID)
     {
-        TIM3->CNT = 0;
+        // TIM3->CNT = 0;
     }
     else if(AXIS_RIGHT == AxisID)
     {
-        TIM2->CNT = 0;
+        // TIM2->CNT = 0;
     }
 }
 

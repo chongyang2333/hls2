@@ -44,9 +44,8 @@ PUBLIC void CurrentLoopInit(struct AxisCtrlStruct *P)
 	pCur->PWMPRD = PWM_PERIOD_VALUE;
 	pCur->VDCinvTSQRT = pCur->PWMPRD >> 1;
 	pCur->VDCinvTCon0 = pCur->VDCinvTSQRT * C_FSqrt3;
-    /*死区时间1us,限制上桥脉宽1%~98%,那么下桥的脉宽限制为2%~97%*/
 	pCur->Tonmin = C_Tonmin;
-	pCur->Tonmax = pCur->PWMPRD - pCur->Tonmin*2;
+	pCur->Tonmax = pCur->PWMPRD - (pCur->Tonmin * 2);
 
     pCur->Cp = 0.1f;
 	pCur->Ci = 0.01f;
@@ -58,7 +57,7 @@ PUBLIC void CurrentLoopInit(struct AxisCtrlStruct *P)
 	pCur->M_Lq = 0;
 	pCur->M_Rs = 0.5f;
 
-	pCur->IqRefMax = 0.001f*(float)gParam[P->AxisID].CurrentLimit0x2003*1.414f;// 电流限制设定值改为有效值
+	pCur->IqRefMax = 0.001f*(float)gParam[P->AxisID].CurrentLimit0x2003;// ????????????
 	pCur->IqRefMin = -pCur->IqRefMax;
 
 	pCur->FF_IdRef = 0.5f;
@@ -77,8 +76,7 @@ PUBLIC void CurrentLoopInit(struct AxisCtrlStruct *P)
 	pCur->IValidFdb = 0.0f;
 
 	IIR1LPFParameterCal(&pCur->sTorFilter1, gParam[P->AxisID].CurRefFilterFc0x2109, CURRENT_PRD);
-    
-	// 均值滤波器初始化
+	// ????????
 //	AveFilterResetState(&pCur->sIvalFilter1);
         
     for(int i=0;i<5;i++)
@@ -146,7 +144,7 @@ PUBLIC void CurrentLoopExec(struct AxisCtrlStruct *P)
 	pCur->IdFdb = (pCur->Ialfa * pCur->CosTheta) + (pCur->Ibeta * pCur->SinTheta);
 	pCur->IqFdb = (-pCur->Ialfa * pCur->SinTheta) + (pCur->Ibeta * pCur->CosTheta);
 
-	// I Valid value // 合成电流
+	// I Valid value // ????
 //	pCur->IValidFdb = __sqrtf((pCur->Ialfa * pCur->Ialfa + pCur->Ibeta * pCur->Ibeta)/2);	
 //	pCur->IValidFdb = AveFilter(&pCur->sIvalFilter1,pCur->IValidFdb,2000);// ????????200ms
 	IValid = __sqrtf((pCur->Ialfa * pCur->Ialfa + pCur->Ibeta * pCur->Ibeta)/2);
@@ -274,7 +272,7 @@ PRIVATE REAL32 RampCtrl (REAL32 in, REAL32 out, REAL32 rampDelta)
  * DESCRIPTION:
  *
  * RETURNS:
- * 寻相模式，暂时未用
+ * ????,????
 ***********************************************************************/
 #define FHASE_FIND_VOLTAGE  0.05f;  // max is 0.98
 PRIVATE void FhaseFind(struct AxisCtrlStruct *P)

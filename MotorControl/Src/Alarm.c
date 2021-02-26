@@ -40,8 +40,6 @@ extern PUBLIC UINT8 ApplicationMode;
 #define MOTOR_STALL_TIME     400   // 200ms
 #define MOTOR_STALL_SPEED    10.0f    // 10rpm
 #define HALL_ALARM_MAX_CNT   1
-#define TACT_SWITCH_PROTECT_RESPONSE_TIME 200 //100ms = 200 * 500us
-#define TACT_SWITCH_PROTECT_UNLOCK_TIME 4000 //2000ms = 4000 * 500us
 
 //#define I2T_TIME             500  // 100ms
 
@@ -97,6 +95,8 @@ PUBLIC void AlarmInit(struct AxisCtrlStruct *P)
     pAlarm->TempLimitMax = (INT16)gParam[P->AxisID].TempLimitMax0x2006;
     
     pAlarm->PhaseCurrentLimit = 0.001f*(float)gParam[P->AxisID].CurrentLimit0x2003;
+
+	// ��?��??o??o???????��3?????��????��???�C
 	pAlarm->IuTotle = 0; 
 	pAlarm->IvTotle = 0;
 	pAlarm->IwTotle = 0;
@@ -135,11 +135,9 @@ PUBLIC void AlarmInit(struct AxisCtrlStruct *P)
 ***********************************************************************/
 PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 {
-    extern PUBLIC void SetVbusPower(UINT8 State);
-    
     struct AlarmStruct *pAlarm = &P->sAlarm;
 	REAL32 Imax,Imin;
-    
+
     // Inner Alarm : sheduler error  
     if(GetIsrElapsedTime() > MAX_PWM_ISR_TIME)
     {
@@ -201,88 +199,95 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
         pAlarm->ErrReg.bit.HallErr = 1;
         pAlarm->HallErrCnt = HALL_ALARM_MAX_CNT;
     }
-    
-    // Foot_Press Protect Alarm
-    if (P->AxisID)
-    {
-        PRIVATE UINT32 TactSwitchSetTime = 0;
-        PRIVATE UINT32 TactSwitchFunTick = 0;
-        
-        if(!HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_8))
-        {
-            pAlarm->TactSwitchSetCnt++;
-        }
-        else if (pAlarm->TactSwitchSetCnt)
-        {
-            pAlarm->TactSwitchSetCnt--;
-        }
-        
-        if (pAlarm->TactSwitchSetCnt > TACT_SWITCH_PROTECT_RESPONSE_TIME)
-        {
-            sAxis[0].sAlarm.ErrReg.bit.TactSwitchSet = 1;
-            sAxis[1].sAlarm.ErrReg.bit.TactSwitchSet = 1;
-            pAlarm->TactSwitchSetCnt = TACT_SWITCH_PROTECT_RESPONSE_TIME;
-            TactSwitchSetTime = TactSwitchFunTick;
-        }
-        else if((!pAlarm->TactSwitchSetCnt) && (pAlarm->ErrReg.bit.TactSwitchSet))
-        {
-            //当压脚安全开关弹起后2S自动清除对应的故障状态位
-            if (TactSwitchFunTick - TactSwitchSetTime > TACT_SWITCH_PROTECT_UNLOCK_TIME)
-            {
-                sAxis[0].sAlarm.ErrReg.bit.TactSwitchSet = 0;
-                sAxis[1].sAlarm.ErrReg.bit.TactSwitchSet = 0;
-                ClearScramStatus(P->AxisID);
-                ClearScramStatus(1-P->AxisID);
-            }
-        }
-        TactSwitchFunTick++;
-    }
-    
 	
     if((HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15)) && (pAlarm->ErrReg.bit.StutterStop))
     {
-#define WAIT_SOFT_START_FINISH (3000)
-#define SOFT_START_BEGIN (3)          
+    	pAlarm->EmergencyStopRstCnt++;
         
-        pAlarm->EmergencyStopRstCnt++;      
-        if (pAlarm->EmergencyStopRstCnt > WAIT_SOFT_START_FINISH)
+        if (!ApplicationMode)
         {
-            pAlarm->ErrReg.bit.StutterStop = 0;
-            ClearScramStatus(P->AxisID);
-        }
-        else if (pAlarm->EmergencyStopRstCnt > SOFT_START_BEGIN)
-        {
-            if ((!sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) && (!sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
+            pAlarm->EmergencyStopSetCnt = 0;
+            if(pAlarm->EmergencyStopRstCnt > 300)
             {
-                sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 1;
+                pAlarm->ErrReg.bit.StutterStop = 0;
+                pAlarm->EmergencyStopRstCnt = 300;
+                ClearScramStatus(P->AxisID);
+            }
+            else if(pAlarm->EmergencyStopRstCnt > 200)
+            {
+                HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);// 12V
+            }
+            else if(pAlarm->EmergencyStopRstCnt > 3)
+            {
+                VbusEnable();
             }        
         }
+        else
+        {
+            #define WAIT_SOFT_START_FINISH (3000)
+            #define SOFT_START_BEGIN (3)          
+   
+            if (pAlarm->EmergencyStopRstCnt > WAIT_SOFT_START_FINISH)
+            {
+                pAlarm->ErrReg.bit.StutterStop = 0;
+                ClearScramStatus(P->AxisID);
+            }
+            else if (pAlarm->EmergencyStopRstCnt > SOFT_START_BEGIN)
+            {
+                if ((!sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) && (!sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
+                {
+                    sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 1;
+                }        
+            }            
+        }
 	}
-	else if((HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15) == 0) && ReadPadPowerState())
-	{
+	else if((HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15) == 0))// && (pAlarm->ErrReg.bit.StutterStop == 0))
+	{  
 		pAlarm->ErrReg.bit.StutterStop = 1;
 		pAlarm->EmergencyStopRstCnt = 0;
-        sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 0;
-        sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 0;
-		VbusDisable();
-        SetVbusPower(0);
+        
+        if (!ApplicationMode)
+        {      
+            if (pAlarm->EmergencyStopSetCnt < 2000)
+            {
+                VbusDisable();//关24V
+            }
+            //Drv Power Disable after 200ms
+            else
+            {
+                pAlarm->EmergencyStopSetCnt = 2000;
+                DrvPwDisable();// 关12V
+            }
+            pAlarm->EmergencyStopSetCnt++;
+        }
+        else
+        {
+            sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 0;
+            sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 0;
+            VbusDisable();
+            SetVbusPower(0);        
+        }
+		
 	}
     
-    if (2 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
+    if (ApplicationMode)
     {
-        sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
-        sAxis[1].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
-    }
-    else if (1 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
-    {
-        sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 0;
-        sAxis[1].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 0;
-    }
-    else
-    {
-        if ((P->AxisID) && (sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
+        if (2 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
         {
-            VbusSoftStartNoBlock(GetDcVoltageNoFilter());
+            sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
+            sAxis[1].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
+        }
+        else if (1 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
+        {
+            sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 0;
+            sAxis[1].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 0;
+        }
+        else
+        {
+            if ((P->AxisID) && (sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
+            {
+                VbusSoftStartNoBlock(GetDcVoltageNoFilter());
+            }
         }
     }
     
@@ -336,14 +341,14 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 	
 	if(pAlarm->ErrReg.all & (gParam[P->AxisID].AlarmSwitch0x2007 | 0xFFFF0000))
 	{
-        CiA402_LocalError(P->AxisID, pAlarm->ErrReg.all);	
+        CiA402_LocalError(P->AxisID, pAlarm->ErrReg.all);		
 	}
     
-    //当发生硬件过流这种故障时，应当及时关闭上桥PWM输出
-    if ((pAlarm->ErrReg.bit.HardCurOver) || (pAlarm->ErrReg.bit.SpdOver) || (pAlarm->ErrReg.bit.StutterStop) || (pAlarm->ErrReg.bit.TactSwitchSet))
+    if ((pAlarm->ErrReg.bit.HardCurOver) || (pAlarm->ErrReg.bit.SpdOver) || (pAlarm->ErrReg.bit.StutterStop))
     {
-        P->PowerEn = 0;  // todo
+        P->PowerEn = 0;
     }
+
 }
 
 /***********************************************************************
@@ -369,7 +374,6 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     {
         pAlarm->ErrReg.bit.CurInit = 1;
     }
-
     // Vdc judgement
     if(P->sCurLoop.Vdc > pAlarm->VdcMax)
     {
@@ -399,10 +403,7 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     else
     {
         pAlarm->VdcOverCnt = 0;
-        if (sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
-        {
-            pAlarm->VdcUnderCnt++;
-        } 
+        pAlarm->VdcUnderCnt++;
     }
     
     // Vdc Over Alarm
@@ -413,7 +414,7 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
         pAlarm->VdcOverCnt = BEMF_DISCHATGE_TIME;
     }
     // Vdc Under Alarm
-    else if(pAlarm->VdcUnderCnt >= VDC_UNDER_TIME)
+     else if((pAlarm->VdcUnderCnt >= VDC_UNDER_TIME)&&(sAxis[0].sAlarm.ErrReg.bit.StutterStop ==0)&&(sAxis[1].sAlarm.ErrReg.bit.StutterStop ==0))
     {
         pAlarm->ErrReg.bit.VdcUnder = 1;
         pAlarm->VdcUnderCnt = VDC_UNDER_TIME;
@@ -561,8 +562,8 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
         if((P->CtrlMode == SPD_CTRL || P->CtrlMode == POS_CTRL) && (P->PowerEn == POWER_ON))
         {            
             // Speed Following Error judgement
-            if(  P->sSpdLoop.SpdErr >  gParam[P->AxisID].SpeedFollowErrWindow0x2008 
-              || P->sSpdLoop.SpdErr < -((INT32)gParam[P->AxisID].SpeedFollowErrWindow0x2008))
+            if(P->sSpdLoop.SpdErr > gParam[P->AxisID].SpeedFollowErrWindow0x2008 
+                || P->sSpdLoop.SpdErr < -((INT32)gParam[P->AxisID].SpeedFollowErrWindow0x2008))
             {
                 pAlarm->SpdFollwCnt++;
             }

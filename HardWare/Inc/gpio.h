@@ -45,7 +45,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f7xx_hal.h"
+#include "gd32f4xx.h"
 #include "Param.h"
 #include "PowerManager.h"
 
@@ -95,16 +95,11 @@ uint8_t ReadChargeInPinState(void);
 void PadPowerOn(void);
 void PadPowerOff(void);
 uint8_t ReadPadPowerState(void);
-uint8_t ReadRk3399HeartState(void);
-uint8_t ReadBatteryCoverState(void);
 
 UINT16 VeneerAgingTestState(void);
-PUBLIC void PadPowerOnInit(UINT8 PowerEn);
-PUBLIC UINT8 ReadSelectMode(void);
+
 void DisinfectionModulePowerOn(void);
 void DisinfectionModulePowerOff(void);
-void VCS_711_reset(void);
-uint8_t is_charger_cur_over( void );
 
 PUBLIC UINT8 ReadApplicationMode(void);
 

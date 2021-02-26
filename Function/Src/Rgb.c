@@ -126,7 +126,7 @@ PUBLIC void RgbSetMode(UINT16 mode)
 ***********************************************************************/
 PRIVATE void RgbPwmUpdate(UINT8 PwmValue)
 {
-    TIM4->CCR1 = PwmValue;
-	TIM4->CCR2 = PwmValue;
-	TIM4->CCR3 = PwmValue;
+    // TIM4->CCR1 = PwmValue;
+	// TIM4->CCR2 = PwmValue;
+	// TIM4->CCR3 = PwmValue;
 }

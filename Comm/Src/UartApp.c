@@ -55,7 +55,7 @@ PUBLIC void UartAppInit(void)
 ***********************************************************************/
 PUBLIC void UartRecvDispatch(UINT8 *pData)
 {
-    HAL_StatusTypeDef Status = HAL_OK;
+//    HAL_StatusTypeDef Status = HAL_OK;
     UINT16 RecvLen = 0;
     UINT16 CrcData = 0;
     
@@ -77,11 +77,11 @@ PUBLIC void UartRecvDispatch(UINT8 *pData)
     CrcData = pData[RecvLen-1] | (pData[RecvLen]<<8);
     
     UINT16 CrcTmp = GetCRC16(&pData[1], RecvLen-2);
-    if(CrcTmp != CrcData || HAL_OK != Status)
-    {
-        FdbUartError(ERROR_CRC);
-        return;
-    }
+//    if(CrcTmp != CrcData || HAL_OK != Status)
+//    {
+//        FdbUartError(ERROR_CRC);
+//        return;
+//    }
     
     UINT8 Cmd = pData[5];
     switch(Cmd)
@@ -246,10 +246,10 @@ PUBLIC void DataCollectSendLoop(void)
     UINT16 CrcData = 0;
     UINT32 u32Tmp = 0;
     UINT8 *pSendBuf = sUartApp.SendBuf;
-    if(huart3.Instance->ISR & 0xF)
-    {    
-        huart3.Instance->ICR = 0xF;
-    }
+//    if(huart3.Instance->ISR & 0xF)
+//    {    
+//        huart3.Instance->ICR = 0xF;
+//    }
    
     if(!sDataCollect.bSendEn) return;
 

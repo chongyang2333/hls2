@@ -1,7 +1,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "battery_iic.h"
-#include "delay.h"
 
 #define  DELAY_TIME 20
 #define  IIC_DELAY  delay_us(DELAY_TIME)
@@ -9,13 +8,13 @@
 
 void sda_out(void)
 {
-    GPIO_InitTypeDef GPIO_InitStruct;
+    // GPIO_InitTypeDef GPIO_InitStruct;
     
-    GPIO_InitStruct.Pin = GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct); 
+    // GPIO_InitStruct.Pin = GPIO_PIN_9;
+    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    // GPIO_InitStruct.Pull = GPIO_NOPULL;
+    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    // HAL_GPIO_Init(GPIOC, &GPIO_InitStruct); 
 }
 
 void battery_iic_start(BatteryIICStruct* p)

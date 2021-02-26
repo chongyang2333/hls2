@@ -18,33 +18,17 @@
 
 #include "UserDataTypes.h"
 
-#define BATTERY_NUMBERS   2
-
 enum KeyEvent
 {
     NULL_KEY_EVENT,
-    LONG_PRESS,     //2s
-    LONGLONG_PRESS, //10s
-    SHORT_PRESS,
-    RELEASED
+    LONG_PRESS,
+    SHORT_PRESS
 };
 
 enum KeyState
 {
     KEY_UP,
     KEY_DOWN
-};
-
-enum HeartState
-{
-    OFFLINE,
-    ONLINE
-};
-
-enum BatteryCoverState
-{
-    COVERED,
-    NOT_COVERED
 };
 
 enum RstState
@@ -100,12 +84,8 @@ enum PowerOnOffManageState
 {
     POWERON_INIT = 0,
     NORMAL_POWERON = 1,
-    PAD_POWEROFF = 2,
-    POWEROFF_UPLOAD = 3,
-    POWEROFF_UPLOAD_ACKED = 4,
-    POWEROFF_UPLOAD_ACK_TIMEOUT = 5,
-    POWEROFF = 6,
-    POWEROFF_LOW = 7
+    CHARGE_POWERON = 2,
+    POWEROFF = 3
 };
 
 
@@ -133,9 +113,7 @@ struct PowerOnCfgStruct
     union PowerOnCfgReg       PowerOnOffReg;
     UINT8                     lidarSpeed;
     UINT8                     lidarPowerCmdSet;
-    UINT8                     disinfectionModulePowerCmdSet;
 };
-
 
 
 /*Alarm Data Type Definite*/
@@ -144,12 +122,12 @@ struct PowerOnCfgStruct
 
 struct PowerAlarmRegBits   // bits   description
 {
-    UINT32 ComFail:1;              //i2c disconnect
+    UINT32 ComDisconnet:1;              //i2c disconnect
     UINT32 BatteryVoltageOver:1; 
     UINT32 ChargerVoltageOver:1;         
     UINT32 ChargeCurrentOVer:1;
     UINT32 ChargeTimeOver:1;            //Real charge time far away from Expected Charge time
-    UINT32 CellTempOver:1;
+    UINT32 ChargeTempOver:1;
     UINT32 VoltageElectricityMismatch:1;
     UINT32 ChargerVoltageUnder:1;       //充电器欠压
     UINT32 BatteryLowPower:1;           //电池电量过低
@@ -166,29 +144,28 @@ struct PowerAlarmStruct
 {
     union PowerAlarmReg PowerAlarmReg;
 
-    UINT16 ComFailCombinedSet;
-    UINT16 ComFailCntMax;
+    UINT16 ComDisconnectCnt;
+    UINT16 ComDisconnectCntMax;
 
     UINT16  BatteryVoltageMax;
-    UINT16  BoardVoltageOverCnt;
-    UINT16  BatteryVolateOverCnt[BATTERY_NUMBERS];
+    UINT16  BatteryVolateOverCnt;
     UINT16  BatteryVolateOverCntMax;
 
     UINT16  ChargerVoltageMax;
     UINT16  ChargerVolateOverCnt;
     UINT16  ChargerVolateOverCntMax;
 
-    INT16   ChargeCurrentMax;
+    INT16  ChargeCurrentMax;
     UINT16  ChargeCurrentOverCnt;
     UINT16  ChargeCurrentOverCntMax;
 
-    INT16   CellTempMax;
-    UINT16  CellTempOverCnt[BATTERY_NUMBERS];
-    UINT16  CellTempOverCntMax;
+    INT16  ChargeTempMax;
+    UINT16  ChargeTempOverCnt;
+    UINT16  ChargeTempOverCntMax;
 
-    UINT16  LowPowerSoc;
-    UINT16  LowPowerCntMax;
-    UINT8   LowPowerCombinedSet;
+    UINT16  BatteryLowPowerLevel;
+    UINT16  BatteryLowPowerCnt;
+    UINT16  BatteryLowPowerCntMax;
 }; 
 
 /*Power manage State Machine*/
@@ -198,7 +175,7 @@ enum PowerManageState
     POWER_MANAGE_CHARGE_KEY_EVENT_DETECT = 1,
     POWER_MANAGE_ALARM_DETECT = 2,
     POWER_MANAGE_POWER_ON_OFF_CHARGE_EXEC = 3,
-    POWER_MANAGE_STATE_CLEAR = 4
+    POWER_MANAGE_INFO_UPLOAD = 4
 };
 
 /*Charge Manage Data Type Definite*/
@@ -220,70 +197,124 @@ struct ChargeManageStruct
     struct CheckStruct              sChargerCheck;
     enum MosfetState                eChargeMosState;
     enum ChargeManageState          ChargeAppState;
-    UINT8 charge_over_cnt;
 };
 
 /*Battery manage System IC type*/
 enum BatteryManageSystemType
 {
-    NONE_RECOGNIZED = 0, 
-    GF_7S6P_0x18 = 7,
-    GF_7S8P_0x18 = 8,
-    
-    GF_7S6P_0x20 = 39,
-    GF_7S8P_0x20 = 40,    
+    NONE_RECOGNIZED = 0,
+    TI_BQ34Z100 = 1,
+    GSA7S147 = 2,
+    GSA7S119 = 3,
+    GSA7S139 = 4,
+    GSA7S140 = 5,
+    GSA7S141 = 6,    
+    GF_7S6P = 7,
+    GF_7S8P = 8
 };
 
+struct BatteryLifeTimeDataBlock
+{
+    UINT16                          MaxCellVoltage1;
+    UINT16                          MaxCellVoltage2;
+    UINT16                          MaxCellVoltage3;
+    UINT16                          MaxCellVoltage4;
+    UINT16                          MaxCellVoltage5;
+    UINT16                          MaxCellVoltage6;
+    UINT16                          MaxCellVoltage7;
+    UINT16                          MinCellVoltage1;
+    UINT16                          MinCellVoltage2;
+    UINT16                          MinCellVoltage3;
+    UINT16                          MinCellVoltage4;
+    UINT16                          MinCellVoltage5;
+    UINT16                          MinCellVoltage6;
+    UINT16                          MinCellVoltage7;
+    UINT16                          MaxDeltaCellVoltage;
+    UINT16                          MaxChargeCurrent;
+    UINT16                          MaxDischargeCurrent;
+    UINT16                          MaxAvgDsgCurrent;
+    UINT16                          MaxAvgDsgPower;
+    INT8                            MaxTempCell;
+    INT8                            MinTempCell;
+    INT8                            MaxDeltaCellTemperature;
+    INT8                            MaxTempIntSensor;
+    INT8                            MinTempIntSensor;
+    INT8                            MaxTempFET;
+    UINT8                           NoOfShutdowns;
+    UINT8                           NoOfPartialResets;
+    UINT8                           NoOfFullResets;
+    UINT8                           NoOfWDTResets;
+    UINT16                          TotalFWRuntime; /*Unit: Hours*/
+    UINT16                          NoOfCOVEvents;  /*COV: Cell OverVoltage*/ /*all count*/
+    UINT16                          LastCOVEvents;                            /*the cycle count on last events*/
+    UINT16                          NoOfCUVEvents;  /*CUV: cell UnderVoltage*/
+    UINT16                          LastCUVEvents;  
+    UINT16                          NoOfOCD1Events; /*OCD1: overcurrent in discharge 1st tier*/ 
+    UINT16                          LastOCD1Events;  
+    UINT16                          NoOfOCD2Events; /*OCD2: overcurrent in discharge 2st tier*/
+    UINT16                          LastOCD2Events;  
+    UINT16                          NoOfOCC1Events; /*OCC1: overcurrent in charge 1st tier*/
+    UINT16                          LastOCC1Events;  
+    UINT16                          NoOfOCC2Events;  /*OCC2: Overcurrent in charge 2nd tier*/
+    UINT16                          LastOCC2Events; 
+    UINT16                          NoOfOAOLDEvents; /*AOLD: Overload in discharge latch*/
+    UINT16                          LastAOLDEvents;  
+    UINT16                          NoOfASCDEvents; /*ASCD: Short circuit in discharge latch*/
+    UINT16                          LastASCDEvents;  
+    UINT16                          NoOfASCCEvents; /*ASCC: short circuit in charge latch*/
+    UINT16                          LastASCCEvents;  
+    UINT16                          NoOfOTCEvents;  /*OTC: over temperature in charge*/
+    UINT16                          LastOTCEvents;  
+    UINT16                          NoOfOTDEvents;  /*OTD: over temperature in discharge*/
+    UINT16                          LastOTDEvents;  
+    UINT16                          NoOfOTFEvents;  /*OTF: over temperature in FET*/
+    UINT16                          LastOTFEvents;
+    UINT16                          LastValidChargeTerm;
+    UINT16                          NoOfValidChargeTerm;
+    UINT16                          NoOfQmaxUpdates;
+    UINT16                          LastQmaxUpdates; 
+    UINT16                          NoOfRaUpdates;
+    UINT16                          LastRaUpdates;  
+    UINT16                          NoOfRaDisable;
+    UINT16                          LastRaDisable; 
+};
 
 /*Battery Info Data Type Definite*/
-#pragma pack (1)
 struct BatteryInfoStruct
 {
     enum BatteryManageSystemType    BMS_icType;
-    UINT16                          Voltage;
-    INT16                           DischargeCurrent;
-    INT16                           ChargeCurrent;
-    UINT8                           SocRaw;
-    INT16                           CellTemp;
-    UINT16                          FullCapacity;
+    UINT16                          BatterySN;
+    INT16                           BatteryTemp;
+    UINT16                          BatteryCurrent;
+    UINT16                          BatteryVoltage;
+    UINT8                           BatteryLevelRaw;
+    UINT8                           BatteryLevelOptimized;
+    UINT8                           BatteryFloorLevelLimit;
+    UINT8                           BatteryTopLevelLimit;
+    UINT8                           BatteryFullChargeFloorLevel;
+    UINT8                           BatteryFullChargeTopLevel;
+    UINT8                           BatteryLowPowerLevelReadCnt;
+    UINT16                          BatteryFullCapacity;
+    UINT16                          BatteryRemaingCapacity;
+    UINT16                          BatteryVoltageIIC;
     UINT16                          SOH;
     UINT16                          CycleCnt;
     UINT16                          CellVoltage[7];
-    UINT32                          Protect;
-    UINT32                          Fault;
-    UINT8                           ComFailSet;
-    UINT8                           LowPowerSet;
-    
-    UINT8                           id;
-    UINT8                           Addr;
-    UINT16                          SN;
-
-    INT16                           MosTemp;
-    
-    UINT8                           SocOptimized;
-    UINT8                           FloorSocLimit;
-    UINT8                           TopSocLimit;
-    UINT8                           FullChargeFloorSoc;
-    UINT8                           FullChargeTopSoc;
-    UINT16                          RemaingCapacity;
-
-    UINT8                           SocBuffer;
-    UINT8                           SocDebounceCnt;
-    
-    UINT16                          LowPowerCnt;
-    UINT16                          ComFailCnt;
+    UINT32                          SafetyAlert;
+    UINT32                          SafetyStatus;
+    UINT32                          PFAlert;
+    UINT32                          PFStatus;
+    UINT32                          OperationStatus;
+    UINT32                          ChargingStatus;
+    struct BatteryLifeTimeDataBlock sLifetimeData;
 };
-#pragma pack ()
 
 /*Board Power On or Off Manage Data Type Definite*/
 struct BoardPowerOnOffStruct
 {
-    UINT8                           LowPowerConsumeMode;
-    UINT8                           PoweroffUploadAckFlag;
     UINT8                           VbusSoftStartFlag;  //0:Unknow 1:success 2:fail
-    UINT8                           VbusSoftStartEn;    //0:Disable 1:enable
-    UINT16                          ParallelVoltage;
-
+    UINT8                           VbusSoftStartEn;    //0:Disable 1:enable    
+    
     enum PowerOnOffManageState      PowerOnOnffAppState;
     struct PowerOnCfgStruct         PowerOnConfig;
     struct PowerOnCfgStruct         PowerOnState;
@@ -293,41 +324,26 @@ struct BoardPowerOnOffStruct
 struct PowerManagerStruct
 {
     UINT32                          uTick;
-    UINT32                          uPowerOffKeyPressTimestamp;
-    UINT32                          uPoweroffCmdFeedbackTimestamp;
 
     enum PowerManageState           ePMState;
     enum RstState                   eSysRstState;
     enum KeyEvent                   ePowerKeyEvent;
     enum KeyState                   ePowerKeyState;
     enum KeyState                   ePowerKeyStateLast;
-    enum HeartState                 eRk3399HeartState;
-    enum BatteryCoverState          eBatteryCoverState;
-    UINT8                           BatteryCoverLeadtoPoweroffSet;
-    UINT8                           DevSocOptimized;
     
-    struct BatteryInfoStruct        sBatteryInfo[BATTERY_NUMBERS];
+    struct BatteryInfoStruct        sBatteryInfo;
     struct ChargeManageStruct       sChargeInfo;
     struct BoardPowerOnOffStruct    sBoardPowerInfo;
     struct PowerAlarmStruct         sAlarm;
 };
 
-struct BatteryObjectEntryStruct
-{
-    UINT16                       Index;      /**< \brief Object index*/
-    UINT16                       TimeGap;    /** \brief time(s) between two frames*/
-    UINT16                       BitLength;  /**< \brief Entry bit size*/
-    void                         *pVarPtr;   /**< \brief Pointer to object buffer*/
-};
-
 PUBLIC void PowerManagerInit(UINT8 AppMode);
 PUBLIC void PowerManagerExec(void);
-PUBLIC void BatteryParamLoop(void);
+PUBLIC void BatteryInfoReadLoop(void);
 PUBLIC void LdsPowerCtrl(UINT8 En, UINT8 Speed);
 PUBLIC UINT8 ReadChargeAppState(void);
-PUBLIC void FrameHeader0xB0Parser(UINT8 data[8]);
-PUBLIC void SetVbusPower(UINT8 State);
-PUBLIC void VbusSoftStartNoBlock(REAL32 VbusVoltage);
 PUBLIC void DisinfectionModulePowerCtrl(UINT8 En);
+PUBLIC void SetVbusPower(UINT8 State);
+PUBLIC void VbusSoftStartNoBlock(REAL32 VbusAdcValue);
 PUBLIC void lidarPowerOnOffExec(void);
 #endif // _POWER_MANAGER_H_
