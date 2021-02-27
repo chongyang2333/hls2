@@ -19,6 +19,7 @@
 #include "i2c.h"
 #include "CanApp.h"
 #include "PowerManager.h"
+#include "systick.h"
 
 #define LED_LEFT	     	0
 #define LED_RIGHT      	1

@@ -42,6 +42,7 @@
 
 #include "gpio.h"
 #include "CanApp.h"
+#include "systick.h"
 
 /* USER CODE BEGIN 0 */
 

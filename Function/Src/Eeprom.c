@@ -18,6 +18,8 @@
 #include "Eeprom.h"
 #include "myiic.h"
 #include "gpio.h"
+#include "systick.h"
+#include "gd_hal.h"
 
 MyIICStruct sMyIIC;
 
@@ -269,13 +271,13 @@ PRIVATE UINT8 At24c02_Read_Byte(UINT16 addr)
 // Eeprom module: SDA
 void EEPROM_SDA_WritePin(uint8_t PinState)
 {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, PinState);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, PinState?GPIO_PIN_SET:GPIO_PIN_RESET);
 }
 
 // Eeprom module: SCL
 void EEPROM_SCL_WritePin(uint8_t PinState)
 {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, PinState);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, PinState?GPIO_PIN_SET:GPIO_PIN_RESET);
 }
 
 // Eeprom module: SDA Read

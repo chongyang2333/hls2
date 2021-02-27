@@ -6,6 +6,29 @@
 */
 
 #include "gd32f4xx.h"
+#include "systick.h"
+#include <stdio.h>
+#include "adc.h"
+#include "tim.h"
+#include "usart.h"
+#include "dma.h"
+#include "gpio.h"
+#include "can.h"
+#include "HardApi.h"
+#include "ControlRun.h"
+#include "Param.h"
+#include "Eeprom.h"
+#include "UartApp.h"
+#include "CanApp.h"
+#include "StateMachine.h"
+#include "Gyro.h"
+#include "Rgb.h"
+#include "ErrorLog.h"
+#include "Temperature.h"
+#include "BootloaderInfo.h"
+#include "PowerManager.h"
+#include "LedDriver.h"
+#include "gd_hal.h"
 
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 
@@ -73,10 +96,7 @@ void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo)
 
 void HardwareInit()
 {
-
         NVIC_SetPriorityGrouping(NVIC_PRIGROUP_PRE4_SUB0);     
-       
-        SystemInit(); // 时钟配置
         
         systick_config(); //用于延时
 		/* Initialize all configured peripherals */

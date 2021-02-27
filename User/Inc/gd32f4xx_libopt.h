@@ -77,29 +77,4 @@ OF SUCH DAMAGE.
 #include "gd32f4xx_exmc.h"
 #endif
 
-// USER Defien 
-#include "systick.h"
-#include <stdio.h>
-#include "adc.h"
-#include "tim.h"
-#include "usart.h"
-#include "dma.h"
-#include "gpio.h"
-#include "can.h"
-#include "HardApi.h"
-#include "ControlRun.h"
-#include "Param.h"
-#include "Eeprom.h"
-#include "UartApp.h"
-#include "CanApp.h"
-#include "StateMachine.h"
-#include "Gyro.h"
-#include "Rgb.h"
-#include "ErrorLog.h"
-#include "Temperature.h"
-#include "BootloaderInfo.h"
-#include "PowerManager.h"
-#include "LedDriver.h"
-#include "gd_hal.h"
-
 #endif /* GD32F4XX_LIBOPT_H */

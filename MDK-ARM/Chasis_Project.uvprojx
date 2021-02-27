@@ -334,7 +334,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define></Define>
+              <Define>USE_STDPERIPH_DRIVER,GD32F450</Define>
               <Undefine></Undefine>
               <IncludePath>..\Comm\Inc;..\Drivers\CMSIS\GD;..\Drivers\CMSIS\GD\GD32F4xx\Include;..\Drivers\GD32F4xx_standard_peripheral\Include;..\Function\Inc;..\HardWare\Inc;..\MotorControl\Inc;..\SystemCommon;..\User\Inc</IncludePath>
             </VariousControls>

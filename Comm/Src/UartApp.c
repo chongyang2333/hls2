@@ -21,6 +21,7 @@
 #include "HardApi.h"
 #include "usart.h"
 #include "ErrorLog.h"
+#include "gd_hal.h"
 
 #define MAX_COLLECT_NUM_PER_FLAME  180
 

@@ -18,6 +18,7 @@
 #include "Rgb.h"
 #include "tim.h"
 #include "Param.h"
+#include "gd_hal.h"
 
 PRIVATE UINT16 RgbMode = 0;
 

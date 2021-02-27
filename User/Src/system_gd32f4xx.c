@@ -108,6 +108,7 @@ static void system_clock_config(void);
     \param[out] none
     \retval     none
 */
+
 void SystemInit (void)
 {
   /* FPU settings ------------------------------------------------------------*/
@@ -138,7 +139,7 @@ void SystemInit (void)
 
   /* Disable all interrupts */
   RCU_INT = 0x00000000U;
-         
+       
   /* Configure the System clock source, PLL Multiplier and Divider factors, 
      AHB/APBx prescalers and Flash settings ----------------------------------*/
   system_clock_config();

@@ -26,6 +26,7 @@
 #include "CanApp.h"
 #include "MachineAdditionalInfo.h"
 #include "gd32f4xx.h"
+#include "gd_hal.h"
 
 #define OBJ_NUM (sizeof(ApplicationObjDic)/sizeof(OBJ_ENTRY))
     

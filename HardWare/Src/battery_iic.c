@@ -1,6 +1,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "battery_iic.h"
+#include "systick.h"
 
 #define  DELAY_TIME 20
 #define  IIC_DELAY  delay_us(DELAY_TIME)
@@ -50,6 +51,7 @@ uint8_t battery_iic_stop(BatteryIICStruct* p)
     IIC_DELAY;
     p->SDA_WritePin(1);
     IIC_DELAY;
+    return 1;
 }
 
 void battery_iic_ack(BatteryIICStruct* p)
