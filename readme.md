@@ -13,5 +13,11 @@
 3. `gd32f4xx.h`中`#if ! define (GD32F450)....`下面取消`GD32F450`的注释；
 4. 初始化时调用`StstemInit()`;用于配置时钟，调用`systick_config()`;打开滴答定时器； 注意`systick_config `与 `Systick_Config(xxxx)`是**不同的，注意大小写**；
 
+#### 应用层移植注意事项
+
+1. 通用GPIO配置请根据应用层模块一一对应配置；
+2. 外设驱动配置时，`HAL_xxx_MspInit()`完全被注释了，需要重新配置对应外设的GPIO引脚复用函数，并且在该外设初始化前调用该函数；
+3. 与底层寄存器/HAL库相关的函数接口：[语雀--硬件组---嵌软固件模块---底盘板卡MCU选型](https://pudutech.yuque.com/rdheib/umbwrq/ib5sql#KeTZw)
+
 
 

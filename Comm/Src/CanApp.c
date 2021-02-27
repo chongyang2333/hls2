@@ -66,6 +66,8 @@ PRIVATE void CarpetModeSet(UINT8 *pData);
 PRIVATE void CanSendAcc(UINT8 AccType);
 PRIVATE void CanSetAcc(UINT8 *pData);
 
+PRIVATE void CAN_GetRxMessage(CAN_RX_Message CanRxMessage);
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -112,6 +114,10 @@ PUBLIC void CanAppExec(void)
 
 void chassis_led_ctrl( uint8_t *buff );
 
+PRIVATE void CAN_GetRxMessage(CAN_RX_Message CanRxMessage)
+{
+//	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &Can_RxHeader, &CanRxMessage.RxData[0]);//数组参数传递？
+}
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -124,9 +130,9 @@ PUBLIC void CanAppDispatch(void)
     UINT8  CmdType;
 		
 	CAN_RX_Message CanRxMessage;
-//	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &Can_RxHeader, &CanRxMessage.RxData[0]);//数组参数传递？
-	CmdType = CanRxMessage.RxData[0];
 
+	CmdType = CanRxMessage.RxData[0];
+    CAN_GetRxMessage(CanRxMessage);
 //    if (!sMyCan.PcInitDone)  
 //        return;	
 
@@ -199,7 +205,7 @@ PUBLIC void CanAppDispatch(void)
             if(CanRxMessage.RxData[6]==CAN_SLAVE_ID)
             {
 				RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
-//                HAL_NVIC_SystemReset();
+                HAL_NVIC_SystemReset();
             }
         break;
 						

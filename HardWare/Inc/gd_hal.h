@@ -22,9 +22,9 @@ typedef enum
 
 
 void HAL_GPIO_WritePin(uint32_t gpio_periph,uint32_t pin,GPIO_PinState PinState);
-
-
 GPIO_PinState HAL_GPIO_ReadPin(uint32_t gpio_periph,uint32_t pin);
+
+void HAL_NVIC_SystemReset(void);
 
 #ifdef __cplusplus
 }

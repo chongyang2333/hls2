@@ -29,6 +29,22 @@ void HAL_GPIO_WritePin(uint32_t gpio_periph,uint32_t pin,GPIO_PinState PinState)
     
 }
 
+/*!
+    \brief    HAL_GPIO_WritePin
+    \param[in]  gpio_periph: GPIO port 
+                only one parameter can be selected which is shown as below:
+      \arg        GPIOx(x = A,B,C,D,E,F,G,H,I)
+    \param[in]  pin: GPIO pin
+                one or more parameters can be selected which are shown as below:
+      \arg        GPIO_PIN_x(x=0..15), GPIO_PIN_ALL
+    \param[in]  PinState:
+                one or more parameters can be selected which are shown as below:
+      \arg        GPIO_PIN_RESET
+                  GPIO_PIN_SET
+    \param[out] none
+    \retval     none
+*/
+
 
 /*!
     \brief    get GPIO pin input status
@@ -59,9 +75,15 @@ GPIO_PinState HAL_GPIO_ReadPin(uint32_t gpio_periph,uint32_t pin)
 
 
 
-
-
-
+/**
+  * @brief  Initiates a system reset request to reset the MCU.
+  * @retval None
+  */
+void HAL_NVIC_SystemReset(void)
+{
+  /* System Reset */
+  NVIC_SystemReset();
+}
 
 
 

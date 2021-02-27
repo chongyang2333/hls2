@@ -49,6 +49,7 @@
 // I2C_HandleTypeDef hi2c2;
 // I2C_HandleTypeDef hi2c3;
 
+
 /* I2C2 init function */
 void MX_I2C2_Init(void)
 {
@@ -184,11 +185,11 @@ void MX_I2C3_Init(void)
 // } 
 
 /* USER CODE BEGIN 1 */
-// void HAL_I2C_Reset(I2C_HandleTypeDef* i2cHandle)
-// {
+ void HAL_I2C_Reset(uint32_t i2c_periph)
+ {
 //     HAL_I2C_DeInit(i2cHandle);
 //     HAL_I2C_Init(i2cHandle);
-// } 
+ } 
 /* USER CODE END 1 */
 
 /**

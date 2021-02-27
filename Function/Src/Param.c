@@ -200,7 +200,7 @@ PUBLIC void ParamLoop(void)
     if(gParam[0].SystemReset0x2403)
     {
 		RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
-        // HAL_NVIC_SystemReset();
+        HAL_NVIC_SystemReset();
     }
 
     MachineAddInfoProcess();    

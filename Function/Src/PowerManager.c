@@ -82,7 +82,7 @@ PRIVATE BOOL BatteryReadLifetimeData(struct BatteryLifeTimeDataBlock *pData);
 PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode);
 
 extern PUBLIC UINT8 ApplicationMode;
-//extern void HAL_I2C_Reset(I2C_HandleTypeDef* i2cHandle);
+extern void HAL_I2C_Reset(uint32_t i2c_periph);
 
 /***********************************************************************
  * DESCRIPTION:
@@ -1365,6 +1365,13 @@ PRIVATE void BatteryI2cReadInternalInfo(void)
 	(step >= 14) ? (step = 0) : step++;
 }
 
+PRIVATE HAL_StatusTypeDef I2C2_Mem_Read(void)
+{
+    HAL_StatusTypeDef ret;
+//    ret = HAL_I2C_Mem_Read(&hi2c3, SlaveAddress, Readaddr, I2C_MEMADD_SIZE_8BIT, Str, Len, 1000);
+    return ret;
+}
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -1377,11 +1384,11 @@ PRIVATE BOOL Battery_Serial_Read(UINT8 SlaveAddress, UINT8 Readaddr, UINT8 *Str,
     
     if (i2c_type)
     {
-        // ret = HAL_I2C_Mem_Read(&hi2c3, SlaveAddress, Readaddr, I2C_MEMADD_SIZE_8BIT, Str, Len, 1000);
+         ret = I2C2_Mem_Read();
         
         if (ret != HAL_OK)
         {
-            // HAL_I2C_Reset(&hi2c3);
+             HAL_I2C_Reset(I2C2);
             return 0;
         }
 
@@ -1433,27 +1440,27 @@ PRIVATE BOOL Battery_Serial_Read(UINT8 SlaveAddress, UINT8 Readaddr, UINT8 *Str,
 ***********************************************************************/
 PRIVATE BOOL ManufacturerBlockAccesRead(UINT8 SlaveAddress, UINT8 Cmd, UINT16 macCode, UINT8 *Str, UINT16 Len)
 { 
-    UINT8 writeList[3] = {0x02, 0x00, 0x00};
-    
-    writeList[1] = macCode&0xFF;
-    writeList[2] = (macCode>>8)&0xFF;
-    
-    HAL_StatusTypeDef ret;
-    // ret = HAL_I2C_Mem_Write(&hi2c3, SlaveAddress, Cmd, I2C_MEMADD_SIZE_8BIT, writeList, 3, 500);
-    
-    if (ret != HAL_OK)
-    {
-        // HAL_I2C_Reset(&hi2c3);
-        return 0;
-    }
-    
-    // ret = HAL_I2C_Mem_Read(&hi2c3, SlaveAddress, Cmd, I2C_MEMADD_SIZE_8BIT, Str, Len, 1000);
-    
-    if (ret != HAL_OK)
-    {
-        // HAL_I2C_Reset(&hi2c3);
-        return 0;
-    }
+//    UINT8 writeList[3] = {0x02, 0x00, 0x00};
+//    
+//    writeList[1] = macCode&0xFF;
+//    writeList[2] = (macCode>>8)&0xFF;
+//    
+//    HAL_StatusTypeDef ret;
+//    // ret = HAL_I2C_Mem_Write(&hi2c3, SlaveAddress, Cmd, I2C_MEMADD_SIZE_8BIT, writeList, 3, 500);
+//    
+//    if (ret != HAL_OK)
+//    {
+//         HAL_I2C_Reset(&hi2c3);
+//        return 0;
+//    }
+//    
+//     ret = HAL_I2C_Mem_Read(&hi2c3, SlaveAddress, Cmd, I2C_MEMADD_SIZE_8BIT, Str, Len, 1000);
+//    
+//    if (ret != HAL_OK)
+//    {
+//         HAL_I2C_Reset(&hi2c3);
+//        return 0;
+//    }
     
     return 1; 
 }
@@ -1506,7 +1513,8 @@ PUBLIC void BatteryInfoReadLoop(void)
         
         ReadOperationTime = sPowerManager.uTick;
         
-        // HAL_I2C_DeInit(&hi2c3);
+        i2c_deinit(I2C2);
+        
         battery_I2C_GPIO_Init();
         if (Battery_Serial_Read(TI_BQ34Z100_IIC_ADDR, 0x02, &Tmp, 1, 0))
         {

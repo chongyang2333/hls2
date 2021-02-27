@@ -37,6 +37,7 @@ PRIVATE INT16 ADC1_JDR4_Offset = 2048;
 #define ADC3_JDR4_GAIN  0.01859225f    // Charge Voltage coff
 
 extern PUBLIC UINT8 ApplicationMode;
+PRIVATE void AdcSumPort(uint16_t * sum);
 
 /***********************************************************************
  * DESCRIPTION: Initialize time stamp timer.
@@ -214,6 +215,19 @@ PUBLIC void GetMosAdc(UINT16 *leftMosAdc, UINT16 *rightMosAdc)
 /***********************************************************************
  * DESCRIPTION: 
  *	     
+* RETURNS: ADC通道和接口，服务AdcOffsetCal函数
+ *
+***********************************************************************/
+PRIVATE void AdcSumPort(uint16_t * sum)
+{
+//        sum[0] += ADC2->JDR1;
+//        sum[1] += ADC2->JDR2;
+//        sum[2] += ADC3->JDR1;
+//        sum[3] += ADC3->JDR2;
+}
+/***********************************************************************
+ * DESCRIPTION: 
+ *	     
  * RETURNS:
  *
 ***********************************************************************/
@@ -227,10 +241,8 @@ PUBLIC void AdcOffsetCal(void)
     {
         AdcSampleStart();
         AdcSampleClearFlag();
-        // sum[0] += ADC2->JDR1;
-        // sum[1] += ADC2->JDR2;
-        // sum[2] += ADC3->JDR1;
-        // sum[3] += ADC3->JDR2;
+        
+        AdcSumPort(sum);
         
         delay_ms(2);
     }
