@@ -38,8 +38,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include "gd32f4xx.h"
 #include "can.h"
-
 #include "gpio.h"
 #include "CanApp.h"
 #include "delay.h"
@@ -51,7 +51,121 @@
 //CAN_HandleTypeDef hcan1;
 
 /* CAN1 init function */
+
+/**
+ * \brief      initialize CAN and filter
+ * \prarm[in]  can_periph
+ * \param[out] none
+ * \retval     none
+*/
+static void can_networking_init(uint32_t can_periph)
+{
+    can_parameter_struct            can_parameter;
+    can_filter_parameter_struct     can_filter;
+    
+    /* initialize CAN register */
+    can_deinit(can_periph);
+
+    /* initialize CAN */
+    can_struct_para_init(CAN_INIT_STRUCT, &can_parameter);
+    can_parameter.time_triggered        = DISABLE;
+    can_parameter.auto_bus_off_recovery = ENABLE;
+    can_parameter.auto_wake_up          = DISABLE;
+    can_parameter.no_auto_retrans       = DISABLE;
+    can_parameter.rec_fifo_overwrite    = DISABLE;
+    can_parameter.trans_fifo_order      = ENABLE;
+    can_parameter.working_mode          = CAN_NORMAL_MODE;
+    can_parameter.resync_jump_width     = CAN_BT_SJW_1TQ;
+    can_parameter.time_segment_1        = CAN_BT_BS1_5TQ;
+    can_parameter.time_segment_2        = CAN_BT_BS2_4TQ;
+    /* baudrate 1Mbps */
+    can_parameter.prescaler = 5;
+    can_init(can_periph, &can_parameter);
+
+    /* initialize filter */
+    can_struct_para_init(CAN_FILTER_STRUCT, &can_filter);
+    if (can_periph == CAN0)
+    {
+        can_filter.filter_number = 0;
+    }
+    else
+    {
+        can_filter.filter_number = 15;
+    }
+    can_filter.filter_mode        = CAN_FILTERMODE_MASK;
+    can_filter.filter_bits        = CAN_FILTERBITS_32BIT;
+    can_filter.filter_list_high   = 0xFFFF;
+    can_filter.filter_list_low    = 0xFFFF;
+    can_filter.filter_mask_high   = 0x0000;
+    can_filter.filter_mask_low    = 0x0000;  
+    can_filter.filter_fifo_number = CAN_FIFO1;
+    can_filter.filter_enable      = ENABLE;
+    can_filter_init(&can_filter);
+}
+
+/**
+ * \brief      initialize CAN gpio pin
+ * \prarm[in]  can_periph
+ * \param[out] none
+ * \retval     none
+*/
+static void can_gpio_init(uint32_t can_periph)
+{
+    if (can_periph == CAN0)
+    {
+        #define __CAN0_Rx_PORT  GPIOD
+        #define __CAN0_Rx_GPIO  GPIO_PIN_0
+        #define __CAN0_Rx_AF    GPIO_AF_9
+        #define __CAN0_Tx_PORT  GPIOD
+        #define __CAN0_Tx_GPIO  GPIO_PIN_1
+        #define __CAN0_Tx_AF    GPIO_AF_9
+
+        /* enable can clock */
+        rcu_periph_clock_enable(RCU_CAN0);
+        rcu_periph_clock_enable(RCU_GPIOD);
+
+        /* configure CAN0 GPIO */
+        gpio_output_options_set(__CAN0_Rx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __CAN0_Rx_GPIO);
+        gpio_mode_set(__CAN0_Rx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __CAN0_Rx_GPIO);
+        gpio_af_set(__CAN0_Rx_PORT, __CAN0_Rx_AF, __CAN0_Rx_GPIO);
+        
+        gpio_output_options_set(__CAN0_Tx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __CAN0_Tx_GPIO);
+        gpio_mode_set(__CAN0_Tx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __CAN0_Tx_GPIO);
+        gpio_af_set(__CAN0_Tx_PORT, __CAN0_Tx_AF, __CAN0_Tx_GPIO);
+    }
+}
+
+/**
+ * \brief      this function handles CAN0 Rx0 ecxeption
+ * \prarm[in]  none
+ * \param[out] none
+ * \retval     none
+*/
+void CAN0_RX1_IRQHandler(void)
+{
+    CanAppDispatch();
+}
+
 void MX_CAN1_Init(void)
+{
+    can_gpio_init(CAN0);
+
+    /* initialize CAN */
+    can_networking_init(CAN0);
+
+    /* enable CAN receive FIFO1 not empty interrupt */
+    can_interrupt_enable(CAN0, CAN_INT_RFNE1);
+
+    /* configure CAN0 NVIC */
+    nvic_irq_enable(CAN0_RX1_IRQn, 0, 0);
+
+    delay_ms(10);
+    JumpAppFb(GetResetType());
+    delay_ms(10);
+}
+
+
+void MX_CAN1_Init_Weak(void)
 {
 //     CAN_FilterTypeDef  sFilterConfig;
  
