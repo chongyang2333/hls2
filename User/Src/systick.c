@@ -48,7 +48,7 @@ volatile static uint32_t delay;
 void systick_config(void)
 {
     /* setup systick timer for 1000Hz interrupts */
-    if (SysTick_Config(SystemCoreClock / 1000000U)){
+    if (SysTick_Config(SystemCoreClock / 1000U)){
         /* capture error */
         while (1){
         }
@@ -63,15 +63,7 @@ void systick_config(void)
     \param[out] none
     \retval     none
 */
-void delay_ms(uint32_t count)
-{
-    delay = count*1000;
-
-    while(0U != delay){
-    }
-}
-
-void delay_us(uint32_t count)
+void delay_1ms(uint32_t count)
 {
     delay = count;
 

@@ -18,7 +18,7 @@
 #include "Eeprom.h"
 #include "myiic.h"
 #include "gpio.h"
-#include "systick.h"
+#include "delay.h"
 #include "gd_hal.h"
 
 MyIICStruct sMyIIC;

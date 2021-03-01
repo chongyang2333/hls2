@@ -1,7 +1,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "battery_iic.h"
-#include "systick.h"
+#include "delay.h"
 
 #define  DELAY_TIME 20
 #define  IIC_DELAY  delay_us(DELAY_TIME)

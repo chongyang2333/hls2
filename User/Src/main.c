@@ -6,7 +6,7 @@
 */
 
 #include "gd32f4xx.h"
-#include "systick.h"
+#include "delay.h"
 #include <stdio.h>
 #include "adc.h"
 #include "tim.h"
@@ -38,9 +38,6 @@ uint8_t aTxBuffer[10] = {0xaa,0x02,0x0a,0x0b,0x03,0x04,0x05,0xc,0x0d,0xe};
 
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f) 
 
-/* Private function prototypes ---------------------------------------*/
-static void SystemClock_Config(void);
-static void CPU_CACHE_Enable(void);
 
 UINT32 LoopElapsedTime = 0;
 UINT32 MaxLoopTime = 0;
@@ -98,7 +95,6 @@ void HardwareInit()
 {
         NVIC_SetPriorityGrouping(NVIC_PRIGROUP_PRE4_SUB0);     
         
-        systick_config(); //用于延时
 		/* Initialize all configured peripherals */
 		ApplicationMode = MX_GPIO_Init();
     

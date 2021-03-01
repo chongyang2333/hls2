@@ -19,7 +19,7 @@
 #include "adc.h"
 #include "tim.h"
 #include "gd_hal.h"
-#include "systick.h"
+#include "delay.h"
 
 PRIVATE INT16 ADC2_JDR1_Offset = 2160;
 PRIVATE INT16 ADC2_JDR2_Offset = 2070;

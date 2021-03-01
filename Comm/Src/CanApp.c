@@ -25,7 +25,7 @@
 #include "LedDriver.h"
 #include "MachineAdditionalInfo.h"
 #include "gd_hal.h"
-#include "systick.h"
+#include "delay.h"
 
 #define IMITATE_RESPONSE_MCU3_ENABLE   (1)
 

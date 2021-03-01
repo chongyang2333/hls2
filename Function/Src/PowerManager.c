@@ -29,7 +29,7 @@
 #include "gd32f4xx.h"
 #include "MachineAdditionalInfo.h"
 #include "gd_hal.h"
-#include "systick.h"
+#include "delay.h"
 
 
 #define ON 1

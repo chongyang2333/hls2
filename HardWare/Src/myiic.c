@@ -1,7 +1,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "myiic.h"
-#include "systick.h"
+#include "delay.h"
 
 void myiic_start(MyIICStruct* MyIIC)
 {  

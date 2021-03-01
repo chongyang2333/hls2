@@ -590,6 +590,11 @@
               <FileType>1</FileType>
               <FilePath>..\HardWare\Src\gd_hal.c</FilePath>
             </File>
+            <File>
+              <FileName>delay.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HardWare\Src\delay.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -609,11 +614,6 @@
               <FileName>system_gd32f4xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Src\system_gd32f4xx.c</FilePath>
-            </File>
-            <File>
-              <FileName>systick.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Src\systick.c</FilePath>
             </File>
           </Files>
         </Group>

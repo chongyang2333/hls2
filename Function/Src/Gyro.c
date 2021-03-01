@@ -18,7 +18,7 @@
 #include "Gyro.h"
 #include "i2c.h"
 #include "CanApp.h"
-#include "systick.h"
+#include "delay.h"
 
 PRIVATE void I2C_Gyro_ByteWrite(UINT8 WriteAddr, UINT8 WriteData);
 PRIVATE void I2C_Gyro_BufferRead(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumByteToRead);
