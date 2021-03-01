@@ -14,6 +14,7 @@
 ----------------------------------------------------------------------*/
 
 /*------------------------- Include files ----------------------------*/
+#include <string.h>
 #include "gd32f4xx.h"
 #include "CanApp.h"
 #include "Param.h"
@@ -41,6 +42,12 @@ struct CanAppStruct  sMyCan={0};
 // CAN_RxHeaderTypeDef   Can_RxHeader;
 
 extern ST_VersionStruct NowSoftWareVersion;
+
+
+can_receive_message_struct receive_message;
+can_trasnmit_message_struct transmit_message;
+
+/*------------------------- Protype Functions --------------------------*/
 
 PRIVATE void PcRequestHandle(UINT8 *pData);
 PRIVATE void CanSendSoftwareVersion(void);
@@ -117,6 +124,24 @@ PUBLIC void CanAppExec(void)
 void chassis_led_ctrl( uint8_t *buff );
 
 PRIVATE void CAN_GetRxMessage(CAN_RX_Message CanRxMessage)
+{
+    can_struct_para_init(CAN_RX_MESSAGE_STRUCT, &receive_message);
+    /* check the receive message */
+    can_message_receive(CAN0, CAN_FIFO1, &receive_message);
+    
+    if ((receive_message.rx_ff   == CAN_FF_STANDARD) &&
+        (receive_message.rx_dlen == 8))
+    {
+        memcpy(CanRxMessage.RxData, receive_message.rx_data, 8);
+    }
+    else
+    {
+        memset(CanRxMessage.RxData, 0x00, 8);
+    }
+
+}
+
+PRIVATE void CAN_GetRxMessage_Weak(CAN_RX_Message CanRxMessage)
 {
 //	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &Can_RxHeader, &CanRxMessage.RxData[0]);//数组参数传递？
 }
@@ -1095,6 +1120,40 @@ PRIVATE void CanSendMachineInfoCrcState(void)
 ***********************************************************************/
 PRIVATE void can_tx(UINT8 *pData)
 {
+    if (!ReadPadPowerState() || sMyCan.CanBreakErr)
+    {
+        return;
+    }
+
+    if (!g_CanTxEnable)
+    {
+        return;
+    }
+
+    /* initialize transmit message */
+    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
+    transmit_message.tx_sfid = CAN_SLAVE_ID;
+    transmit_message.tx_ft   = CAN_FT_DATA;
+    transmit_message.tx_ff   = CAN_FF_STANDARD;
+    transmit_message.tx_dlen = 8;
+    memcpy(transmit_message.tx_data, pData, 8);
+
+    /* prepare to transmit */
+    UINT32 StartTime = ReadTimeStampTimer();
+    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
+    {
+        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        {
+            sMyCan.CanBreakErr = 1;
+            break;
+        }
+    }
+    
+    sMyCan.CanRxTxState |= 0x01;
+}
+
+PRIVATE void can_tx_weak(UINT8 *pData)
+{
 //    uint32_t TxMailbox=0;
 //    CAN_TxHeaderTypeDef *ptx=&Can_TxHeader;
 //	
@@ -1137,7 +1196,37 @@ PRIVATE void can_tx(UINT8 *pData)
  * RETURNS:
  *
 ***********************************************************************/
+
 PRIVATE void can_tx_no_block(UINT8 *pData)
+{
+    if (!ReadPadPowerState() || sMyCan.CanBreakErr) 
+    {
+        return;
+    }
+
+    /* initialize transmit message */
+    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
+    transmit_message.tx_sfid = CAN_SLAVE_ID;
+    transmit_message.tx_ft   = CAN_FT_DATA;
+    transmit_message.tx_ff   = CAN_FF_STANDARD;
+    transmit_message.tx_dlen = 8;
+    memcpy(transmit_message.tx_data, pData, 8);
+
+    /* prepare to transmit */
+    UINT32 StartTime = ReadTimeStampTimer();
+    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
+    {
+        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        {
+            sMyCan.CanBreakErr = 1;
+            break;
+        }
+    }
+    
+    sMyCan.CanRxTxState |= 0x01;
+}
+
+PRIVATE void can_tx_no_block_weak(UINT8 *pData)
 {
 //    uint32_t TxMailbox=0;
 //    CAN_TxHeaderTypeDef *ptx=&Can_TxHeader;
