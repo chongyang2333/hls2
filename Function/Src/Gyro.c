@@ -107,6 +107,11 @@ PUBLIC void GetGyroData(INT16 *pData)
 ***********************************************************************/
 PRIVATE void I2C_Gyro_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
 {
+    i2c_mem_write(I2C1, I2C2_MPU6050, WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData, 1, 5000);
+}
+
+PRIVATE void I2C_Gyro_ByteWrite_Weak(UINT8 WriteAddr, UINT8 WriteData)
+{
     // HAL_I2C_Mem_Write(&hi2c2, I2C2_MPU6050,WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData,1,500);
     // while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
@@ -118,6 +123,11 @@ PRIVATE void I2C_Gyro_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
  *
 ***********************************************************************/
 PRIVATE void I2C_Gyro_BufferRead(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumByteToRead)
+{
+    i2c_mem_read(I2C1, I2C2_MPU6050, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead, 5000);
+}
+
+PRIVATE void I2C_Gyro_BufferRead_Weak(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumByteToRead)
 {
     // HAL_I2C_Mem_Read(&hi2c2, I2C2_MPU6050, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead,1000);
     // while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);

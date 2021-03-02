@@ -76,6 +76,11 @@ static UINT8 TimeCnt = 0;
 ***********************************************************************/
 PRIVATE void I2C_LedDriver_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
 {
+    i2c_mem_write(I2C1, I2C2_LedDriverWrite, WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData, 1, 5000);
+}
+
+PRIVATE void I2C_LedDriver_ByteWrite_Weak(UINT8 WriteAddr, UINT8 WriteData)
+{
 	// HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData, 1, 1000);
 	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
@@ -87,6 +92,11 @@ PRIVATE void I2C_LedDriver_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
  *
 ***********************************************************************/
 PRIVATE void I2C_sTlc59108fAllRegUpDate(void)
+{
+    i2c_mem_write(I2C1, I2C2_LedDriverWrite, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg, 18, 5000);
+}
+
+PRIVATE void I2C_sTlc59108fAllRegUpDate_Weak(void)
 {
 	// HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg,18,1000);
 	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
@@ -100,6 +110,11 @@ PRIVATE void I2C_sTlc59108fAllRegUpDate(void)
 ***********************************************************************/
 PRIVATE void I2C_LedDriver_BufferRead(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumByteToRead)
 {
+    i2c_mem_read(I2C1, I2C2_LedDriverRead, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead, 5000);
+}
+
+PRIVATE void I2C_LedDriver_BufferRead_Weak(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumByteToRead)
+{
 	// HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead,1000);
 	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
@@ -110,7 +125,12 @@ PRIVATE void I2C_LedDriver_BufferRead(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumB
  * RETURNS:
  *
 ***********************************************************************/
-PRIVATE void I2C_sTlc59108fAllRegRead()
+PRIVATE void I2C_sTlc59108fAllRegRead(void)
+{
+    i2c_mem_read(I2C1, I2C2_LedDriverRead, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg, 18, 5000);
+}
+
+PRIVATE void I2C_sTlc59108fAllRegRead_Weak(void)
 {
 	// HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg, 18,1000);
 	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);

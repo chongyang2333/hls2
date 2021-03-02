@@ -50,7 +50,6 @@
 
 //CAN_HandleTypeDef hcan1;
 
-/* CAN1 init function */
 
 /**
  * \brief      initialize CAN and filter
@@ -146,11 +145,16 @@ void CAN0_RX1_IRQHandler(void)
     CanAppDispatch();
 }
 
+/* CAN1 init function */
+
 void MX_CAN1_Init(void)
 {
+    /* stm32 can1 <==> gd32 can0 */
+
+    /* configure CAN gpio */
     can_gpio_init(CAN0);
 
-    /* initialize CAN */
+    /* initialize CAN network */
     can_networking_init(CAN0);
 
     /* enable CAN receive FIFO1 not empty interrupt */

@@ -9,6 +9,11 @@
 
 void sda_out(void)
 {
+    gpio_output_options_set(GPIOC, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
+    gpio_mode_set(GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_PIN_9);
+
+    
+    
     // GPIO_InitTypeDef GPIO_InitStruct;
     
     // GPIO_InitStruct.Pin = GPIO_PIN_9;

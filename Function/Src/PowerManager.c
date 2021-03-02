@@ -1368,11 +1368,21 @@ PRIVATE void BatteryI2cReadInternalInfo(void)
 	(step >= 14) ? (step = 0) : step++;
 }
 
-PRIVATE HAL_StatusTypeDef I2C2_Mem_Read(void)
+PRIVATE HAL_StatusTypeDef I2C2_Mem_Read(
+    uint16_t DevAddress,
+    uint16_t MemAddress,
+    uint16_t MemAddSize,
+    uint8_t *pData,
+    uint16_t Size,
+    uint32_t Timeout
+)
 {
-    HAL_StatusTypeDef ret;
-//    ret = HAL_I2C_Mem_Read(&hi2c3, SlaveAddress, Readaddr, I2C_MEMADD_SIZE_8BIT, Str, Len, 1000);
-    return ret;
+    if (!i2c_mem_read(I2C2, DevAddress, MemAddress, MemAddSize, pData, Size, Timeout))
+    {
+        return HAL_TIMEOUT;
+    }
+    
+    return HAL_OK;
 }
 
 /***********************************************************************
@@ -1387,8 +1397,8 @@ PRIVATE BOOL Battery_Serial_Read(UINT8 SlaveAddress, UINT8 Readaddr, UINT8 *Str,
     
     if (i2c_type)
     {
-         ret = I2C2_Mem_Read();
-        
+        ret = I2C2_Mem_Read(SlaveAddress, Readaddr, I2C_MEMADD_SIZE_8BIT, Str, Len, 5000);
+
         if (ret != HAL_OK)
         {
              HAL_I2C_Reset(I2C2);
@@ -1442,6 +1452,28 @@ PRIVATE BOOL Battery_Serial_Read(UINT8 SlaveAddress, UINT8 Readaddr, UINT8 *Str,
  *
 ***********************************************************************/
 PRIVATE BOOL ManufacturerBlockAccesRead(UINT8 SlaveAddress, UINT8 Cmd, UINT16 macCode, UINT8 *Str, UINT16 Len)
+{ 
+    UINT8 writeList[3] = {0x02, 0x00, 0x00};
+    
+    writeList[1] = macCode&0xFF;
+    writeList[2] = (macCode>>8)&0xFF;
+    
+    if (!i2c_mem_write(I2C2, SlaveAddress, Cmd, I2C_MEMADD_SIZE_8BIT, writeList, 3, 5000))
+    {
+        HAL_I2C_Reset(I2C2);
+        return 0;
+    }
+    
+    if (!i2c_mem_read(I2C2, SlaveAddress, Cmd, I2C_MEMADD_SIZE_8BIT, Str, Len, 5000))
+    {
+        HAL_I2C_Reset(I2C2);
+        return 0;
+    }
+
+    return 1; 
+}
+
+PRIVATE BOOL ManufacturerBlockAccesRead_Weak(UINT8 SlaveAddress, UINT8 Cmd, UINT16 macCode, UINT8 *Str, UINT16 Len)
 { 
 //    UINT8 writeList[3] = {0x02, 0x00, 0x00};
 //    
