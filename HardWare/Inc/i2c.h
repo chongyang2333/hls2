@@ -55,6 +55,10 @@
 
 /* USER CODE BEGIN Private defines */
 
+/* I2C_MEMORY_ADDRESS_SIZE I2C Memory Address Size */
+#define I2C_MEMADD_SIZE_8BIT            (0x00000001U)
+#define I2C_MEMADD_SIZE_16BIT           (0x00000002U)
+
 /* USER CODE END Private defines */
 
 extern void _Error_Handler(char *, int);
@@ -63,6 +67,35 @@ void MX_I2C2_Init(void);
 void MX_I2C3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+
+/**
+ * \brief i2c_mem_write
+ *        blocking mode write.
+*/
+int8_t i2c_mem_write (
+    uint32_t i2c_periph, 
+    uint16_t dev_address, 
+    uint16_t mem_address, 
+    uint16_t mem_addsize, 
+    uint8_t *pdata, 
+    uint16_t size, 
+    uint32_t timeout
+);
+
+/**
+ * \brief i2c_mem_read
+ *        blocking mode read.
+*/
+int8_t i2c_mem_read (
+    uint32_t i2c_periph, 
+    uint16_t dev_address, 
+    uint16_t mem_address, 
+    uint16_t mem_addsize, 
+    uint8_t *pdata, 
+    uint16_t size, 
+    uint32_t timeout
+);
+
 
 /* USER CODE END Prototypes */
 

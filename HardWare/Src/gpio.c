@@ -49,6 +49,11 @@
 /*----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
 
+#define __I2C_SCL_PORT  GPIOA
+#define __I2C_SCL_GPIO  GPIO_PIN_8
+#define __I2C_SDA_PORT  GPIOC
+#define __I2C_SDA_GPIO  GPIO_PIN_9
+
 /* USER CODE END 1 */
 
 /** Configure pins as 
@@ -311,54 +316,43 @@ UINT8 MX_GPIO_Init(void)
 
 void battery_I2C_GPIO_Init(void)
 {  
+    /* enable gpio clock */
+    rcu_periph_clock_enable(RCU_GPIOA);
+    rcu_periph_clock_enable(RCU_GPIOC);
+
+    /* configure I2C GPIO */
+    gpio_output_options_set(__I2C_SCL_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, __I2C_SCL_GPIO);
+    gpio_mode_set(__I2C_SCL_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, __I2C_SCL_GPIO);
     
-    // GPIO_InitTypeDef GPIO_InitStruct;
-    
-    // /*Configure GPIO pins : PA8 : BATTERY SCL*/
-    // GPIO_InitStruct.Pin = GPIO_PIN_8;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    // GPIO_InitStruct.Pull = GPIO_PULLUP;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    // HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
-    // /*Configure GPIO pins :PC9: BATTERY SDA*/   
-    // GPIO_InitStruct.Pin = GPIO_PIN_9;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    // GPIO_InitStruct.Pull = GPIO_PULLUP;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    // HAL_GPIO_Init(GPIOC, &GPIO_InitStruct); 
-    
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);   
+    gpio_output_options_set(__I2C_SDA_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, __I2C_SDA_GPIO);
+    gpio_mode_set(__I2C_SDA_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, __I2C_SDA_GPIO);
+
+    gpio_bit_write(__I2C_SCL_PORT, __I2C_SCL_GPIO, SET);
+    gpio_bit_write(__I2C_SDA_PORT, __I2C_SDA_GPIO, SET);
 }
 
 // Battery module: SDA
 void Battery_SDA_WritePin(uint8_t PinState)
 {
-		// if(PinState)
-		// 		GPIOC->BSRR = (1<<9);
-		// else
-		// 		GPIOC->BSRR = (1<<25);
+    gpio_bit_write(__I2C_SDA_PORT, __I2C_SDA_GPIO, (bit_status)PinState);
 }
 
 // Battery module: SCL
 void Battery_SCL_WritePin(uint8_t PinState)
 {
-		// if(PinState)
-		// 		GPIOA->BSRR = (1<<8);
-		// else
-		// 		GPIOA->BSRR = (1<<24);
+    gpio_bit_write(__I2C_SCL_PORT, __I2C_SCL_GPIO, (bit_status)PinState);
 }
 
 // Battery module: SDA Read
 uint8_t Battery_SDA_ReadPin(void)
 {
-    return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9);
+    return HAL_GPIO_ReadPin(__I2C_SDA_PORT, __I2C_SDA_GPIO);
 }
 
 // Battery module: SCL Read
 uint8_t Battery_SCL_ReadPin(void)
 {
-    return HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
+    return HAL_GPIO_ReadPin(__I2C_SCL_PORT, __I2C_SCL_GPIO);
 }
 
 // Enable Back Electromotive Force Discharge 
