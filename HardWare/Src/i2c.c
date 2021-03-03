@@ -47,7 +47,7 @@
 
 /* USER CODE END 0 */
 
-/* CAN initiliaze parameters struct */
+/* i2c initiliaze parameters struct */
 typedef struct
 {
     uint32_t clkspeed;                   /*!< I2C clock speed */ 
@@ -404,12 +404,15 @@ static void i2c_struct_para_init(void *p_struct)
 /**
  * \brief      initialize I2C interface
  * \prarm[in]  i2c_periph
- * \prarm[in]  clkspeed
+ * \prarm[in]  i2c_parameter_init
  * \param[out] none
  * \retval     none
 */
 static void i2c_interface_init(uint32_t i2c_periph, i2c_parameter_struct *i2c_parameter_init)
 {
+    /* reset I2C */
+    i2c_deinit(i2c_periph);
+    
     /* configure I2C clock */
     i2c_clock_config(i2c_periph, i2c_parameter_init->clkspeed, i2c_parameter_init->dutycyc);
 

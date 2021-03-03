@@ -243,6 +243,25 @@ PUBLIC void DataCollectingLoop(UINT32 SchTick)
 ***********************************************************************/
 PRIVATE void ClearUartERR(void)
 {
+//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_PERR)) {
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_PERR);
+//    }
+
+//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_FERR)) {
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_FERR);
+//    }
+
+//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_NERR)) {
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_NERR);
+//    }
+
+//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_ORERR)) {
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_ORERR);
+//    }
+}    
+
+PRIVATE void ClearUartERR_Weak(void)
+{
 //    if(huart3.Instance->ISR & 0xF)
 //    {    
 //        huart3.Instance->ICR = 0xF;
