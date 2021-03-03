@@ -62,7 +62,7 @@ static void can_networking_init(uint32_t can_periph)
     can_parameter_struct            can_parameter;
     can_filter_parameter_struct     can_filter;
     
-    /* initialize CAN register */
+    /* reset CAN */
     can_deinit(can_periph);
 
     /* initialize CAN */
