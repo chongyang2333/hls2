@@ -286,16 +286,18 @@ void MX_TIM7_Init_weak(void)
 void MX_TIM5_Init(void)
 {
 	timer_parameter_struct timer_initpara;
-
-    rcu_periph_clock_enable(TIMER4);
+    
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    
+    rcu_periph_clock_enable(RCU_TIMER4);
     
     timer_deinit(TIMER4);
 
-    timer_initpara.clockdivision = (4 - 1);    // 25mhz
+    timer_initpara.prescaler = (8 - 1);    // 25mhz
     timer_initpara.period = 0xFFFFFFFF; 
     timer_initpara.counterdirection = TIMER_COUNTER_CENTER_UP;
     timer_initpara.repetitioncounter = 0;
-    
+    timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
     timer_init(TIMER4,&timer_initpara);
     
     timer_enable(TIMER4);
@@ -311,23 +313,25 @@ void MX_TIM5_Init(void)
 void MX_TIM7_Init(void)
 {
     timer_parameter_struct timer_initpara;
-
-    rcu_periph_clock_enable(TIMER8);
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    
+    rcu_periph_clock_enable(RCU_TIMER8);
+    
+    nvic_irq_enable(TIMER0_BRK_TIMER8_IRQn,0,2);
     
     timer_deinit(TIMER8);
 
-    timer_initpara.clockdivision = (2000 - 1);    // 100khz
+    timer_initpara.prescaler = (2000 - 1);    // 100khz
     timer_initpara.period = (2500 - 1); 
     timer_initpara.counterdirection = TIMER_COUNTER_CENTER_UP;
     timer_initpara.repetitioncounter = 0;
+    timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
     
     timer_init(TIMER8,&timer_initpara);
     
-    timer_interrupt_disable(TIMER8,TIMER_INT_FLAG_UP);
-    
+    timer_interrupt_disable(TIMER8,TIMER_INT_UP);
+
     timer_enable(TIMER8);
- 
-    nvic_irq_enable(TIMER0_BRK_TIMER8_IRQn,0,2);
     
 }
 

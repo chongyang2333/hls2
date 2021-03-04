@@ -59,9 +59,11 @@ PUBLIC void TimeStampTimerInit(void)
  * RETURNS: Return current time stam value
  *
 ***********************************************************************/
+uint32_t TEST_V32 = 0;
 PUBLIC UINT32 ReadTimeStampTimer(void)
 {
-//    return TIM5->CNT;
+    TEST_V32 = TIMER_CNT(TIMER4);
+    return TIMER_CNT(TIMER4);
 }
 
 /***********************************************************************

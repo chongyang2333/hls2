@@ -441,13 +441,17 @@ PUBLIC void BKP_Init(void)
 
 PUBLIC void RTC_BKP_Write(UINT32 uiAddr0_19,UINT32 uiDataToWrite)
 {
+    uint32_t * pAddr0_19 = (uint32_t *)(&RTC_BKP0 + uiAddr0_19);
+  
     pmu_backup_write_enable();
-    RTC_BKP_Write(uiAddr0_19,uiDataToWrite);
+    * pAddr0_19 = uiDataToWrite;
     pmu_backup_write_disable();
 }
 
 PUBLIC UINT32 RTC_BKP_Read(UINT32 uiAddr0_19)
 {
-    return RTC_BKP_Read(uiAddr0_19);
+    uint32_t *pAddr0_19 = (uint32_t *)(&RTC_BKP0 + uiAddr0_19);
+    
+    return (*pAddr0_19);
 }
 

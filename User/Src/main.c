@@ -143,7 +143,7 @@ void HardwareInit()
 //		HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn); 
 //		/* Enable general timer interrupt */
 //		HAL_NVIC_EnableIRQ(TIM7_IRQn);
-        timer_interrupt_enable(TIMER8,TIMER_INT_FLAG_UP);
+        timer_interrupt_enable(TIMER8,TIMER_INT_UP);
         /* Enable EXTI4 interrupt */
 //        HAL_NVIC_EnableIRQ(EXTI4_IRQn); 
 }

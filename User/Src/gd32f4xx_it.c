@@ -155,10 +155,10 @@ void SysTick_Handler(void)
 
 void TIMER0_BRK_TIMER8_IRQHandler(void)
 {
-    if(timer_interrupt_flag_get(TIMER8,TIMER_INT_UP) == SET)
+    if(timer_interrupt_flag_get(TIMER8,TIMER_INT_FLAG_UP) == SET)
     {
         TimerIsrExec();
-        timer_interrupt_flag_clear(TIMER8,TIMER_INT_UP);
+        timer_interrupt_flag_clear(TIMER8,TIMER_INT_FLAG_UP);
     }
 }
 
