@@ -201,11 +201,16 @@ static void usart_dma_init(uint32_t usart_periph)
           It is forbidden to simultaneously enable these two DMA channels with 
         selecting the same peripheral request.
         */
+//        #define __USART2_TxDMA_PERIPH  DMA0
+//        #define __USART2_TxDMA_CHANNEL DMA_CH4
+//        #define __USART2_TxDMA_SUBPERI DMA_SUBPERI7
+//        #define __USART2_TxDMA_IRQn    DMA0_Channel7_IRQn
         #define __USART2_TxDMA_PERIPH  DMA0
         #define __USART2_TxDMA_CHANNEL DMA_CH3
         #define __USART2_TxDMA_SUBPERI DMA_SUBPERI4
         #define __USART2_TxDMA_IRQn    DMA0_Channel3_IRQn
 
+        
         #define __USART2_RxDMA_PERIPH  DMA0
         #define __USART2_RxDMA_CHANNEL DMA_CH1
         #define __USART2_RxDMA_SUBPERI DMA_SUBPERI4
@@ -882,7 +887,7 @@ void UartSendData(uint8_t *buf, uint16_t size)
 
     while (SET != usart_transmit_dma_done_get(USART2))
     {
-        if ((ReadTimeStampTimer() - StartTime) > 27*5000000)  // 5s
+        if ((ReadTimeStampTimer() - StartTime) > 25*5000000)  // 5s
         {
             break;
         }
@@ -892,7 +897,7 @@ void UartSendData(uint8_t *buf, uint16_t size)
     StartTime = ReadTimeStampTimer();
     while (SET != usart_transmit_dma_done_get(USART2))
     {
-        if ((ReadTimeStampTimer() - StartTime) > 27*5000000)  // 5s
+        if ((ReadTimeStampTimer() - StartTime) > 25*5000000)  // 5s
         {
             break;
         }

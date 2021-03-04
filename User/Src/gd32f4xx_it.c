@@ -37,6 +37,7 @@ OF SUCH DAMAGE.
 #include "gd32f4xx_it.h"
 #include "main.h"
 #include "delay.h"
+#include "ControlRun.h"
 
 /*!
     \brief    this function handles NMI exception
@@ -151,3 +152,13 @@ void SysTick_Handler(void)
 {
 //    delay_decrement();
 }
+
+void TIMER0_BRK_TIMER8_IRQHandler(void)
+{
+    if(timer_interrupt_flag_get(TIMER8,TIMER_INT_FLAG_UP) == SET)
+    {
+        TimerIsrExec();
+        timer_interrupt_flag_clear(TIMER8,TIMER_INT_FLAG_UP);
+    }
+}
+
