@@ -285,9 +285,11 @@ __STATIC_INLINE FlagStatus usart_dma_done_get(uint32_t dma_periph, dma_channel_e
     {
         return SET;
     }
-    else {
-        return dma_flag_get(dma_periph, channelx, DMA_FLAG_FTF);
-    }
+//    else {
+//        return dma_flag_get(dma_periph, channelx, DMA_FLAG_FTF);
+//    }
+    
+    return RESET;
 }
 
 /**
@@ -302,6 +304,32 @@ __STATIC_INLINE void usart_dma_abort(uint32_t dma_periph, dma_channel_enum chann
     if (DMA_CHCTL(dma_periph, channelx) & DMA_CHXCTL_CHEN)
     {
         dma_channel_disable(dma_periph, channelx);
+    }
+}
+
+/**
+ * \brief      clear USART dma flag
+ * \prarm[in]  dma_periph
+ * \prarm[in]  channelx
+ * \param[out] none
+ * \retval     none
+*/
+__STATIC_INLINE void usart_dma_flag_clear(uint32_t dma_periph, dma_channel_enum channelx)
+{
+    if (dma_flag_get(dma_periph, channelx, DMA_FLAG_FEE)) {
+        dma_flag_clear(dma_periph, channelx, DMA_FLAG_FEE);
+    }
+    if (dma_flag_get(dma_periph, channelx, DMA_FLAG_SDE)) {
+        dma_flag_clear(dma_periph, channelx, DMA_FLAG_SDE);
+    }
+    if (dma_flag_get(dma_periph, channelx, DMA_FLAG_TAE)) {
+        dma_flag_clear(dma_periph, channelx, DMA_FLAG_TAE);
+    }
+    if (dma_flag_get(dma_periph, channelx, DMA_FLAG_HTF)) {
+        dma_flag_clear(dma_periph, channelx, DMA_FLAG_HTF);
+    }
+    if (dma_flag_get(dma_periph, channelx, DMA_FLAG_FTF)) {
+        dma_flag_clear(dma_periph, channelx, DMA_FLAG_FTF);
     }
 }
 
@@ -383,6 +411,7 @@ void usart_transmit_dma(uint32_t usart_periph, uint8_t *pdata, uint16_t size)
 {
     if (usart_periph == USART2)
     {
+        usart_dma_flag_clear(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
         dma_channel_disable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
         dma_memory_address_config(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, DMA_MEMORY_0, (uint32_t)pdata);
         dma_transfer_number_config(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, size);
@@ -404,6 +433,7 @@ void usart_receive_dma(uint32_t usart_periph, uint8_t *pdata, uint16_t size)
 {
     if (usart_periph == USART2)
     {
+        usart_dma_flag_clear(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
         dma_channel_disable(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
         dma_memory_address_config(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL, DMA_MEMORY_0, (uint32_t)pdata);
         dma_transfer_number_config(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL, size);
