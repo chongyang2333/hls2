@@ -418,7 +418,7 @@ PUBLIC UINT8 GetResetType(void)
 }
 
 
-PUBLIC void BKP_Init(void)
+PUBLIC void BKP_Init_weak(void)
 {
 		// __HAL_RCC_PWR_CLK_ENABLE();
 		// HAL_PWR_EnableBkUpAccess();
@@ -426,19 +426,28 @@ PUBLIC void BKP_Init(void)
 		// HAL_PWREx_EnableBkUpReg();
 	
 		// RTC->TAMPCR |= (0xFF << 17);
- 		
+}
+
+PUBLIC void BKP_Init(void)
+{
+ /* enable access to RTC registers in Backup domain */
+    rcu_periph_clock_enable(RCU_PMU);
+    pmu_backup_write_enable();	
+    rcu_periph_clock_enable(RCU_BKPSRAM);
+    rtc_tamper_disable(RTC_TAMPER0); //禁止Tamperx检测功能，防止清空BKP寄存器 
+    rtc_tamper_disable(RTC_TAMPER1);
 }
 
 
 PUBLIC void RTC_BKP_Write(UINT32 uiAddr0_19,UINT32 uiDataToWrite)
 {
-		// HAL_PWR_EnableBkUpAccess();
-		// HAL_RTCEx_BKUPWrite(&hrtc1,uiAddr0_19,uiDataToWrite);
-		// HAL_PWR_DisableBkUpAccess();
+    pmu_backup_write_enable();
+    RTC_BKP_Write(uiAddr0_19,uiDataToWrite);
+    pmu_backup_write_disable();
 }
 
 PUBLIC UINT32 RTC_BKP_Read(UINT32 uiAddr0_19)
 {
-		// return HAL_RTCEx_BKUPRead(&hrtc1,uiAddr0_19);
+    return RTC_BKP_Read(uiAddr0_19);
 }
 

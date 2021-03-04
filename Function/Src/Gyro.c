@@ -56,26 +56,26 @@ PUBLIC void GyroInit(void)
 INT16 gyro[3], accel[3];
 PUBLIC void GyroExec(void)
 {
-    UINT8 DataBuffer[14] = {0};	//���ݻ���
-/****************************���ٶ�****************************************/
+    UINT8 DataBuffer[14] = {0};	//读取x轴加速度
+/****************************加速度****************************************/
 	I2C_Gyro_BufferRead(DataBuffer, ACCEL_XOUT_H, 14);
-	accel[0]  = (short)((DataBuffer[0]<<8)+DataBuffer[1]);	  //��ȡX����ٶ�
+	accel[0]  = (short)((DataBuffer[0]<<8)+DataBuffer[1]);	  //读取X轴加速度
 	
 //	I2C_Gyro_BufferRead(DataBuffer, ACCEL_YOUT_H, 2);
-	accel[1]  = -(short)((DataBuffer[2]<<8)+DataBuffer[3]);	  //��ȡY����ٶ�
+	accel[1]  = -(short)((DataBuffer[2]<<8)+DataBuffer[3]);	  //读取Y轴加速度
 	
 //	I2C_Gyro_BufferRead(DataBuffer, ACCEL_ZOUT_H, 2);
-	accel[2]  = -(short)((DataBuffer[4]<<8)+DataBuffer[5]);	  //��ȡZ����ٶ�
+	accel[2]  = -(short)((DataBuffer[4]<<8)+DataBuffer[5]);	  //读取Z轴加速度
 	
-/****************************���ٶ�****************************************/
+/****************************角速度****************************************/
 //	I2C_Gyro_BufferRead(DataBuffer, GYRO_XOUT_H, 2);
-	gyro[0] = (short)((DataBuffer[8]<<8)+DataBuffer[9]);	      //��ȡX����ٶ�
+	gyro[0] = (short)((DataBuffer[8]<<8)+DataBuffer[9]);	      //读取X轴角速度
 	
 //	I2C_Gyro_BufferRead(DataBuffer, GYRO_YOUT_H, 2);
-	gyro[1] = -(short)((DataBuffer[10]<<8)+DataBuffer[11]);	      //��ȡY����ٶ�
+	gyro[1] = -(short)((DataBuffer[10]<<8)+DataBuffer[11]);	      //读取Y轴角速度
 	
 //	I2C_Gyro_BufferRead(DataBuffer, GYRO_ZOUT_H, 2);
-	gyro[2] = -(short)((DataBuffer[12]<<8)+DataBuffer[13]);	      //��ȡZ����ٶ�
+	gyro[2] = -(short)((DataBuffer[12]<<8)+DataBuffer[13]);	      //读取Z轴角速度
 
 
     CanSendGyro(gyro, accel);

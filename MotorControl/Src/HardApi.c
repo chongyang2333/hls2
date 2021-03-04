@@ -322,7 +322,7 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 PUBLIC float GetChargeCurrent(void)
 { 
     float Res = 0;
-    // Res = ((INT16)ADC1->JDR4 - ADC1_JDR4_Offset)*ADC1_JDR4_GAIN;
+//     Res = ((INT16)ADC1->JDR4 - ADC1_JDR4_Offset)*ADC1_JDR4_GAIN;
     return Res;
 }
 
@@ -475,9 +475,9 @@ PUBLIC UINT16 GetHallState(UINT16 AxisID, UINT32 MotorVersion)
  
     if(AXIS_LEFT == AxisID)
     {
-        hallA = HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_9);
-        hallB = HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_7);
-        hallC = HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_8);
+        hallA = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_7);
+        hallB = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6);
+        hallC = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
     }
     else if(AXIS_RIGHT == AxisID)
     {
@@ -505,11 +505,11 @@ PUBLIC UINT16 GetHallState(UINT16 AxisID, UINT32 MotorVersion)
 ***********************************************************************/
 PUBLIC UINT16 GetHardOverCurState(UINT16 AxisID)
 {
-    UINT16 res = !HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_10) 
-               + !HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_13) 
-               + !HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_14)
-               + !HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_1) 
-               + !HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_7);
+    UINT16 res = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_2) 
+               + !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) 
+               + !HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_7)
+               + !HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14) 
+               + !HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15);
     
     return res;
 }

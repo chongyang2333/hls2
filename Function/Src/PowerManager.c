@@ -588,7 +588,6 @@ PRIVATE void PowerAlarmExec(void)
         sPowerManager.sChargeInfo.sChargerCheck.eCheckState = CHECK_APPENDING;
 	}
 
-	//需确认BKP寄存器本质是RAM? 无擦写寿命？
 	RTC_BKP_Write(EN_BATTERY_PROTECT_BKP_ADDR, sPowerManager.sAlarm.PowerAlarmReg.all);
 }
 
@@ -2481,7 +2480,18 @@ PUBLIC void SetVbusPower(UINT8 State)
         sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.VbusPower = ON;        
     }
 }
-
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE float GetVbusVoltage(void)
+{
+    float temp = 0;
+//    temp = ADC2->JDR4*ADC2_JDR4_GAIN;
+    return temp;
+}    
 
 /***********************************************************************
  * DESCRIPTION:
@@ -2555,7 +2565,7 @@ PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode)
         AdcSampleClearFlag();
         
         Vbus_tmp_last = Vbus_tmp;
-//        Vbus_tmp = ADC2->JDR4*ADC2_JDR4_GAIN;          //////////////////////// gd450移植修改
+        Vbus_tmp =   GetVbusVoltage(); 
         Vbus_delta_tmp = Vbus_tmp - Vbus_tmp_last;
 #if (DEBUG_VBUS_SOFT_START == 1)
         if (BlockSoftStartTick < 200)
@@ -2569,6 +2579,7 @@ PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode)
         BlockSoftStartTick++;
     }
 }
+
 
 
 /***********************************************************************

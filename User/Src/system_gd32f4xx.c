@@ -40,6 +40,12 @@
 #define __HXTAL           (HXTAL_VALUE)             /* high speed crystal oscillator frequency */
 #define __SYS_OSC_CLK     (__IRC16M)                /* main oscillator frequency */
 
+/*!< Uncomment the following line if you need to relocate your vector Table in
+     Internal SRAM. */
+/* #define VECT_TAB_SRAM */
+#define VECT_TAB_OFFSET  0x20000 /*!< Vector Table base offset field. 
+                                   This value must be a multiple of 0x200. */
+
 /* select a system clock by uncommenting the following line */
 //#define __SYSTEM_CLOCK_IRC16M                   (uint32_t)(__IRC16M)
 //#define __SYSTEM_CLOCK_HXTAL                    (uint32_t)(__HXTAL)
@@ -136,9 +142,13 @@ void SystemInit (void)
 
   /* Reset HSEBYP bit */
   RCU_CTL &= ~(RCU_CTL_HXTALBPS);
+    
+  SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET;
 
   /* Disable all interrupts */
   RCU_INT = 0x00000000U;
+    
+  
        
   /* Configure the System clock source, PLL Multiplier and Divider factors, 
      AHB/APBx prescalers and Flash settings ----------------------------------*/
