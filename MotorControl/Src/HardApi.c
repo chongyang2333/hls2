@@ -21,22 +21,24 @@
 #include "gd_hal.h"
 #include "delay.h"
 
-PRIVATE INT16 ADC2_JDR1_Offset = 2160;
-PRIVATE INT16 ADC2_JDR2_Offset = 2070;
-PRIVATE INT16 ADC3_JDR1_Offset = 2090;
-PRIVATE INT16 ADC3_JDR2_Offset = 2155;
+PRIVATE INT16 ADC2_JDR0_Offset = 2160;
+PRIVATE INT16 ADC2_JDR1_Offset = 2070;
+PRIVATE INT16 ADC1_JDR0_Offset = 2090;
+PRIVATE INT16 ADC1_JDR1_Offset = 2155;
 
-PRIVATE INT16 ADC1_JDR4_Offset = 2048;
+PRIVATE INT16 ADC0_JDR1_Offset = 2048;
 
+#define ADC2_JDR0_GAIN  0.01464844f    // (+/-)30A/2048
 #define ADC2_JDR1_GAIN  0.01464844f    // (+/-)30A/2048
-#define ADC2_JDR2_GAIN  0.01464844f    // (+/-)30A/2048
-#define ADC3_JDR1_GAIN  0.01464844f    // (+/-)30A/2048
-#define ADC3_JDR2_GAIN  0.01464844f    // (+/-)30A/2048
+#define ADC1_JDR0_GAIN  0.01464844f    // (+/-)30A/2048
+#define ADC1_JDR1_GAIN  0.01464844f    // (+/-)30A/2048
 
-#define ADC1_JDR4_GAIN  0.01464844f    // (+/-)30A/2048
+#define ADC0_JDR1_GAIN  0.01464844f    // (+/-)30A/2048
 
-#define ADC1_JDR1_GAIN  0.01859225f    // Dc Voltage coff
-#define ADC3_JDR4_GAIN  0.01859225f    // Charge Voltage coff
+#define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff
+#define ADC0_JDR3_GAIN  0.01859225f    // Dc Voltage coff
+
+#define ADC0_JDR0_GAIN  0.01859225f    // Charge Voltage coff
 
 extern PUBLIC UINT8 ApplicationMode;
 PRIVATE void AdcSumPort(uint16_t * sum);
@@ -50,7 +52,7 @@ PRIVATE void AdcSumPort(uint16_t * sum);
 ***********************************************************************/
 PUBLIC void TimeStampTimerInit(void)
 {
-    MX_TIM5_Init();
+    MX_TIM4_Init();
 }
 
 /***********************************************************************
@@ -64,6 +66,8 @@ PUBLIC UINT32 ReadTimeStampTimer(void)
 {
     TEST_V32 = TIMER_CNT(TIMER4);
     return TIMER_CNT(TIMER4);
+	
+	//return TIMER4->TIMER_CNT;
 }
 
 /***********************************************************************
@@ -74,8 +78,8 @@ PUBLIC UINT32 ReadTimeStampTimer(void)
 ***********************************************************************/
 PUBLIC void PwmInit(void)
 {
-    MX_TIM1_Init(); // Axis_Left PWM Init
-    MX_TIM8_Init(); // Axis_Right PWM Init
+    MX_TIM0_Init(); // Axis_Left PWM Init
+    MX_TIM7_Init(); // Axis_Right PWM Init
     
     PwmDisable(AXIS_LEFT);
     PwmDisable(AXIS_RIGHT);
@@ -89,14 +93,14 @@ PUBLIC void PwmInit(void)
 ***********************************************************************/
 PUBLIC void PwmEnable(UINT16 AxisID)
 {
-    // if(AXIS_LEFT == AxisID)
-    // {
-    //     TIM1->CCER = 0x555;
-    // }
-    // else if(AXIS_RIGHT == AxisID)
-    // {
-    //     TIM8->CCER = 0x555;
-    // }
+    if(AXIS_LEFT == AxisID)
+     {
+        TIMER_CHCTL2(TIMER0) = 0x555;
+     }
+     else if(AXIS_RIGHT == AxisID)
+     {
+        TIMER_CHCTL2(TIMER7) = 0x555;
+     }
 }
 
 /***********************************************************************
@@ -107,14 +111,14 @@ PUBLIC void PwmEnable(UINT16 AxisID)
 ***********************************************************************/
 PUBLIC void PwmDisable(UINT16 AxisID)
 {
-    // if(AXIS_LEFT == AxisID)
-    // {
-    //     TIM1->CCER = 0x0;
-    // }
-    // else if(AXIS_RIGHT == AxisID)
-    // {
-    //     TIM8->CCER = 0x0;
-    // }
+     if(AXIS_LEFT == AxisID)
+     {
+        TIMER_CHCTL2(TIMER0) = 0;
+    }
+    else if(AXIS_RIGHT == AxisID)
+    {
+         TIMER_CHCTL2(TIMER7) = 0;
+    }
 }
 
 /***********************************************************************
@@ -130,18 +134,18 @@ PUBLIC void PwmUpdate(UINT16 AxisID, UINT16 PowerFlag, UINT16 Ta, UINT16 Tb, UIN
         Ta = Tb = Tc = 0;
     }
     
-    // if(AXIS_LEFT == AxisID)
-    // {
-    //     TIM1->CCR1 = Ta;
-    //     TIM1->CCR2 = Tb;
-    //     TIM1->CCR3 = Tc;
-    // }
-    // else if(AXIS_RIGHT == AxisID)
-    // {
-    //     TIM8->CCR1 = Ta;
-    //     TIM8->CCR2 = Tb;
-    //     TIM8->CCR3 = Tc;
-    // }
+     if(AXIS_LEFT == AxisID)
+     {
+				TIMER_CH0CV(TIMER0) = Ta;
+				TIMER_CH1CV(TIMER0) = Tb;
+				TIMER_CH2CV(TIMER0) = Tc;
+     }
+     else if(AXIS_RIGHT == AxisID)
+     {
+					TIMER_CH0CV(TIMER7) = Ta;
+					TIMER_CH1CV(TIMER7) = Tb;
+					TIMER_CH2CV(TIMER7) = Tc;
+    }
 }
 
 /***********************************************************************
@@ -152,10 +156,8 @@ PUBLIC void PwmUpdate(UINT16 AxisID, UINT16 PowerFlag, UINT16 Ta, UINT16 Tb, UIN
 ***********************************************************************/
 PUBLIC void AdcInit(void)
 {
-	MX_ADC1_Init();
-	MX_ADC2_Init();
-	MX_ADC3_Init();
-    
+   gpio_adc_config();
+	 adc_config();
     delay_ms(50);
     AdcOffsetCal();  // todo
 }
@@ -167,10 +169,10 @@ PUBLIC void AdcInit(void)
  *
 ***********************************************************************/
 PUBLIC void AdcSampleStart(void)
-{
-    // ADC3->CR2 |= (1<<22);
-	// ADC2->CR2 |= (1<<22);
-	// ADC1->CR2 |= (1<<22);  
+{ 
+	adc_software_trigger_enable(ADC0,ADC_INSERTED_CHANNEL);
+	adc_software_trigger_enable(ADC1,ADC_INSERTED_CHANNEL);
+	adc_software_trigger_enable(ADC2,ADC_INSERTED_CHANNEL);
 }
 
 /***********************************************************************
@@ -190,18 +192,25 @@ PUBLIC void AdcSampleClearFlag(void)
     
 //    LeftMotorAdc = ADC3->JDR3;
 //    RightMotorAdc = ADC2->JDR3;
+	
+	if((ADC_STAT(ADC0) & ADC_STAT_STIC))
+			ADC_STAT(ADC0)&=(~ADC_STAT_STIC);
+	if((ADC_STAT(ADC1) & ADC_STAT_STIC))
+		ADC_STAT(ADC1)&=(~ADC_STAT_STIC);
+	if((ADC_STAT(ADC2) & ADC_STAT_STIC))
+		ADC_STAT(ADC2)&=(~ADC_STAT_STIC);
 }
 
 /***********************************************************************
- * DESCRIPTION: 
+ * DESCRIPTION:  get motor temprature
  *
  * RETURNS:
  *
 ***********************************************************************/
 PUBLIC void GetMotorAdc(UINT16 *leftAdc, UINT16 *rightAdc)
 {
-    // *leftAdc = ADC3->JDR3;
-    // *rightAdc = ADC2->JDR3;
+     *leftAdc = ADC_IDATA3(ADC2);  //ADC_IDATA1
+     *rightAdc =ADC_IDATA3(ADC1);
 }
   
 /***********************************************************************
@@ -212,8 +221,11 @@ PUBLIC void GetMotorAdc(UINT16 *leftAdc, UINT16 *rightAdc)
 ***********************************************************************/
 PUBLIC void GetMosAdc(UINT16 *leftMosAdc, UINT16 *rightMosAdc)
 {
-    // *leftMosAdc = ADC1->JDR2;
-    // *rightMosAdc = ADC1->JDR3;
+     //*leftMosAdc = ADC1->JDR2;
+     //*rightMosAdc = ADC1->JDR3;
+	
+	*leftMosAdc = 1000; //没有ADC，给个假值
+	*leftMosAdc = 1000;
 }
 
 /***********************************************************************
@@ -224,10 +236,10 @@ PUBLIC void GetMosAdc(UINT16 *leftMosAdc, UINT16 *rightMosAdc)
 ***********************************************************************/
 PRIVATE void AdcSumPort(uint16_t * sum)
 {
-//        sum[0] += ADC2->JDR1;
-//        sum[1] += ADC2->JDR2;
-//        sum[2] += ADC3->JDR1;
-//        sum[3] += ADC3->JDR2;
+        sum[0] += ADC_IDATA0(ADC2);
+        sum[1] += ADC_IDATA1(ADC2);
+        sum[2] += ADC_IDATA0(ADC1);
+        sum[3] += ADC_IDATA1(ADC1);
 }
 /***********************************************************************
  * DESCRIPTION: 
@@ -251,20 +263,20 @@ PUBLIC void AdcOffsetCal(void)
         delay_ms(2);
     }
     
-    ADC2_JDR1_Offset = sum[0]/16;
-    ADC2_JDR2_Offset = sum[1]/16;
+    ADC2_JDR0_Offset = sum[0]/16;
+    ADC2_JDR1_Offset = sum[1]/16;
     
-    if((ADC2_JDR1_Offset > 2248) || (ADC2_JDR1_Offset <1848)
-        || (ADC2_JDR2_Offset > 2248) || (ADC2_JDR2_Offset <1848))
+    if((ADC2_JDR0_Offset > 2248) || (ADC2_JDR0_Offset <1848)
+        || (ADC2_JDR1_Offset > 2248) || (ADC2_JDR1_Offset <1848))
     {
         Left_AdcInitState = 1;
     }
     
-    ADC3_JDR1_Offset = sum[2]/16;
-    ADC3_JDR2_Offset = sum[3]/16;
+    ADC1_JDR0_Offset = sum[2]/16;
+    ADC1_JDR1_Offset = sum[3]/16;
      
-    if((ADC3_JDR1_Offset > 2248) || (ADC3_JDR1_Offset <1848)
-        || (ADC3_JDR2_Offset > 2248) || (ADC3_JDR2_Offset <1848))
+    if((ADC1_JDR0_Offset > 2248) || (ADC1_JDR0_Offset <1848)
+        || (ADC1_JDR1_Offset > 2248) || (ADC1_JDR1_Offset <1848))
     {
         Right_AdcInitState = 1;
     }
@@ -302,15 +314,15 @@ PUBLIC UINT16 GetAdcInitState(UINT16 AxisID)
 ***********************************************************************/
 PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 { 
-    if(AXIS_LEFT == AxisID)
+    if(AXIS_LEFT == AxisID) //ADC_IDATA3(ADC2);
     {
-        // *Ia = ((INT16)ADC3->JDR1 - ADC3_JDR1_Offset)*ADC3_JDR1_GAIN;
-        // *Ib = ((INT16)ADC3->JDR2 - ADC3_JDR2_Offset)*ADC3_JDR2_GAIN;
+         *Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
+         *Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
     }
     else if(AXIS_RIGHT == AxisID)
     { 
-        // *Ia = ((INT16)ADC2->JDR1 - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
-        // *Ib = ((INT16)ADC2->JDR2 - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
+         *Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
+         *Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
     }
     
 }
@@ -324,7 +336,7 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 PUBLIC float GetChargeCurrent(void)
 { 
     float Res = 0;
-//     Res = ((INT16)ADC1->JDR4 - ADC1_JDR4_Offset)*ADC1_JDR4_GAIN;
+     Res = ((INT16)ADC_IDATA1(ADC0) - ADC0_JDR1_Offset)*ADC0_JDR1_GAIN;
     return Res;
 }
 
@@ -349,7 +361,7 @@ PUBLIC float GetBatteryVoltage(void)
 { 
     float Vbattery_tmp; 
    
-    // Vbattery_tmp = ADC1->JDR1*ADC1_JDR1_GAIN;
+     Vbattery_tmp = ADC_IDATA3(ADC0)*ADC0_JDR3_GAIN;
     return Vbattery_tmp;
 }
 
@@ -367,12 +379,12 @@ PUBLIC void GetDcVoltage(float *Vbus)
     if (!ApplicationMode)
     {
         /*<= B04, Use ADC1->JDR1, PA4*/
-        // Vbus_tmp = ADC1->JDR1*ADC1_JDR1_GAIN;
+         Vbus_tmp = ADC_IDATA2(ADC0)*ADC0_JDR2_GAIN;
     }
     else
     {
         /*>= A06, Use ADC2->JDR4, PA3*/
-        // Vbus_tmp = ADC2->JDR4*ADC2_JDR4_GAIN;
+         Vbus_tmp = ADC_IDATA2(ADC0)*ADC0_JDR2_GAIN;
     }
     
     Vbus_local_voltage = Vbus_tmp;
@@ -399,7 +411,7 @@ PUBLIC REAL32 GetDcVoltageNoFilter(void)
 PUBLIC float GetChargeVoltage(void)
 { 
     float Vtmp;
-    // Vtmp = ADC3->JDR4*ADC3_JDR4_GAIN;
+     Vtmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
     
     return Vtmp;
 }
@@ -427,11 +439,11 @@ PUBLIC UINT32 GetIncEncoderPulse(UINT16 AxisID)
     UINT32 res = 0;
     if(AXIS_LEFT == AxisID)
     {
-        // res = TIM2->CNT;
+         res = TIMER_CNT(TIMER3);
     }
     else if(AXIS_RIGHT == AxisID)
     {
-        // res = TIM4->CNT;
+         res = TIMER_CNT(TIMER2);
     }
     
     return res;
@@ -447,11 +459,11 @@ PUBLIC void ClearIncEncoderPulse(UINT16 AxisID)
 {
     if(AXIS_LEFT == AxisID)
     {
-        // TIM3->CNT = 0;
+         TIMER_CNT(TIMER3) = 0;
     }
     else if(AXIS_RIGHT == AxisID)
     {
-        // TIM2->CNT = 0;
+         TIMER_CNT(TIMER2) = 0;
     }
 }
 
@@ -477,15 +489,15 @@ PUBLIC UINT16 GetHallState(UINT16 AxisID, UINT32 MotorVersion)
  
     if(AXIS_LEFT == AxisID)
     {
-        hallA = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_7);
-        hallB = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6);
-        hallC = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
+        hallA = gpio_input_bit_get(GPIOD, GPIO_PIN_7);
+        hallB = gpio_input_bit_get(GPIOB, GPIO_PIN_6);
+        hallC = gpio_input_bit_get(GPIOB, GPIO_PIN_7);
     }
     else if(AXIS_RIGHT == AxisID)
     {
-        hallA = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12);
-        hallB = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_10);
-        hallC = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_11);
+        hallA = gpio_input_bit_get(GPIOC, GPIO_PIN_12);
+        hallB = gpio_input_bit_get(GPIOC, GPIO_PIN_10);
+        hallC = gpio_input_bit_get(GPIOC, GPIO_PIN_11);
     }
 
 	if(hallA==1)
@@ -507,11 +519,11 @@ PUBLIC UINT16 GetHallState(UINT16 AxisID, UINT32 MotorVersion)
 ***********************************************************************/
 PUBLIC UINT16 GetHardOverCurState(UINT16 AxisID)
 {
-    UINT16 res = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_2) 
-               + !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) 
-               + !HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_7)
-               + !HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14) 
-               + !HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15);
+    UINT16 res = !gpio_input_bit_get(GPIOD, GPIO_PIN_2) 
+               + !gpio_input_bit_get(GPIOB, GPIO_PIN_2) 
+               + !gpio_input_bit_get(GPIOE, GPIO_PIN_7)
+               + !gpio_input_bit_get(GPIOE, GPIO_PIN_14) 
+               + !gpio_input_bit_get(GPIOE, GPIO_PIN_15);
     
     return res;
 }
