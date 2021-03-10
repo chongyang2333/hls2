@@ -50,6 +50,8 @@ void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo);
 
 PUBLIC UINT8 ApplicationMode = 0;
 
+uint32_t TestSysClock = 0;
+
 int main()
 {  
     HardwareInit();
