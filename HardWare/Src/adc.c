@@ -39,9 +39,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "adc.h"
-
 #include "gpio.h"
-
+#include "delay.h"
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -50,359 +49,78 @@
 // ADC_HandleTypeDef hadc2;
 // ADC_HandleTypeDef hadc3;
 
-/* ADC1 init function */
-void MX_ADC1_Init(void)
+void gpio_adc_config(void)
 {
-//  ADC_ChannelConfTypeDef sConfig;
-  //   ADC_InjectionConfTypeDef sConfigInjected;
-
-  //   /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
-  //   */
-  //   hadc1.Instance = ADC1;
-  //   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
-  //   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  //   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  //   hadc1.Init.ContinuousConvMode = DISABLE;
-  //   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  //   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  //   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  //   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  //   hadc1.Init.NbrOfConversion = 0;
-  //   hadc1.Init.DMAContinuousRequests = DISABLE;
-  //   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  //   if (HAL_ADC_Init(&hadc1) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-  //   */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-  //   sConfigInjected.InjectedNbrOfConversion = 4;
-  //   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_3CYCLES;
-  //   sConfigInjected.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONVEDGE_NONE;
-  //   sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
-  //   sConfigInjected.AutoInjectedConv = DISABLE;
-  //   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  //   sConfigInjected.InjectedOffset = 0;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-    
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-  //   */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_13;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_2;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-    
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-  //   */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_15;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_3;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-    
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-	// */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_2;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_4;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-
-	// HAL_ADC_Start(&hadc1);
-	
-}
-/* ADC2 init function */
-void MX_ADC2_Init(void)
-{
-
-  //   ADC_InjectionConfTypeDef sConfigInjected;
-
-  //   /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
-  //   */
-  //   hadc2.Instance = ADC2;
-  //   hadc2.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
-  //   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
-  //   hadc2.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  //   hadc2.Init.ContinuousConvMode = DISABLE;
-  //   hadc2.Init.DiscontinuousConvMode = DISABLE;
-  //   hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  //   hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  //   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  //   hadc2.Init.NbrOfConversion = 0;
-  //   hadc2.Init.DMAContinuousRequests = DISABLE;
-  //   hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  //   if (HAL_ADC_Init(&hadc2) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-
-	
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-  //   */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_6;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-  //   sConfigInjected.InjectedNbrOfConversion = 4;
-  //   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_3CYCLES;
-  //   sConfigInjected.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONVEDGE_NONE;
-  //   sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
-  //   sConfigInjected.AutoInjectedConv = DISABLE;
-  //   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  //   sConfigInjected.InjectedOffset = 0;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
-  //   {
-  //   _Error_Handler(__FILE__, __LINE__);
-  //   }
-
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-  //   */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_7;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_2;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-    
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-  //   */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_14;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_3;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-    
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-  //   */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_3;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_4;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-    
-	// HAL_ADC_Start(&hadc2);
-
-}
-/* ADC3 init function */
-void MX_ADC3_Init(void)
-{
-
-  //   ADC_InjectionConfTypeDef sConfigInjected;
-
-  //   /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
-  //   */
-  //   hadc3.Instance = ADC3;
-  //   hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
-  //   hadc3.Init.Resolution = ADC_RESOLUTION_12B;
-  //   hadc3.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  //   hadc3.Init.ContinuousConvMode = DISABLE;
-  //   hadc3.Init.DiscontinuousConvMode = DISABLE;
-  //   hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  //   hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  //   hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  //   hadc3.Init.NbrOfConversion = 0;
-  //   hadc3.Init.DMAContinuousRequests = DISABLE;
-  //   hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  //   if (HAL_ADC_Init(&hadc3) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-  //   */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_10;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-  //   sConfigInjected.InjectedNbrOfConversion = 4;
-  //   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_3CYCLES;
-  //   sConfigInjected.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONVEDGE_NONE;
-  //   sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
-  //   sConfigInjected.AutoInjectedConv = DISABLE;
-  //   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  //   sConfigInjected.InjectedOffset = 0;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc3, &sConfigInjected) != HAL_OK)
-  //   {
-  //   _Error_Handler(__FILE__, __LINE__);
-  //   }
-
-	// /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-	// */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_11;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_2;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc3, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-    
-	// /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-	// */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_12;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_3;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc3, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-	
-  //   /**Configures for the selected ADC injected channel its corresponding rank in the sequencer and its sample time 
-	// */
-  //   sConfigInjected.InjectedChannel = ADC_CHANNEL_9;
-  //   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_4;
-  //   if (HAL_ADCEx_InjectedConfigChannel(&hadc3, &sConfigInjected) != HAL_OK)
-  //   {
-  //       _Error_Handler(__FILE__, __LINE__);
-  //   }
-    
-	// HAL_ADC_Start(&hadc3);
-//	ADC3->CR2 |= (1<<0);
-
+    /* ADC0: PA4,PA5,PC4,PC5    IN4 IN5  IN14 IN15
+    ** ADC1: PA1,PA2 PA3        IN1 IN2 IN3
+    ** ADC2: PC0,PC1,PC2        IN10  IN11 IN12
+    **/
+    gpio_mode_set(GPIOA,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
+                    |GPIO_PIN_4|GPIO_PIN_5);
+    gpio_mode_set(GPIOF,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2
+					|GPIO_PIN_4|GPIO_PIN_5);
 }
 
-// void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
-// {
+void adc_config(void)
+{
+		/*adc prescale*/
+    adc_clock_config(ADC_ADCCK_PCLK2_DIV2); //50/2 = 25M
+    /* configure the ADC sync mode */
+    adc_sync_mode_config(ADC_ALL_INSERTED_PARALLEL);
+    /* ADC data alignment config */
+    adc_data_alignment_config(ADC0,ADC_DATAALIGN_RIGHT);
+    adc_data_alignment_config(ADC1,ADC_DATAALIGN_RIGHT);
+    adc_data_alignment_config(ADC2,ADC_DATAALIGN_RIGHT);
+    /* ADC SCAN function enable */
+    adc_special_function_config(ADC0,ADC_SCAN_MODE,ENABLE);
+    adc_special_function_config(ADC1,ADC_SCAN_MODE,ENABLE);
+    adc_special_function_config(ADC2,ADC_SCAN_MODE,ENABLE);
+    
+    /* ADC channel length config */
+    adc_channel_length_config(ADC0,ADC_INSERTED_CHANNEL,4);
+    adc_channel_length_config(ADC1,ADC_INSERTED_CHANNEL,3);
+    adc_channel_length_config(ADC2,ADC_INSERTED_CHANNEL,3);
+    /* ADC insert channel config */
+    adc_inserted_channel_config(ADC0,0,ADC_CHANNEL_0,ADC_SAMPLETIME_15); //MT_BUS_V_SAMPLE
+    adc_inserted_channel_config(ADC0,1,ADC_CHANNEL_13,ADC_SAMPLETIME_15);//MAIN_V_SAMPLE
+		adc_inserted_channel_config(ADC0,2,ADC_CHANNEL_4,ADC_SAMPLETIME_15); //CHARGE_V_DET
+    adc_inserted_channel_config(ADC0,3,ADC_CHANNEL_5,ADC_SAMPLETIME_15); //CHARGE_I_SAMPLE
+		adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_1,ADC_SAMPLETIME_15); //R_U_I_SAMPLE
+    adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_2,ADC_SAMPLETIME_15); //R_V_I_SAMPLE
+    adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_3,ADC_SAMPLETIME_15); //R_MORTEMP_AD
+    adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_10,ADC_SAMPLETIME_15); //L_U_I_SAMPLE
+    adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_11,ADC_SAMPLETIME_15); //L_V_I_SAMPLE
+    adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_12,ADC_SAMPLETIME_15); //L_MORTEMP_AD
+    /* ADC external trigger enable */
+    //adc_external_trigger_config(ADC0,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_RISING);
+    //adc_external_trigger_config(ADC1,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_DISABLE);
+    //adc_external_trigger_config(ADC2,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_DISABLE);
+    // adc_external_trigger_source_config(ADC0,ADC_INSERTED_CHANNEL,ADC_EXTTRIG_INSERTED_T1_CH0);
 
-//   GPIO_InitTypeDef GPIO_InitStruct;
-//   if(adcHandle->Instance==ADC1)
-//   {
-//   /* USER CODE BEGIN ADC1_MspInit 0 */
+    /* clear the ADC flag */
+    //adc_interrupt_flag_clear(ADC0, ADC_INT_FLAG_EOC);
+    //adc_interrupt_flag_clear(ADC0, ADC_INT_FLAG_EOIC);
+    /* enable ADC interrupt */
+    //adc_interrupt_enable(ADC0, ADC_INT_EOIC);
 
-//   /* USER CODE END ADC1_MspInit 0 */
-//     /* ADC1 clock enable */
-//     __HAL_RCC_ADC1_CLK_ENABLE();
-  
-//     /**ADC1 GPIO Configuration    
-//     PA4     ------> ADC1_IN4
-//     PC3     ------> ADC1_IN13 
-//     PC5     ------> ADC1_IN15 
-//     PA2     ------> ADC1_IN2 
-//     */
-//     GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_4;
-//     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-      
-//     GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_5;
-//     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-//   /* USER CODE BEGIN ADC1_MspInit 1 */
-
-//   /* USER CODE END ADC1_MspInit 1 */
-//   }
-//   else if(adcHandle->Instance==ADC2)
-//   {
-//   /* USER CODE BEGIN ADC2_MspInit 0 */
-
-//   /* USER CODE END ADC2_MspInit 0 */
-//     /* ADC2 clock enable */
-//     __HAL_RCC_ADC2_CLK_ENABLE();
-  
-//     /**ADC2 GPIO Configuration    
-//     PC4     ------> ADC2_IN14
-//     PA6     ------> ADC2_IN6
-//     PA7     ------> ADC2_IN7 
-//     PA3     ------> ADC2_IN3
-//     */
-//     GPIO_InitStruct.Pin = GPIO_PIN_4;
-//     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-      
-//     GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_6|GPIO_PIN_7;
-//     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-//   /* USER CODE BEGIN ADC2_MspInit 1 */
-
-//   /* USER CODE END ADC2_MspInit 1 */
-//   }
-//   else if(adcHandle->Instance==ADC3)
-//   {
-//   /* USER CODE BEGIN ADC3_MspInit 0 */
-
-//   /* USER CODE END ADC3_MspInit 0 */
-//     /* ADC3 clock enable */
-//     __HAL_RCC_ADC3_CLK_ENABLE();
-  
-//     /**ADC3 GPIO Configuration    
-//     PC0     ------> ADC3_IN10
-//     PC1     ------> ADC3_IN11 
-//     PC2     ------> ADC3_IN12   
-//     PF3     ------> ADC3_IN9
-//     */
-//     GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2;
-//     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-      
-//     GPIO_InitStruct.Pin = GPIO_PIN_3;
-//     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct); 
-
-
-//   /* USER CODE BEGIN ADC3_MspInit 1 */
-
-//   /* USER CODE END ADC3_MspInit 1 */
-//   }
-// }
-
-// void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
-// {
-
-//   if(adcHandle->Instance==ADC1)
-//   {
-
-//     __HAL_RCC_ADC1_CLK_DISABLE();
-
-//     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_3);
-//     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_3|GPIO_PIN_5);
-
-//   }
-//   else if(adcHandle->Instance==ADC2)
-//   {
-
-//     __HAL_RCC_ADC2_CLK_DISABLE();
-  
-//     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_4);
-//     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_6|GPIO_PIN_7);
-
-//   }
-//   else if(adcHandle->Instance==ADC3)
-//   {
-
-//     __HAL_RCC_ADC3_CLK_DISABLE();
-  
-//     /**ADC3 GPIO Configuration    
-//     PC0     ------> ADC3_IN10
-//     PC1     ------> ADC3_IN11 
-//     PC2     ------> ADC3_IN12
-//     */
-//     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2);
-
-//   }
-// } 
-
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
+    /* enable ADC interface */
+    adc_enable(ADC0);
+    /* wait for ADC stability */
+    delay_ms(1);
+    /* ADC calibration and reset calibration */
+    adc_calibration_enable(ADC0);
+    /* enable ADC interface */
+    adc_enable(ADC1);
+    /* wait for ADC stability */
+    delay_ms(1);
+    /* ADC calibration and reset calibration */
+    adc_calibration_enable(ADC1);
+    /* enable ADC interface */
+    adc_enable(ADC2);
+    /* wait for ADC stability */
+    delay_ms(1);
+    /* ADC calibration and reset calibration */
+    adc_calibration_enable(ADC2);
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

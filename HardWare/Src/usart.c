@@ -201,10 +201,6 @@ static void usart_dma_init(uint32_t usart_periph)
           It is forbidden to simultaneously enable these two DMA channels with 
         selecting the same peripheral request.
         */
-//        #define __USART2_TxDMA_PERIPH  DMA0
-//        #define __USART2_TxDMA_CHANNEL DMA_CH4
-//        #define __USART2_TxDMA_SUBPERI DMA_SUBPERI7
-//        #define __USART2_TxDMA_IRQn    DMA0_Channel7_IRQn
         #define __USART2_TxDMA_PERIPH  DMA0
         #define __USART2_TxDMA_CHANNEL DMA_CH3
         #define __USART2_TxDMA_SUBPERI DMA_SUBPERI4

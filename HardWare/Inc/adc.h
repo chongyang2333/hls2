@@ -58,11 +58,8 @@
 
 /* USER CODE END Private defines */
 
-extern void _Error_Handler(char *, int);
-
-void MX_ADC1_Init(void);
-void MX_ADC2_Init(void);
-void MX_ADC3_Init(void);
+	void gpio_adc_config(void);
+  void adc_config(void);
 
 /* USER CODE BEGIN Prototypes */
 

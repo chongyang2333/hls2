@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,GD32F450</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Comm\Inc;..\Drivers\CMSIS\GD;..\Drivers\CMSIS\GD\GD32F4xx\Include;..\Drivers\GD32F4xx_standard_peripheral\Include;..\Function\Inc;..\HardWare\Inc;..\MotorControl\Inc;..\SystemCommon;..\User\Inc</IncludePath>
+              <IncludePath>..\Comm\Inc;..\Drivers\CMSIS\GD;..\Drivers\CMSIS\GD\GD32F4xx\Include;..\Drivers\GD32F4xx_standard_peripheral\Include;..\Function\Inc;..\HardWare\Inc;..\MotorControl\Inc;..\SystemCommon;..\User\Inc;..\Drivers\CMSIS</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

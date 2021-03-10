@@ -98,16 +98,16 @@ void HardwareInit()
 		/* Initialize all configured peripherals */
 		ApplicationMode = MX_GPIO_Init();
     
-		/* Initialize tim5 for timestamp*/
+		/* Initialize tim4 for timestamp*/
 		TimeStampTimerInit();
 
         /* Initialize eeprom */
 		EepromInit();
-        GetLastSoftwareVersion(&bootloaderInfo);
-         WriteSoftWareVersion(&bootloaderInfo,&NowSoftWareVersion);
+		GetLastSoftwareVersion(&bootloaderInfo);
+ 		WriteSoftWareVersion(&bootloaderInfo,&NowSoftWareVersion);
         /* Initialize eeprom parameter*/
 		ParamInit();
-        CanAppInit();
+		CanAppInit();
     
         /* Initialize can module*/
         MX_CAN1_Init();
@@ -119,12 +119,12 @@ void HardwareInit()
 		/* Initialize adc:for fhase current,DC current,DC voltage and temperature sample*/
 		//AdcInit();
 		/* Initialize Left Axis Encoder TIM*/
-		MX_TIM2_Init(); 
+		MX_TIM3_Init(); 
 		/* Initialize Right Axis Encoder TIM*/
 		//    MX_TIM3_Init();
-		MX_TIM4_Init();
-		/* Initialize general timer interrupt */
-		MX_TIM7_Init();
+		MX_TIM2_Init();
+		/* Initialize general timer interrupt  40Hz*/
+		MX_TIM8_Init();
 
 		/* Initialize usart3 module: for pc comm*/
 		MX_USART3_UART_Init();
