@@ -276,7 +276,7 @@ PRIVATE void IncEncoderCal(struct EncoderStruct *P)
 {
 	INT32 Tmp = 0;
 	Tmp = P->Pulse << C_EncoderShift;
-	P->PulseINC = (Tmp - P->CNTPulseOld) >> C_EncoderShift;
+	P->PulseINC = -(Tmp - P->CNTPulseOld) >> C_EncoderShift;
 
 	P->CNTPulseOld  = Tmp;
     

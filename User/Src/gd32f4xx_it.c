@@ -166,10 +166,8 @@ void TIMER0_UP_TIMER9_IRQHandler(void)
 {
     if(timer_interrupt_flag_get(TIMER0,TIMER_INT_FLAG_UP) == SET)
     {
-        gpio_bit_set(GPIOB,GPIO_PIN_9);
         ControlRunExec();
         timer_interrupt_flag_clear(TIMER0,TIMER_INT_FLAG_UP);
-        gpio_bit_reset(GPIOB,GPIO_PIN_9);
     }
 }
 

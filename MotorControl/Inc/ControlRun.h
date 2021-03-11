@@ -40,7 +40,7 @@
 #define INNER_CUR_CTRL      6
 #define INNER_SPD_CTRL      7
 
-#define PWM_PERIOD_VALUE   (10800)  /* PWM Period Value  100us */
+#define PWM_PERIOD_VALUE   (9999)  /* PWM Period Value  100us */
 #define SYSTEM_FRQ          216000000
 
 #define PWM_FRQ             (SYSTEM_FRQ/PWM_PERIOD_VALUE/2)

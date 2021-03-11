@@ -64,7 +64,7 @@ int main()
         UINT32 LoopStartTime = ReadTimeStampTimer();         
         DataCollectSendLoop();// uart send data collect data 
         ErrorLogExec(sAxis[0].sAlarm.ErrReg.all, sAxis[1].sAlarm.ErrReg.all);        // Error log task
-//        ParamLoop();
+        ParamLoop();
         TemperatureExec();
         BatteryInfoReadLoop();
         LoopElapsedTime = ReadTimeStampTimer() - LoopStartTime;
