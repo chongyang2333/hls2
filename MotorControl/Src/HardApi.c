@@ -26,19 +26,19 @@ PRIVATE INT16 ADC2_JDR1_Offset = 2070;
 PRIVATE INT16 ADC1_JDR0_Offset = 2090;
 PRIVATE INT16 ADC1_JDR1_Offset = 2155;
 
-PRIVATE INT16 ADC0_JDR1_Offset = 2048;
+PRIVATE INT16 ADC0_JDR3_Offset = 2048;
 
 #define ADC2_JDR0_GAIN  0.01464844f    // (+/-)30A/2048
 #define ADC2_JDR1_GAIN  0.01464844f    // (+/-)30A/2048
 #define ADC1_JDR0_GAIN  0.01464844f    // (+/-)30A/2048
 #define ADC1_JDR1_GAIN  0.01464844f    // (+/-)30A/2048
 
-#define ADC0_JDR1_GAIN  0.01464844f    // (+/-)30A/2048
 
-#define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff
-#define ADC0_JDR3_GAIN  0.01859225f    // Dc Voltage coff
+#define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
+#define ADC0_JDR1_GAIN  0.01859225f    // Dc Voltage coff MAIN_V/BATTERY_V
+#define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff CHARGE_V
+#define ADC0_JDR3_GAIN  0.01464844f    // (+/-)30A/2048   CHARGE_I
 
-#define ADC0_JDR0_GAIN  0.01859225f    // Charge Voltage coff
 
 extern PUBLIC UINT8 ApplicationMode;
 PRIVATE void AdcSumPort(uint16_t * sum);
@@ -142,9 +142,9 @@ PUBLIC void PwmUpdate(UINT16 AxisID, UINT16 PowerFlag, UINT16 Ta, UINT16 Tb, UIN
      }
      else if(AXIS_RIGHT == AxisID)
      {
-					TIMER_CH0CV(TIMER7) = Ta;
-					TIMER_CH1CV(TIMER7) = Tb;
-					TIMER_CH2CV(TIMER7) = Tc;
+                TIMER_CH0CV(TIMER7) = Ta;
+                TIMER_CH1CV(TIMER7) = Tb;
+                TIMER_CH2CV(TIMER7) = Tc;
     }
 }
 
@@ -156,8 +156,8 @@ PUBLIC void PwmUpdate(UINT16 AxisID, UINT16 PowerFlag, UINT16 Ta, UINT16 Tb, UIN
 ***********************************************************************/
 PUBLIC void AdcInit(void)
 {
-   gpio_adc_config();
-	 adc_config();
+    gpio_adc_config();
+	adc_config();
     delay_ms(50);
     AdcOffsetCal();  // todo
 }
@@ -209,8 +209,8 @@ PUBLIC void AdcSampleClearFlag(void)
 ***********************************************************************/
 PUBLIC void GetMotorAdc(UINT16 *leftAdc, UINT16 *rightAdc)
 {
-     *leftAdc = ADC_IDATA3(ADC2);  //ADC_IDATA1
-     *rightAdc =ADC_IDATA3(ADC1);
+     *leftAdc = ADC_IDATA2(ADC2);  //ADC_IDATA1
+     *rightAdc =ADC_IDATA2(ADC1);
 }
   
 /***********************************************************************
@@ -224,8 +224,8 @@ PUBLIC void GetMosAdc(UINT16 *leftMosAdc, UINT16 *rightMosAdc)
      //*leftMosAdc = ADC1->JDR2;
      //*rightMosAdc = ADC1->JDR3;
 	
-	*leftMosAdc = 1000; //没有ADC，给个假值
-	*leftMosAdc = 1000;
+	*leftMosAdc = 3828; //没有ADC，给个假值
+	*rightMosAdc = 3828;
 }
 
 /***********************************************************************
@@ -336,7 +336,7 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 PUBLIC float GetChargeCurrent(void)
 { 
     float Res = 0;
-     Res = ((INT16)ADC_IDATA1(ADC0) - ADC0_JDR1_Offset)*ADC0_JDR1_GAIN;
+     Res = ((INT16)ADC_IDATA3(ADC0) - ADC0_JDR3_Offset)*ADC0_JDR3_GAIN;
     return Res;
 }
 
@@ -361,7 +361,7 @@ PUBLIC float GetBatteryVoltage(void)
 { 
     float Vbattery_tmp; 
    
-     Vbattery_tmp = ADC_IDATA3(ADC0)*ADC0_JDR3_GAIN;
+     Vbattery_tmp = ADC_IDATA1(ADC0)*ADC0_JDR1_GAIN;
     return Vbattery_tmp;
 }
 
@@ -379,12 +379,12 @@ PUBLIC void GetDcVoltage(float *Vbus)
     if (!ApplicationMode)
     {
         /*<= B04, Use ADC1->JDR1, PA4*/
-         Vbus_tmp = ADC_IDATA2(ADC0)*ADC0_JDR2_GAIN;
+         Vbus_tmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
     }
     else
     {
         /*>= A06, Use ADC2->JDR4, PA3*/
-         Vbus_tmp = ADC_IDATA2(ADC0)*ADC0_JDR2_GAIN;
+         Vbus_tmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
     }
     
     Vbus_local_voltage = Vbus_tmp;
@@ -411,7 +411,7 @@ PUBLIC REAL32 GetDcVoltageNoFilter(void)
 PUBLIC float GetChargeVoltage(void)
 { 
     float Vtmp;
-     Vtmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
+     Vtmp = ADC_IDATA2(ADC0)*ADC0_JDR2_GAIN;
     
     return Vtmp;
 }
@@ -536,7 +536,7 @@ PUBLIC UINT16 GetHardOverCurState(UINT16 AxisID)
 ***********************************************************************/
 PUBLIC void ResetACS711(void)
 {
-    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_15, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
     delay_us(300);
-    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_15, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
 }

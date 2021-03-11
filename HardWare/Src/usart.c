@@ -563,7 +563,7 @@ void MX_USART3_UART_Init(void)
 
     /* configure USART interrupt */
     usart_interrupt_enable(USART2, USART_INT_IDLE);
-    nvic_irq_enable(USART2_IRQn, 0, 0);
+    nvic_irq_enable(USART2_IRQn, 2, 0);
     
     /* start receive with dma methods */
     usart_receive_dma(USART2, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
@@ -767,8 +767,9 @@ void USART2_IRQHandler(void)
 
     if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE)) {
 //        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_IDLE);
+        
         usart_receive_dma_abort(USART2);
-
+        temp = USART_DATA(USART2);
         temp = usart_receive_dma_number_get(USART2);
         sUartApp.RecvBufNum += UART_RECV_MAX_NUM - temp;
 

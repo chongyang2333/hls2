@@ -64,7 +64,7 @@ int main()
         UINT32 LoopStartTime = ReadTimeStampTimer();         
         DataCollectSendLoop();// uart send data collect data 
         ErrorLogExec(sAxis[0].sAlarm.ErrReg.all, sAxis[1].sAlarm.ErrReg.all);        // Error log task
-        ParamLoop();
+//        ParamLoop();
         TemperatureExec();
         BatteryInfoReadLoop();
         LoopElapsedTime = ReadTimeStampTimer() - LoopStartTime;
@@ -146,6 +146,7 @@ void HardwareInit()
 //		/* Enable general timer interrupt */
 //		HAL_NVIC_EnableIRQ(TIM7_IRQn);
         timer_interrupt_enable(TIMER8,TIMER_INT_UP);
+        timer_interrupt_enable(TIMER0,TIMER_INT_UP);
         /* Enable EXTI4 interrupt */
 //        HAL_NVIC_EnableIRQ(EXTI4_IRQn); 
 }

@@ -53,18 +53,33 @@ void gpio_adc_config(void)
 {
     /* ADC0: PA4,PA5,PC4,PC5    IN4 IN5  IN14 IN15
     ** ADC1: PA1,PA2 PA3        IN1 IN2 IN3
-    ** ADC2: PC0,PC1,PC2        IN10  IN11 IN12
+    ** ADC2: PC0,PC1,PC2        IN10 IN11 IN12
     **/
+//    gpio_mode_set(GPIOA,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
+//                    |GPIO_PIN_4|GPIO_PIN_5);
+//    gpio_mode_set(GPIOF,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2
+//					|GPIO_PIN_4|GPIO_PIN_5);
+    rcu_periph_clock_enable(RCU_GPIOA);
+    rcu_periph_clock_enable(RCU_GPIOC);
+    
     gpio_mode_set(GPIOA,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
                     |GPIO_PIN_4|GPIO_PIN_5);
-    gpio_mode_set(GPIOF,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2
+    gpio_mode_set(GPIOC,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2
 					|GPIO_PIN_4|GPIO_PIN_5);
+    
 }
 
 void adc_config(void)
 {
-		/*adc prescale*/
-    adc_clock_config(ADC_ADCCK_PCLK2_DIV2); //50/2 = 25M
+
+    rcu_periph_clock_enable(RCU_ADC0);
+    rcu_periph_clock_enable(RCU_ADC1);
+    rcu_periph_clock_enable(RCU_ADC2);
+    
+    		/*adc prescale*/
+    adc_clock_config(ADC_ADCCK_HCLK_DIV5); //200/5 = 40M
+    
+ 
     /* configure the ADC sync mode */
     adc_sync_mode_config(ADC_ALL_INSERTED_PARALLEL);
     /* ADC data alignment config */
@@ -81,16 +96,16 @@ void adc_config(void)
     adc_channel_length_config(ADC1,ADC_INSERTED_CHANNEL,3);
     adc_channel_length_config(ADC2,ADC_INSERTED_CHANNEL,3);
     /* ADC insert channel config */
-    adc_inserted_channel_config(ADC0,0,ADC_CHANNEL_0,ADC_SAMPLETIME_15); //MT_BUS_V_SAMPLE
-    adc_inserted_channel_config(ADC0,1,ADC_CHANNEL_13,ADC_SAMPLETIME_15);//MAIN_V_SAMPLE
-		adc_inserted_channel_config(ADC0,2,ADC_CHANNEL_4,ADC_SAMPLETIME_15); //CHARGE_V_DET
-    adc_inserted_channel_config(ADC0,3,ADC_CHANNEL_5,ADC_SAMPLETIME_15); //CHARGE_I_SAMPLE
-		adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_1,ADC_SAMPLETIME_15); //R_U_I_SAMPLE
-    adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_2,ADC_SAMPLETIME_15); //R_V_I_SAMPLE
-    adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_3,ADC_SAMPLETIME_15); //R_MORTEMP_AD
-    adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_10,ADC_SAMPLETIME_15); //L_U_I_SAMPLE
-    adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_11,ADC_SAMPLETIME_15); //L_V_I_SAMPLE
-    adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_12,ADC_SAMPLETIME_15); //L_MORTEMP_AD
+    adc_inserted_channel_config(ADC0,0,ADC_CHANNEL_14,ADC_SAMPLETIME_3); //MT_BUS_V_SAMPLE
+    adc_inserted_channel_config(ADC0,1,ADC_CHANNEL_15,ADC_SAMPLETIME_3);//MAIN_V_SAMPLE
+    adc_inserted_channel_config(ADC0,2,ADC_CHANNEL_4,ADC_SAMPLETIME_3); //CHARGE_V_DET
+    adc_inserted_channel_config(ADC0,3,ADC_CHANNEL_5,ADC_SAMPLETIME_3); //CHARGE_I_SAMPLE
+    adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3); //R_U_I_SAMPLE
+    adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3); //R_V_I_SAMPLE
+    adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_3,ADC_SAMPLETIME_3); //R_MORTEMP_AD
+    adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3); //L_U_I_SAMPLE
+    adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3); //L_V_I_SAMPLE
+    adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_12,ADC_SAMPLETIME_3); //L_MORTEMP_AD
     /* ADC external trigger enable */
     //adc_external_trigger_config(ADC0,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_RISING);
     //adc_external_trigger_config(ADC1,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_DISABLE);
@@ -106,19 +121,19 @@ void adc_config(void)
     /* enable ADC interface */
     adc_enable(ADC0);
     /* wait for ADC stability */
-    delay_ms(1);
+    delay_ms(2);
     /* ADC calibration and reset calibration */
     adc_calibration_enable(ADC0);
     /* enable ADC interface */
     adc_enable(ADC1);
     /* wait for ADC stability */
-    delay_ms(1);
+    delay_ms(2);
     /* ADC calibration and reset calibration */
     adc_calibration_enable(ADC1);
     /* enable ADC interface */
     adc_enable(ADC2);
     /* wait for ADC stability */
-    delay_ms(1);
+    delay_ms(2);
     /* ADC calibration and reset calibration */
     adc_calibration_enable(ADC2);
 }

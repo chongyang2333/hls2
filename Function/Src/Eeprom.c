@@ -271,17 +271,17 @@ PRIVATE UINT8 At24c02_Read_Byte(UINT16 addr)
 // Eeprom module: SDA
 void EEPROM_SDA_WritePin(uint8_t PinState)
 {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, PinState?GPIO_PIN_SET:GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, PinState?GPIO_PIN_SET:GPIO_PIN_RESET);
 }
 
 // Eeprom module: SCL
 void EEPROM_SCL_WritePin(uint8_t PinState)
 {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, PinState?GPIO_PIN_SET:GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, PinState?GPIO_PIN_SET:GPIO_PIN_RESET);
 }
 
 // Eeprom module: SDA Read
 uint8_t EEPROM_SDA_ReadPin(void)
 {
-    return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
+    return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9);
 }

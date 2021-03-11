@@ -161,7 +161,7 @@ void MX_CAN1_Init(void)
     can_interrupt_enable(CAN0, CAN_INT_RFNE1);
 
     /* configure CAN0 NVIC */
-    nvic_irq_enable(CAN0_RX1_IRQn, 0, 0);
+    nvic_irq_enable(CAN0_RX1_IRQn, 1, 1);
 
     delay_ms(10);
     JumpAppFb(GetResetType());

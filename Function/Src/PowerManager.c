@@ -2486,10 +2486,11 @@ PUBLIC void SetVbusPower(UINT8 State)
  * RETURNS:
  *
 ***********************************************************************/
+#define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
 PRIVATE float GetVbusVoltage(void)
 {
     float temp = 0;
-//    temp = ADC2->JDR4*ADC2_JDR4_GAIN;
+    temp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
     return temp;
 }    
 
