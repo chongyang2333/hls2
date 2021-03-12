@@ -149,7 +149,8 @@ void MX_TIM0_Init(void)
     timer_break_config(TIMER0,&timer_breakpara);
 
 		 timer_master_slave_mode_config(TIMER0,TIMER_MASTER_SLAVE_MODE_ENABLE);
-		 timer_slave_mode_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
+//		 timer_slave_mode_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
+    timer_master_output_trigger_source_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
     /* TIMER0 primary output function enable */
     timer_primary_output_config(TIMER0,ENABLE);
 
@@ -269,7 +270,7 @@ void gpio_timer7_config(void)
     /*configure Pc6(TIMER7 CH0) as alternate function*/
     gpio_mode_set(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_6);
     gpio_output_options_set(GPIOC, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_6);
-    gpio_af_set(GPIOC, GPIO_AF_2, GPIO_PIN_6);
+    gpio_af_set(GPIOC, GPIO_AF_3, GPIO_PIN_6);
 
     /*configure PA7(TIMER7 CH0N) as alternate function*/
     gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_7);
@@ -353,7 +354,8 @@ void MX_TIM7_Init(void)
     timer_break_config(TIMER7,&timer_breakpara);
 
     timer_master_slave_mode_config(TIMER7,TIMER_MASTER_SLAVE_MODE_ENABLE);
-    timer_slave_mode_select(TIMER7,TIMER_TRI_OUT_SRC_UPDATE);
+    timer_slave_mode_select(TIMER7,TIMER_SLAVE_MODE_RESTART);
+    timer_input_trigger_source_select(TIMER7,TIMER_SMCFG_TRGSEL_ITI0);
     /* TIMER7 primary output function enable */
     timer_primary_output_config(TIMER7,ENABLE);
 
@@ -382,7 +384,7 @@ void MX_TIM4_Init(void)
 
     timer_initpara.prescaler = (8 - 1);    // 25mhz
     timer_initpara.period = 0xFFFFFFFF; 
-    timer_initpara.counterdirection = TIMER_COUNTER_CENTER_UP;
+    timer_initpara.counterdirection = TIMER_COUNTER_EDGE;
     timer_initpara.repetitioncounter = 0;
     timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
     timer_init(TIMER4,&timer_initpara);
