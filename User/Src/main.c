@@ -116,6 +116,7 @@ void HardwareInit()
         
 		AdcInit();		
 		PowerManagerInit(ApplicationMode);
+        
 		/* Initialize DMA for usart tx */
 		MX_DMA_Init();  
 		/* Initialize adc:for fhase current,DC current,DC voltage and temperature sample*/

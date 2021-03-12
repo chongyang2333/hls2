@@ -171,3 +171,15 @@ void TIMER0_UP_TIMER9_IRQHandler(void)
     }
 }
 
+/**
+ * \brief      this function handles CAN0 Rx0 ecxeption
+ * \prarm[in]  none
+ * \param[out] none
+ * \retval     none
+*/
+#include "CanApp.h"
+void CAN0_RX1_IRQHandler(void)
+{
+    CanAppDispatch();
+}
+

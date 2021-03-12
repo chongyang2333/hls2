@@ -134,16 +134,7 @@ static void can_gpio_init(uint32_t can_periph)
     }
 }
 
-/**
- * \brief      this function handles CAN0 Rx0 ecxeption
- * \prarm[in]  none
- * \param[out] none
- * \retval     none
-*/
-void CAN0_RX1_IRQHandler(void)
-{
-    CanAppDispatch();
-}
+
 
 /* CAN1 init function */
 
