@@ -54,7 +54,7 @@ uint32_t TestSysClock = 0;
 
 int main()
 {  
-    HardwareInit();
+    HardwareInit();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            HardwareInit();
     
     __set_PRIMASK( 0 ); // 开启总中断
     __set_FAULTMASK( 0 ); // 没关异常
@@ -131,7 +131,7 @@ void HardwareInit()
 
 		/* Initialize usart3 module: for pc comm*/
 		MX_USART3_UART_Init();
-        
+         
 		/* Initialize Gyro module.(MPU6050) */
 		GyroInit();
         

@@ -80,7 +80,7 @@ i2c_parameter_struct i2c2_parameter;
  * \prarm[in]  size Amount of data to be sent
  * \prarm[in]  timeout Timeout duration
  * \param[out] none
- * \retval     -1 for timeout, 0 is normal
+ * \retval     0 for timeout, 1 is normal
 */
 int8_t i2c_mem_write (
     uint32_t i2c_periph, 
@@ -102,8 +102,9 @@ int8_t i2c_mem_write (
     /* wait until I2C bus is idle */
     time = timeout;
     while (SET == i2c_flag_get(i2c_periph, I2C_FLAG_I2CBSY)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
     
@@ -111,8 +112,9 @@ int8_t i2c_mem_write (
     i2c_start_on_bus(i2c_periph);
     time = timeout;
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_SBSEND)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
 
@@ -120,8 +122,9 @@ int8_t i2c_mem_write (
     i2c_master_addressing(i2c_periph, dev_address, I2C_TRANSMITTER);
     time = timeout;
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_ADDSEND)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
     i2c_flag_clear(i2c_periph, I2C_FLAG_ADDSEND);
@@ -129,8 +132,9 @@ int8_t i2c_mem_write (
     /* wait until the transmit data buffer is empty */
     time = timeout;
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
 
@@ -139,8 +143,9 @@ int8_t i2c_mem_write (
         i2c_data_transmit(i2c_periph, I2C_MEM_ADD_LSB(mem_address));	
         time = timeout;
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
     }
@@ -148,27 +153,30 @@ int8_t i2c_mem_write (
         i2c_data_transmit(i2c_periph, I2C_MEM_ADD_MSB(mem_address));	
         time = timeout;
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
 
         i2c_data_transmit(i2c_periph, I2C_MEM_ADD_LSB(mem_address));	
         time = timeout;
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
     }
 
     /* send memory data to I2C bus */
     while (write_size--) {
-        i2c_data_transmit(i2c_periph, (uint8_t)*pdata);	
+        i2c_data_transmit(i2c_periph, (uint8_t)*pdata++);	
         time = timeout;
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
     }
@@ -177,12 +185,12 @@ int8_t i2c_mem_write (
     i2c_stop_on_bus(i2c_periph);
     time = timeout;
     while (I2C_CTL0(i2c_periph) & 0x0200) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            return err;
         }
     }
 
-    return err;
+    return 1;
 }
 
 /**
@@ -196,7 +204,7 @@ int8_t i2c_mem_write (
  * \prarm[in]  size Amount of data to be sent
  * \prarm[in]  timeout Timeout duration
  * \param[out] none
- * \retval     -1 for timeout, 0 is normal
+ * \retval     0 for timeout, 1 is normal
 */
 int8_t i2c_mem_read (
     uint32_t i2c_periph, 
@@ -218,8 +226,9 @@ int8_t i2c_mem_read (
     /* wait until I2C bus is idle */
     time = timeout;
     while (SET == i2c_flag_get(i2c_periph, I2C_FLAG_I2CBSY)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
     
@@ -227,8 +236,9 @@ int8_t i2c_mem_read (
     i2c_start_on_bus(i2c_periph);
     time = timeout;
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_SBSEND)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
 
@@ -236,8 +246,9 @@ int8_t i2c_mem_read (
     i2c_master_addressing(i2c_periph, dev_address, I2C_TRANSMITTER);
     time = timeout;
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_ADDSEND)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
     i2c_flag_clear(i2c_periph, I2C_FLAG_ADDSEND);
@@ -245,8 +256,9 @@ int8_t i2c_mem_read (
     /* wait until the transmit data buffer is empty */
     time = timeout;
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
 
@@ -255,8 +267,9 @@ int8_t i2c_mem_read (
         i2c_data_transmit(i2c_periph, I2C_MEM_ADD_LSB(mem_address));	
         time = timeout;
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
     }
@@ -264,16 +277,18 @@ int8_t i2c_mem_read (
         i2c_data_transmit(i2c_periph, I2C_MEM_ADD_MSB(mem_address));	
         time = timeout;
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
 
         i2c_data_transmit(i2c_periph, I2C_MEM_ADD_LSB(mem_address));	
         time = timeout;
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_TBE)) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
     }
@@ -282,8 +297,9 @@ int8_t i2c_mem_read (
     i2c_start_on_bus(i2c_periph);
     time = timeout;
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_SBSEND)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
 
@@ -302,8 +318,9 @@ int8_t i2c_mem_read (
 
     time = timeout;
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_ADDSEND)) {
-        if (time--) {
-            return -1;
+        if (!time--) {
+            i2c_stop_on_bus(i2c_periph);
+            return err;
         }
     }
     i2c_flag_clear(i2c_periph, I2C_FLAG_ADDSEND);
@@ -317,8 +334,9 @@ int8_t i2c_mem_read (
 
         time = timeout;
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_RBNE)) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
         *(uint8_t *)pdata = i2c_data_receive(i2c_periph);
@@ -327,8 +345,9 @@ int8_t i2c_mem_read (
         i2c_stop_on_bus(i2c_periph);
         time = timeout;
         while (I2C_CTL0(i2c_periph) & 0x0200) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                i2c_stop_on_bus(i2c_periph);
+                return err;
             }
         }
         
@@ -340,8 +359,9 @@ int8_t i2c_mem_read (
             /* wait until the last data byte is received into the shift register */
             time = timeout;
             while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_BTC)) {
-                if (time--) {
-                    return -1;
+                if (!time--) {
+                    i2c_stop_on_bus(i2c_periph);
+                    return err;
                 }
             }
         }
@@ -352,8 +372,9 @@ int8_t i2c_mem_read (
                 /* wait until the second last data byte is received into the shift register */
                 time = timeout;
                 while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_BTC)) {
-                    if (time--) {
-                        return -1;
+                    if (!time--) {
+                        i2c_stop_on_bus(i2c_periph);
+                        return err;
                     }
                 }
                 /* disable acknowledge */
@@ -362,8 +383,9 @@ int8_t i2c_mem_read (
 
             time = timeout;
             while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_RBNE)) {
-                if (time--) {
-                    return -1;
+                if (!time--) {
+                    i2c_stop_on_bus(i2c_periph);
+                    return err;
                 }
             }
             *(uint8_t *)pdata++ = i2c_data_receive(i2c_periph);
@@ -373,8 +395,8 @@ int8_t i2c_mem_read (
         i2c_stop_on_bus(i2c_periph);
         time = timeout;
         while (I2C_CTL0(i2c_periph) & 0x0200) {
-            if (time--) {
-                return -1;
+            if (!time--) {
+                return err;
             }
         }
 
@@ -382,7 +404,7 @@ int8_t i2c_mem_read (
         i2c_ack_config(i2c_periph, I2C_ACK_ENABLE);
     }
 
-    return err;
+    return 1;
 }
 
 /**
@@ -490,14 +512,17 @@ static void i2c_gpio_init(uint32_t i2c_periph)
         rcu_periph_clock_enable(RCU_GPIOA);
         rcu_periph_clock_enable(RCU_GPIOC);
 
+        gpio_af_set(__I2C2_SDA_PORT, __I2C2_SDA_AF, __I2C2_SDA_GPIO);
+        gpio_af_set(__I2C2_SCL_PORT, __I2C2_SCL_AF, __I2C2_SCL_GPIO);
+        
         /* configure I2C GPIO */
         gpio_output_options_set(__I2C2_SCL_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, __I2C2_SCL_GPIO);
         gpio_mode_set(__I2C2_SCL_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, __I2C2_SCL_GPIO);
-        gpio_af_set(__I2C2_SCL_PORT, __I2C2_SCL_AF, __I2C2_SCL_GPIO);
+        
         
         gpio_output_options_set(__I2C2_SDA_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, __I2C2_SDA_GPIO);
         gpio_mode_set(__I2C2_SDA_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, __I2C2_SDA_GPIO);
-        gpio_af_set(__I2C2_SDA_PORT, __I2C2_SDA_AF, __I2C2_SDA_GPIO);
+        
     }
 }
 
@@ -517,6 +542,7 @@ void MX_I2C2_Init(void)
     i2c1_parameter.addformat = I2C_ADDFORMAT_7BITS; 
     i2c1_parameter.addr      = 0x00; 
     i2c1_parameter.ack       = I2C_ACK_ENABLE;
+//    i2c1_parameter.ack       = I2C_ACK_DISABLE;
     i2c_interface_init(I2C1, &i2c1_parameter);
 }
 
@@ -535,7 +561,9 @@ void MX_I2C3_Init(void)
     i2c2_parameter.addformat = I2C_ADDFORMAT_7BITS; 
     i2c2_parameter.addr      = 0x00; 
     i2c2_parameter.ack       = I2C_ACK_ENABLE;
+//    i2c1_parameter.ack       = I2C_ACK_DISABLE;
     i2c_interface_init(I2C2, &i2c2_parameter);
+    i2c_enable(I2C2);
 }
 
 /* I2C2 init function */
