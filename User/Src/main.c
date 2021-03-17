@@ -54,7 +54,7 @@ uint32_t TestSysClock = 0;
 
 int main()
 {  
-    HardwareInit();
+    HardwareInit();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            HardwareInit();
     
     __set_PRIMASK( 0 ); // 开启总中断
     __set_FAULTMASK( 0 ); // 没关异常
@@ -116,6 +116,7 @@ void HardwareInit()
         
 		AdcInit();		
 		PowerManagerInit(ApplicationMode);
+        
 		/* Initialize DMA for usart tx */
 		MX_DMA_Init();  
 		/* Initialize adc:for fhase current,DC current,DC voltage and temperature sample*/
@@ -130,7 +131,7 @@ void HardwareInit()
 
 		/* Initialize usart3 module: for pc comm*/
 		MX_USART3_UART_Init();
-        
+         
 		/* Initialize Gyro module.(MPU6050) */
 		GyroInit();
         
@@ -146,6 +147,7 @@ void HardwareInit()
 //		/* Enable general timer interrupt */
 //		HAL_NVIC_EnableIRQ(TIM7_IRQn);
         timer_interrupt_enable(TIMER8,TIMER_INT_UP);
+        timer_interrupt_enable(TIMER0,TIMER_INT_UP);
         /* Enable EXTI4 interrupt */
 //        HAL_NVIC_EnableIRQ(EXTI4_IRQn); 
 }

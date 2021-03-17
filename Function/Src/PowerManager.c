@@ -1396,7 +1396,7 @@ PRIVATE BOOL Battery_Serial_Read(UINT8 SlaveAddress, UINT8 Readaddr, UINT8 *Str,
     
     if (i2c_type)
     {
-        ret = I2C2_Mem_Read(SlaveAddress, Readaddr, I2C_MEMADD_SIZE_8BIT, Str, Len, 5000);
+        ret = I2C2_Mem_Read(SlaveAddress, Readaddr, I2C_MEMADD_SIZE_8BIT, Str, Len, 50000);
 
         if (ret != HAL_OK)
         {
@@ -2486,10 +2486,11 @@ PUBLIC void SetVbusPower(UINT8 State)
  * RETURNS:
  *
 ***********************************************************************/
+#define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
 PRIVATE float GetVbusVoltage(void)
 {
     float temp = 0;
-//    temp = ADC2->JDR4*ADC2_JDR4_GAIN;
+    temp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
     return temp;
 }    
 

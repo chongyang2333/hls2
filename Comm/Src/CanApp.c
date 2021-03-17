@@ -75,7 +75,7 @@ PRIVATE void CarpetModeSet(UINT8 *pData);
 PRIVATE void CanSendAcc(UINT8 AccType);
 PRIVATE void CanSetAcc(UINT8 *pData);
 
-PRIVATE void CAN_GetRxMessage(CAN_RX_Message CanRxMessage);
+PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage);
 
 /***********************************************************************
  * DESCRIPTION:
@@ -123,7 +123,7 @@ PUBLIC void CanAppExec(void)
 
 void chassis_led_ctrl( uint8_t *buff );
 
-PRIVATE void CAN_GetRxMessage(CAN_RX_Message CanRxMessage)
+PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage)
 {
     can_struct_para_init(CAN_RX_MESSAGE_STRUCT, &receive_message);
     /* check the receive message */
@@ -132,11 +132,11 @@ PRIVATE void CAN_GetRxMessage(CAN_RX_Message CanRxMessage)
     if ((receive_message.rx_ff   == CAN_FF_STANDARD) &&
         (receive_message.rx_dlen == 8))
     {
-        memcpy(CanRxMessage.RxData, receive_message.rx_data, 8);
+        memcpy(CanRxMessage->RxData, receive_message.rx_data, 8);
     }
     else
     {
-        memset(CanRxMessage.RxData, 0x00, 8);
+        memset(CanRxMessage->RxData, 0x00, 8);
     }
 
 }
@@ -157,9 +157,10 @@ PUBLIC void CanAppDispatch(void)
     UINT8  CmdType;
 		
 	CAN_RX_Message CanRxMessage;
+    CAN_GetRxMessage(&CanRxMessage);
 
 	CmdType = CanRxMessage.RxData[0];
-    CAN_GetRxMessage(CanRxMessage);
+
 //    if (!sMyCan.PcInitDone)  
 //        return;	
 

@@ -162,3 +162,24 @@ void TIMER0_BRK_TIMER8_IRQHandler(void)
     }
 }
 
+void TIMER0_UP_TIMER9_IRQHandler(void)
+{
+    if(timer_interrupt_flag_get(TIMER0,TIMER_INT_FLAG_UP) == SET)
+    {
+        ControlRunExec();
+        timer_interrupt_flag_clear(TIMER0,TIMER_INT_FLAG_UP);
+    }
+}
+
+/**
+ * \brief      this function handles CAN0 Rx0 ecxeption
+ * \prarm[in]  none
+ * \param[out] none
+ * \retval     none
+*/
+#include "CanApp.h"
+void CAN0_RX1_IRQHandler(void)
+{
+    CanAppDispatch();
+}
+

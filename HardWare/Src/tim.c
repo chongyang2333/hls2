@@ -102,15 +102,17 @@ void MX_TIM0_Init(void)
 	  rcu_periph_clock_enable(RCU_TIMER0);
 	  rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
     
+       nvic_irq_enable(TIMER0_UP_TIMER9_IRQn,0,0);
+    
     timer_deinit(TIMER0);
 
     /* TIMER0 configuration */
-    timer_initpara.prescaler         = 0; // 100M
+    timer_initpara.prescaler         = 0; // 200M
     timer_initpara.alignedmode       = TIMER_COUNTER_CENTER_UP;
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
-    timer_initpara.period            = 4999;
-    timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;  //Tds = 2*fclk
-    timer_initpara.repetitioncounter = 0;
+    timer_initpara.period            = PWM_PERIOD_VALUE;
+    timer_initpara.clockdivision     = TIMER_CKDIV_DIV2;  //Tds = fclk/2
+    timer_initpara.repetitioncounter = 1;
     timer_init(TIMER0,&timer_initpara);
 
     /* CH0/CH0N configuration in PWM mode0 */
@@ -122,21 +124,24 @@ void MX_TIM0_Init(void)
     timer_ocintpara.ocnidlestate = TIMER_OCN_IDLE_STATE_LOW;
 
     timer_channel_output_config(TIMER0,TIMER_CH_0,&timer_ocintpara);
+    timer_channel_output_config(TIMER0,TIMER_CH_1,&timer_ocintpara);
+    timer_channel_output_config(TIMER0,TIMER_CH_2,&timer_ocintpara);
+    
+    timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_0,4999); //设定比较值
+    timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_1,4999);
+    timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_2,4999);
 
-    timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_0,2500); //设定比较值
-		timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_1,2500);
-		timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_2,2500);
     timer_channel_output_mode_config(TIMER0,TIMER_CH_0,TIMER_OC_MODE_PWM0);
-		timer_channel_output_mode_config(TIMER0,TIMER_CH_1,TIMER_OC_MODE_PWM0);
-		timer_channel_output_mode_config(TIMER0,TIMER_CH_2,TIMER_OC_MODE_PWM0);
+    timer_channel_output_mode_config(TIMER0,TIMER_CH_1,TIMER_OC_MODE_PWM0);
+    timer_channel_output_mode_config(TIMER0,TIMER_CH_2,TIMER_OC_MODE_PWM0);
     timer_channel_output_shadow_config(TIMER0,TIMER_CH_0,TIMER_OC_SHADOW_ENABLE);
-		timer_channel_output_shadow_config(TIMER0,TIMER_CH_1,TIMER_OC_SHADOW_ENABLE);
-		timer_channel_output_shadow_config(TIMER0,TIMER_CH_2,TIMER_OC_SHADOW_ENABLE);
+    timer_channel_output_shadow_config(TIMER0,TIMER_CH_1,TIMER_OC_SHADOW_ENABLE);
+    timer_channel_output_shadow_config(TIMER0,TIMER_CH_2,TIMER_OC_SHADOW_ENABLE);
 
     /* automatic output enable, break, dead time and lock configuration*/
     timer_breakpara.runoffstate      = TIMER_ROS_STATE_ENABLE;
     timer_breakpara.ideloffstate     = TIMER_IOS_STATE_ENABLE ;
-    timer_breakpara.deadtime         = 75; //tdts = 1/50M  1.5us死区
+    timer_breakpara.deadtime         = 138; //tdts = 1/100M  1.5us死区
     timer_breakpara.breakpolarity    = TIMER_BREAK_POLARITY_LOW;
     timer_breakpara.outputautostate  = TIMER_OUTAUTO_DISABLE;
     timer_breakpara.protectmode      = TIMER_CCHP_PROT_0;
@@ -144,7 +149,8 @@ void MX_TIM0_Init(void)
     timer_break_config(TIMER0,&timer_breakpara);
 
 		 timer_master_slave_mode_config(TIMER0,TIMER_MASTER_SLAVE_MODE_ENABLE);
-		 timer_slave_mode_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
+//		 timer_slave_mode_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
+    timer_master_output_trigger_source_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
     /* TIMER0 primary output function enable */
     timer_primary_output_config(TIMER0,ENABLE);
 
@@ -169,17 +175,14 @@ void MX_TIM2_Init(void)
 
     /*configure PB4  B5(TIMER2 CH0) as alternate function*/
     gpio_mode_set(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_4);
-    gpio_output_options_set(GPIOD, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_4);
     gpio_af_set(GPIOB, GPIO_AF_2, GPIO_PIN_4);
 	
-		gpio_mode_set(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_5);
-    gpio_output_options_set(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_5);
+	gpio_mode_set(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_5);
     gpio_af_set(GPIOB, GPIO_AF_2, GPIO_PIN_5);
 	
     rcu_periph_clock_enable(RCU_TIMER2);
     rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
 
-    timer_deinit(TIMER2);
 
     /* TIMER2 configuration */
     timer_initpara.prescaler         = 0;
@@ -197,7 +200,7 @@ void MX_TIM2_Init(void)
     timer_icinitpara.icprescaler = TIMER_IC_PSC_DIV1;
     timer_icinitpara.icfilter    = 0x8;
     timer_input_pwm_capture_config(TIMER2,TIMER_CH_0,&timer_icinitpara);
-		timer_input_pwm_capture_config(TIMER2,TIMER_CH_1,&timer_icinitpara);
+    timer_input_pwm_capture_config(TIMER2,TIMER_CH_1,&timer_icinitpara);
 
     /* slave mode selection: TIMER2 */
     timer_input_trigger_source_select(TIMER2,TIMER_SMCFG_TRGSEL_CI0FE0);
@@ -238,7 +241,7 @@ void MX_TIM3_Init(void)
     timer_initpara.period            = 65535;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
     timer_initpara.repetitioncounter = 0;
-    timer_init(TIMER2,&timer_initpara);
+    timer_init(TIMER3,&timer_initpara);
 
     /* TIMER2 configuration */
     /* TIMER2 CH0 PWM input capture configuration */
@@ -246,12 +249,12 @@ void MX_TIM3_Init(void)
     timer_icinitpara.icselection = TIMER_IC_SELECTION_DIRECTTI;
     timer_icinitpara.icprescaler = TIMER_IC_PSC_DIV1;
     timer_icinitpara.icfilter    = 0x8;
-    timer_input_pwm_capture_config(TIMER2,TIMER_CH_0,&timer_icinitpara);
-		timer_input_pwm_capture_config(TIMER2,TIMER_CH_1,&timer_icinitpara);
+    timer_input_pwm_capture_config(TIMER3,TIMER_CH_0,&timer_icinitpara);
+    timer_input_pwm_capture_config(TIMER3,TIMER_CH_1,&timer_icinitpara);
 
     /* slave mode selection: TIMER2 */
     timer_input_trigger_source_select(TIMER3,TIMER_SMCFG_TRGSEL_CI0FE0);
-    timer_slave_mode_select(TIMER2,TIMER_ENCODER_MODE2);
+    timer_slave_mode_select(TIMER3,TIMER_ENCODER_MODE2);
 
     /* select the master slave mode */
     timer_master_slave_mode_config(TIMER3,TIMER_MASTER_SLAVE_MODE_ENABLE);
@@ -267,32 +270,32 @@ void gpio_timer7_config(void)
     /*configure Pc6(TIMER7 CH0) as alternate function*/
     gpio_mode_set(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_6);
     gpio_output_options_set(GPIOC, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_6);
-    gpio_af_set(GPIOC, GPIO_AF_1, GPIO_PIN_6);
+    gpio_af_set(GPIOC, GPIO_AF_3, GPIO_PIN_6);
 
     /*configure PA7(TIMER7 CH0N) as alternate function*/
     gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_7);
     gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_7);
-    gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_7);
+    gpio_af_set(GPIOA, GPIO_AF_3, GPIO_PIN_7);
 
    /*configure PC7(TIMER7 CH1) as alternate function*/
     gpio_mode_set(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_7);
     gpio_output_options_set(GPIOC, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_7);
-    gpio_af_set(GPIOC, GPIO_AF_1, GPIO_PIN_7);
+    gpio_af_set(GPIOC, GPIO_AF_3, GPIO_PIN_7);
 
     /*configure PB0(TIMER7 CH1N) as alternate function*/
     gpio_mode_set(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_0);
     gpio_output_options_set(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_0);
-    gpio_af_set(GPIOB, GPIO_AF_1, GPIO_PIN_0);
+    gpio_af_set(GPIOB, GPIO_AF_3, GPIO_PIN_0);
 		
 		/*configure PC8(TIMER7 CH2) as alternate function*/
     gpio_mode_set(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_8);
     gpio_output_options_set(GPIOC, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_8);
-    gpio_af_set(GPIOC, GPIO_AF_1, GPIO_PIN_8);
+    gpio_af_set(GPIOC, GPIO_AF_3, GPIO_PIN_8);
 
     /*configure PB1(TIMER7 CH2N) as alternate function*/
     gpio_mode_set(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_1);
     gpio_output_options_set(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_1);
-    gpio_af_set(GPIOB, GPIO_AF_1, GPIO_PIN_1);
+    gpio_af_set(GPIOB, GPIO_AF_3, GPIO_PIN_1);
 }
 
 /* TIM7 init function */
@@ -310,12 +313,12 @@ void MX_TIM7_Init(void)
     timer_deinit(TIMER7);
 
     /* TIMER7 configuration */
-    timer_initpara.prescaler         = 0; // 100M
+    timer_initpara.prescaler         = 0; // 200M
     timer_initpara.alignedmode       = TIMER_COUNTER_CENTER_UP;
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
-    timer_initpara.period            = 4999;
-    timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;  //Tds = 2*fclk
-    timer_initpara.repetitioncounter = 0;
+    timer_initpara.period            = PWM_PERIOD_VALUE;
+    timer_initpara.clockdivision     = TIMER_CKDIV_DIV2;  //Tds = fclk/2
+    timer_initpara.repetitioncounter = 1;
     timer_init(TIMER7,&timer_initpara);
 
     /* CH0/CH0N configuration in PWM mode0 */
@@ -327,29 +330,32 @@ void MX_TIM7_Init(void)
     timer_ocintpara.ocnidlestate = TIMER_OCN_IDLE_STATE_LOW;
 
     timer_channel_output_config(TIMER7,TIMER_CH_0,&timer_ocintpara);
-
-    timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_0,2500); //设定比较值
-		timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_1,2500);
-		timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_2,2500);
+    timer_channel_output_config(TIMER7,TIMER_CH_1,&timer_ocintpara);
+    timer_channel_output_config(TIMER7,TIMER_CH_2,&timer_ocintpara);
+    
+    timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_0,4999); //设定比较值
+    timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_1,4999);
+    timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_2,4999);
     timer_channel_output_mode_config(TIMER7,TIMER_CH_0,TIMER_OC_MODE_PWM0);
-		timer_channel_output_mode_config(TIMER7,TIMER_CH_1,TIMER_OC_MODE_PWM0);
-		timer_channel_output_mode_config(TIMER7,TIMER_CH_2,TIMER_OC_MODE_PWM0);
+    timer_channel_output_mode_config(TIMER7,TIMER_CH_1,TIMER_OC_MODE_PWM0);
+    timer_channel_output_mode_config(TIMER7,TIMER_CH_2,TIMER_OC_MODE_PWM0);
     timer_channel_output_shadow_config(TIMER7,TIMER_CH_0,TIMER_OC_SHADOW_ENABLE);
-		timer_channel_output_shadow_config(TIMER7,TIMER_CH_1,TIMER_OC_SHADOW_ENABLE);
-		timer_channel_output_shadow_config(TIMER7,TIMER_CH_2,TIMER_OC_SHADOW_ENABLE);
+    timer_channel_output_shadow_config(TIMER7,TIMER_CH_1,TIMER_OC_SHADOW_ENABLE);
+    timer_channel_output_shadow_config(TIMER7,TIMER_CH_2,TIMER_OC_SHADOW_ENABLE);
 
     /* automatic output enable, break, dead time and lock configuration*/
     timer_breakpara.runoffstate      = TIMER_ROS_STATE_ENABLE;
     timer_breakpara.ideloffstate     = TIMER_IOS_STATE_ENABLE ;
-    timer_breakpara.deadtime         = 75; //tdts = 1/50M  1.5us死区
+    timer_breakpara.deadtime         = 138; //tdts = 1/100M  1.5us死区
     timer_breakpara.breakpolarity    = TIMER_BREAK_POLARITY_LOW;
     timer_breakpara.outputautostate  = TIMER_OUTAUTO_DISABLE;
     timer_breakpara.protectmode      = TIMER_CCHP_PROT_0;
     timer_breakpara.breakstate       = TIMER_BREAK_DISABLE;
     timer_break_config(TIMER7,&timer_breakpara);
 
-		 timer_master_slave_mode_config(TIMER7,TIMER_MASTER_SLAVE_MODE_ENABLE);
-		 timer_slave_mode_select(TIMER7,TIMER_TRI_OUT_SRC_UPDATE);
+    timer_master_slave_mode_config(TIMER7,TIMER_MASTER_SLAVE_MODE_ENABLE);
+    timer_slave_mode_select(TIMER7,TIMER_SLAVE_MODE_RESTART);
+    timer_input_trigger_source_select(TIMER7,TIMER_SMCFG_TRGSEL_ITI0);
     /* TIMER7 primary output function enable */
     timer_primary_output_config(TIMER7,ENABLE);
 
@@ -378,7 +384,7 @@ void MX_TIM4_Init(void)
 
     timer_initpara.prescaler = (8 - 1);    // 25mhz
     timer_initpara.period = 0xFFFFFFFF; 
-    timer_initpara.counterdirection = TIMER_COUNTER_CENTER_UP;
+    timer_initpara.counterdirection = TIMER_COUNTER_EDGE;
     timer_initpara.repetitioncounter = 0;
     timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
     timer_init(TIMER4,&timer_initpara);
@@ -399,7 +405,7 @@ void MX_TIM8_Init(void)
     rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
     rcu_periph_clock_enable(RCU_TIMER8);
     
-    nvic_irq_enable(TIMER0_BRK_TIMER8_IRQn,0,2);
+    nvic_irq_enable(TIMER0_BRK_TIMER8_IRQn,1,2);
     
     timer_deinit(TIMER8);
 
