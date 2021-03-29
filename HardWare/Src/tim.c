@@ -187,7 +187,7 @@ void MX_TIM2_Init(void)
     /* TIMER2 configuration */
     timer_initpara.prescaler         = 0;
     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
-    timer_initpara.counterdirection  = TIMER_COUNTER_UP;
+    timer_initpara.counterdirection  = TIMER_COUNTER_DOWN;
     timer_initpara.period            = 65535;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
     timer_initpara.repetitioncounter = 0;
@@ -237,7 +237,7 @@ void MX_TIM3_Init(void)
     /* TIMER2 configuration */
     timer_initpara.prescaler         = 0;
     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
-    timer_initpara.counterdirection  = TIMER_COUNTER_UP;
+    timer_initpara.counterdirection  = TIMER_COUNTER_DOWN;
     timer_initpara.period            = 65535;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
     timer_initpara.repetitioncounter = 0;

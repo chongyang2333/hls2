@@ -222,7 +222,7 @@ UINT8 MX_GPIO_Init(void)
 // //    /* EXTI interrupt init*/
 // //    HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);   
     
-//     /*Configure GPIO pins : PB12 :CHARGE_EN */
+//     /*Configure GPIO pins : PB13 :CHARGE_EN */
        gpio_mode_set(GPIOB,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_13);
        gpio_output_options_set(GPIOB,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_13);
        DisableCharge(TmpChar);
