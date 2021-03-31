@@ -366,11 +366,11 @@ PRIVATE void CanFdbMcInfoExec(void)
     INT16 LeftInc ,RightInc;
     
 	Tmp = GetIncEncoderPulse(0);
-    LeftInc= sAxis[0].sEncoder.MotorDirection*(Tmp - LeftPulseOld);
+    LeftInc= -sAxis[0].sEncoder.MotorDirection*(Tmp - LeftPulseOld);
     LeftPulseOld = Tmp;
     
     Tmp = GetIncEncoderPulse(1);
-    RightInc= sAxis[1].sEncoder.MotorDirection*(Tmp - RightPulseOld);
+    RightInc= -sAxis[1].sEncoder.MotorDirection*(Tmp - RightPulseOld);
     RightPulseOld = Tmp;
 
     {
