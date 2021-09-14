@@ -201,7 +201,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
         pAlarm->HallErrCnt = HALL_ALARM_MAX_CNT;
     }
 	
-    if((HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15)) && (pAlarm->ErrReg.bit.StutterStop))
+    if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10)) && (pAlarm->ErrReg.bit.StutterStop))
     {
     	pAlarm->EmergencyStopRstCnt++;
         
@@ -216,7 +216,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
             }
             else if(pAlarm->EmergencyStopRstCnt > 200)
             {
-                HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);// 12V
+                HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);// 12V
             }
             else if(pAlarm->EmergencyStopRstCnt > 3)
             {
@@ -242,7 +242,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
             }            
         }
 	}
-	else if((HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15) == 0))// && (pAlarm->ErrReg.bit.StutterStop == 0))
+	else if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == 0))// && (pAlarm->ErrReg.bit.StutterStop == 0))
 	{  
 		pAlarm->ErrReg.bit.StutterStop = 1;
 		pAlarm->EmergencyStopRstCnt = 0;

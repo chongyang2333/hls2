@@ -150,6 +150,9 @@ UINT8 MX_GPIO_Init(void)
 //     /*Configure GPIO pins : PB2:L_IU_FO, PE7 : L_IV_FO */
        gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_2);
        gpio_mode_set(GPIOE,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_7);
+     
+//     /*Configure GPIO pins : PA10 : SAFE_IN */
+       gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_10);
        
 //     /*Configure GPIO pins : PE14 : R_IU_FO */
        gpio_mode_set(GPIOE,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_14);
