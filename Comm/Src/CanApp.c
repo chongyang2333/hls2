@@ -418,9 +418,9 @@ PRIVATE void CMDGetSoftWareVersionTreatmentFromBootloaderInfo(CAN_RX_Message* Ca
 
 void CMDOpenOrCloseCanTreatment(CAN_RX_Message* CanRxMessage)
 {
-	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
-	if( CompareCheckSum(CheckSumCalc,CanRxMessage->RxData[7]))
-	{
+//	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
+//	if( CompareCheckSum(CheckSumCalc,CanRxMessage->RxData[7]))
+//	{
 		CMDResponseRegular(CanRxMessage);
 		if(CanRxMessage->RxData[3])
 		{
@@ -430,7 +430,7 @@ void CMDOpenOrCloseCanTreatment(CAN_RX_Message* CanRxMessage)
 		{
 			g_CanTxEnable = 0;
 		}
-	}
+//	}
 }
 
 
@@ -546,8 +546,16 @@ PRIVATE void CarpetModeSet(UINT8 *pData)
 {
     if (0x01 == pData[1])
     {
-        gParam[0].MotorRatedCurrent0x2209 = 6000;
-        gParam[1].MotorRatedCurrent0x2209 = 6000;
+				if(gMachineInfo.motorVersion == 4)
+				{
+						gParam[0].MotorRatedCurrent0x2209 = 4000;
+						gParam[1].MotorRatedCurrent0x2209 = 4000;
+				}
+				else
+				{
+					  gParam[0].MotorRatedCurrent0x2209 = 6000;
+					  gParam[1].MotorRatedCurrent0x2209 = 6000;
+				}
         gParam[0].SaveParameter0x2401 = 1;        
     }
     else if (0 == pData[1])
@@ -573,10 +581,17 @@ PUBLIC void CanCarpetModeFdb(UINT16 MotorRatedCurrent0x2209)
     {
         CarpetMode = 0;
     }
-    else if(6000 == MotorRatedCurrent0x2209)
-    {
-        CarpetMode = 1;
-    }
+		else
+		{
+				if((gMachineInfo.motorVersion == 4)&&(4000 == MotorRatedCurrent0x2209))
+				{
+						CarpetMode = 1;
+				}
+				else if(6000 == MotorRatedCurrent0x2209)
+				{
+						CarpetMode = 1;
+				}		
+		}
     
     txd[0] = 0x46;
     txd[1] = CarpetMode;
@@ -607,7 +622,8 @@ PUBLIC void CanSendSpdFdb(INT16 LeftSpdInc, INT16 RightSpdInc)
     datasend[2] = (LeftSpdInc)&0XFF;
     datasend[3] = (RightSpdInc>>8)&0XFF;
     datasend[4] = (RightSpdInc)&0XFF;
-    datasend[5] = 0x00;
+    //datasend[5] = 0x00;
+	datasend[5] = sMyCan.CanLostCnt;
     datasend[6] = _40hzCnt;   //序号
     datasend[7] = BCC_CheckSum(datasend,7);   //校验码
     can_tx(datasend);		   

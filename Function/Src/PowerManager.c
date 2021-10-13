@@ -102,7 +102,7 @@ PUBLIC void PowerManagerInit(UINT8 ApplicationMode)
        		
 	DisableCharge(ApplicationMode);
 	LedPowerOn();
-    LidarPowerOff(); 
+  //LidarPowerOff();  //初始化已经关了
 	PadPowerOn();
 
     delay_us(300);
@@ -141,6 +141,7 @@ PUBLIC void PowerManagerInit(UINT8 ApplicationMode)
 
 	sPowerManager.sAlarm.ChargeCurrentMax = 5500;
 	sPowerManager.sAlarm.ChargeTempMax = 450;  //0.1℃
+	sPowerManager.sAlarm.ChargeTempMin = 10;
 	sPowerManager.sAlarm.ChargerVoltageMax = 31000;
 	sPowerManager.sAlarm.BatteryVoltageMax = 30000;
 	sPowerManager.sAlarm.BatteryLowPowerLevel = 0;
@@ -148,6 +149,7 @@ PUBLIC void PowerManagerInit(UINT8 ApplicationMode)
 	sPowerManager.sAlarm.ChargeCurrentOverCntMax = 10;
 	sPowerManager.sAlarm.ChargerVolateOverCntMax = 10;
 	sPowerManager.sAlarm.ChargeTempOverCntMax = 30;
+	sPowerManager.sAlarm.ChargeTempUnderCntMax = 30;
 	sPowerManager.sAlarm.ComDisconnectCntMax = 10;
 	sPowerManager.sAlarm.BatteryVolateOverCntMax = 10;
 	sPowerManager.sAlarm.BatteryLowPowerCntMax = 80;
@@ -546,7 +548,21 @@ PRIVATE void PowerAlarmExec(void)
 		sPowerManager.sAlarm.PowerAlarmReg.bit.ChargeTempOver = 1;
 		sPowerManager.sAlarm.ChargeTempOverCnt = sPowerManager.sAlarm.ChargeTempOverCntMax;
 	}
+  //检查电池充电低温
+	if ((INT16)sPowerManager.sBatteryInfo.BatteryTemp < sPowerManager.sAlarm.ChargeTempMin)
+	{
+		sPowerManager.sAlarm.ChargeTempUnderCnt++;
+	}
+	else if(sPowerManager.sAlarm.ChargeTempUnderCnt)
+	{
+		sPowerManager.sAlarm.ChargeTempUnderCnt--;
+	}
 
+	if (sPowerManager.sAlarm.ChargeTempUnderCnt >= sPowerManager.sAlarm.ChargeTempUnderCntMax)
+	{
+		//sPowerManager.sAlarm.PowerAlarmReg.bit.ChargeTempUnder = 1;
+		sPowerManager.sAlarm.ChargeTempUnderCnt = sPowerManager.sAlarm.ChargeTempUnderCntMax;
+	}
 	//检查电池通讯是否脱落
 	if (sPowerManager.sAlarm.ComDisconnectCnt >= sPowerManager.sAlarm.ComDisconnectCntMax)
 	{
@@ -860,6 +876,7 @@ PRIVATE void ClearPowerAlarmReg(void)
 	sPowerManager.sAlarm.ChargeCurrentOverCnt = 0;
 	sPowerManager.sAlarm.ChargerVolateOverCnt = 0;
 	sPowerManager.sAlarm.ChargeTempOverCnt = 0;
+	sPowerManager.sAlarm.ChargeTempUnderCnt = 0;
 	sPowerManager.sAlarm.BatteryVolateOverCnt = 0;
 }
 
@@ -873,38 +890,50 @@ PRIVATE void ClearPowerAlarmReg(void)
 ***********************************************************************/
 PUBLIC void lidarPowerOnOffExec(void)
 {
+	  static UINT16 leds_cnt = 0;
     if(sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower)
     {
         sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = A2M7_LIDAR_DEFAULT_SPEED;
     }
     
 	//在雷达打开状态下不能进行调速，必须先关闭雷达，再重新打开
-	if (sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower != sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower ||
+	if ((sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower != sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower) ||
         sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet)
 	{
-        sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
-        
-		if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower)
-		{
-            LidarPowerOn();
-			if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
+			if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower)
 			{
-                A2M7_CtrlOn(sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed);
+							LidarPowerOn();
+							if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
+							{
+									if(leds_cnt++>20)
+									{
+										leds_cnt = 20;
+										A2M7_CtrlOn(sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed);
+										sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
+										sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
+									}
+							}
+							else
+							{
+									sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
+									sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
+							}
+							sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed;			
 			}
-            sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed;			
-		}
-		else
-		{
-			LidarPowerOff();
-			if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
+			else
 			{
-				A2M7_CtrlOff();
+					leds_cnt = 0;
+					LidarPowerOff();
+					if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
+					{
+						A2M7_CtrlOff();
+					}
+					sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
+					sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = 0;
+					sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
 			}
-            sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = 0;
-		}
-        
-        sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
-	}
+       
+	 }
 }
 
 /***********************************************************************
@@ -1053,6 +1082,10 @@ PRIVATE UINT8 GetFrame0x73Header(const union PowerAlarmReg alarmRegData, const e
 	{
 		return 5;
 	}
+	else if(alarmRegData.bit.ChargeTempUnder)
+	{
+		return 9;
+	}
 	else if((chargerManageState == CHECK_BEFORE_CHARGING) || ((chargerManageState == CHARGING)))
 	{
 		if(batteryLevelOptimized >= 100)
@@ -1089,9 +1122,10 @@ PRIVATE void BatteryI2cReadSOC_Temp(void)
     static UINT8 step = 0;
     UINT8 tmp=0;
     INT16 tmp1=0;
+		static INT16  batterry_temp[4]={100,100,100,100};
 
 	//300ms刷新一次电池电量以及温度信息
-	if (sPowerManager.uTick - ReadOperationTime <= 12)
+	if (sPowerManager.uTick - ReadOperationTime <= 4)  //25ms*4 = 100ms
 		return;
     
     switch(step){
@@ -1132,23 +1166,86 @@ PRIVATE void BatteryI2cReadSOC_Temp(void)
 		
         break;
     
-    case 1:
-        if(BatteryReadTemp(&tmp1))
-        {
-            gSensorData.BatteryTemp0x4010 = tmp1 - 2730;  
+    case 1: //第一次读取温度
+        tmp = BatteryReadTemp(&tmp1);
+        if(tmp == 1)
+				{
+             batterry_temp[0]= tmp1 - 2730;  
         }
         else
         {
-            gSensorData.BatteryTemp0x4010 = 300; /*30 ℃*/
+            batterry_temp[0] = 300; /*30 ℃*/
         }
-		ReadOperationTime = sPowerManager.uTick;
+				ReadOperationTime = sPowerManager.uTick;
         break;
-
-    default :
-        break;
+	  case 2: //第二次读取温度
+				tmp = BatteryReadTemp(&tmp1);
+        if(tmp == 1)
+				{
+             batterry_temp[1]= tmp1 - 2730;  
+        }
+        else
+        {
+            batterry_temp[1] = 300; /*30 ℃*/
+        }
+				if(batterry_temp[0]>batterry_temp[1])
+				{
+					 tmp1 = batterry_temp[0];
+					 batterry_temp[0] = batterry_temp[1];
+					 batterry_temp[1] = tmp1;
+				}
+				ReadOperationTime = sPowerManager.uTick;
+				break;
+	case 3: //第三次读取温度
+			tmp = BatteryReadTemp(&tmp1);
+	    if(tmp == 1)
+				{
+	         batterry_temp[2]= tmp1 - 2730;  
+	    }
+	    else
+	    {
+	        batterry_temp[2] = 300; /*30 ℃*/
+	    }
+			if(batterry_temp[1]>batterry_temp[2])
+			{
+				 tmp1 = batterry_temp[1];
+				 batterry_temp[2] = batterry_temp[1];
+				 batterry_temp[1] = tmp1;
+			}
+			ReadOperationTime = sPowerManager.uTick;
+			break;
+	case 4://第四次读取温度
+			tmp = BatteryReadTemp(&tmp1);
+			if(tmp == 1)
+			{
+				batterry_temp[3]= tmp1 - 2730;  
+			}
+			else
+			{
+				batterry_temp[3] = 300; /*30 ℃*/
+			}
+			if(batterry_temp[2]>batterry_temp[3])
+			{
+				 tmp1 = batterry_temp[2];
+				 batterry_temp[2] = batterry_temp[3];
+				 batterry_temp[3] = tmp1;
+			} // batterry_temp[3]为最大的值
+			//再筛出最小值
+			for(tmp = 0; tmp<1; tmp++)
+			{
+				 if(batterry_temp[tmp]<batterry_temp[tmp+1])
+				 {
+					 tmp1 = batterry_temp[tmp];
+					 batterry_temp[tmp] = batterry_temp[tmp+1];
+					 batterry_temp[tmp+1] = tmp1;
+				 }
+			}// batterry_temp[2]为最小值，去除最大和最小值，剩余两个中间值取平均
+			gSensorData.BatteryTemp0x4010 =(batterry_temp[0]+batterry_temp[1])>>1;
+			ReadOperationTime = sPowerManager.uTick;
+		
+     break;
     }
-    
-    (step >= 1) ? (step = 0) : step++;
+    (step >= 4) ? (step = 0) : step++;
 }
 
 

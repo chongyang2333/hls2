@@ -53,6 +53,9 @@ extern PUBLIC void ClearIncEncoderPulse(UINT16 AxisID);
 extern PUBLIC UINT16 GetHallState(UINT16 AxisID, UINT32 MotorVersion);
 
 PUBLIC UINT16 GetHardOverCurState(UINT16 AxisID);
+PUBLIC UINT16 GetIbusOverCurState(UINT16 AxisID);
 PUBLIC void ResetACS711(void);
+
+PUBLIC UINT16 ReadPwmoutIOState(UINT16 AxisID);
 
 #endif  // _HARDAPI_H_

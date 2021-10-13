@@ -48,6 +48,8 @@ extern PUBLIC UINT8 ApplicationMode;
 #define IBUS_CUROVER_JUDGE_TIME   100  // 10ms
 #define MAX_CONTINUE_IBUS         15.0f
 #define MTR_OV_LD_TB_END_ID  9
+
+#define PWMOUT_DETECT_WINDOW      1000 //500ms
 const UINT16 invOvLdTb[MTR_OV_LD_TB_END_ID+1]= 
 {
 4000,   //110%------400s
@@ -56,10 +58,24 @@ const UINT16 invOvLdTb[MTR_OV_LD_TB_END_ID+1]=
 900,	//140%------90s
 600, 	//150%------60s
 200, 	//160%------20s
-140, 	//170%------14s
+150, 	//170%------15s
 100,	//180%------10s
-60,		//190%------6s
-10,  	//200%------1s
+80,		//190%------8s
+80,  	//200%------8s
+};
+
+const UINT16 invUnOvLdTb[MTR_OV_LD_TB_END_ID+1]= 
+{
+80,    //8s
+80,	
+100,	
+150,	
+200, 
+600, 	
+900, 	
+1200,	
+2300,		
+4000,  //400s
 };
 const UINT16 invCurLdTb[MTR_OV_LD_TB_END_ID+1]=
 {
@@ -73,6 +89,20 @@ const UINT16 invCurLdTb[MTR_OV_LD_TB_END_ID+1]=
 1800, 	//180%
 1900,	//190%
 2000,	//200%
+};
+
+const UINT16 invUnCurLdTb[MTR_OV_LD_TB_END_ID+1]=
+{
+100,   //10%
+200, 	//20%
+300, 	//30%
+400, 	//40%
+500, 	//50%
+600, 	//60%
+700, 	//70%
+800, 	//80%
+900,	//90%
+1000,	//100%
 };
 
 /***********************************************************************
@@ -183,24 +213,47 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 		pAlarm->IvTotle = 0;
 		pAlarm->IwTotle = 0;
 	}
+	if(P->PowerFlag == POWER_ON)
+	{
+		if((fabs(P->sCurLoop.VqRef)>0.98f)&&(P->sCurLoop.IValidFdb<1.0f)&&(fabs(P->sSpdLoop.SpdFdb)<30.0f))
+		{
+			pAlarm->phaselose_cnt++;	
+		}
+		else
+		{
+			if(pAlarm->phaselose_cnt>0)
+				pAlarm->phaselose_cnt--;
+		}
+		if(pAlarm->phaselose_cnt>1000)//100ms
+		{
+			pAlarm->ErrReg.bit.OutLosePhase = 1;
+			pAlarm->phaselose_cnt = 0;
+		}
+	}
+	else
+	{
+		pAlarm->phaselose_cnt = 0;
+	}
 	
     // hall alarm judgement
-    if(P->sEncoder.HallState > 6)
-    {
-        pAlarm->HallErrCnt++;
-    }
-    else if(pAlarm->HallErrCnt)
-    {
-        pAlarm->HallErrCnt--;
-    }
+	if (P->sEncoder.HallEnable == 1)
+	{
+	    if(P->sEncoder.HallState > 6)
+	    {
+	        pAlarm->HallErrCnt++;
+	    }
+	    else if(pAlarm->HallErrCnt)
+	    {
+	        pAlarm->HallErrCnt--;
+	    }
     
-    // hall alarm
-    if(pAlarm->HallErrCnt >= HALL_ALARM_MAX_CNT)
-    {
-        pAlarm->ErrReg.bit.HallErr = 1;
-        pAlarm->HallErrCnt = HALL_ALARM_MAX_CNT;
-    }
-	
+	    // hall alarm
+	    if(pAlarm->HallErrCnt >= HALL_ALARM_MAX_CNT)
+	    {
+	        pAlarm->ErrReg.bit.HallErr = 1;
+	        pAlarm->HallErrCnt = HALL_ALARM_MAX_CNT;
+	    }
+	}
     if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10)) && (pAlarm->ErrReg.bit.StutterStop))
     {
     	pAlarm->EmergencyStopRstCnt++;
@@ -296,7 +349,11 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
     {
         pAlarm->ErrReg.bit.HardCurOver = 1;
     }
-
+		if(GetIbusOverCurState(P->AxisID))
+    {
+        pAlarm->ErrReg.bit.BusCurOver = 1;
+    }
+#if 0
 	if(((P->sCurLoop.Ia > pAlarm->PhaseCurrentLimit) || (P->sCurLoop.Ia < -pAlarm->PhaseCurrentLimit))
 		&&((P->sSpdLoop.SpdFdb < MOTOR_STALL_SPEED) && (P->sSpdLoop.SpdFdb > -MOTOR_STALL_SPEED )))
 	{
@@ -330,7 +387,21 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 	{
 		pAlarm->ErrReg.bit.PhaseCurOver = 1;
 	}
-	  
+#endif 
+	REAL32 tmp = P->sCurLoop.IValidFdb*1.28f; //IValidFdb表示有效值，转化成峰值 12*1.414/1.28 = 13.3A
+	if(tmp > pAlarm->PhaseCurrentLimit) 
+	{
+		pAlarm->IuOverCnt++;
+	}
+	else if(pAlarm->IuOverCnt)
+	{
+		pAlarm->IuOverCnt --;
+	}
+	if( pAlarm->IuOverCnt > PHASE_CURRENT_OVER_TIME) //600ms
+	{
+		pAlarm->ErrReg.bit.PhaseCurOver = 1;
+	}
+	
 	if(pAlarm->ErrReg.all>>16)
     {
         pAlarm->ErrReg.bit.FatalErr = 1;
@@ -349,7 +420,10 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
     {
         P->PowerEn = 0;
     }
-
+	if ((!P->sEncoder.InitPosDoneUsingPwmout) && (P->sEncoder.HallEnable == 2))
+    {
+        P->PowerEn = 0;
+    }
 }
 
 /***********************************************************************
@@ -363,6 +437,7 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     struct AlarmStruct *pAlarm = &P->sAlarm;
 	UINT32 m_Data,m_LDeta;
 	UINT16 m_Index,i_index,m_Cur;
+	INT32  SpdErr_Threshold;
 
     // Eeprom Alarm
     if(GetEepromErrorCode() & (P->AxisID+1) )
@@ -404,7 +479,10 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     else
     {
         pAlarm->VdcOverCnt = 0;
-        pAlarm->VdcUnderCnt++;
+		if (sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) // 防止按急停松开上电中报欠压
+        {
+            pAlarm->VdcUnderCnt++;
+        }
     }
     
     // Vdc Over Alarm
@@ -421,22 +499,24 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
         pAlarm->VdcUnderCnt = VDC_UNDER_TIME;
     }
     
-    // Over temperature judegement
-    if((gParam[P->AxisID].MosTemp0x230B > pAlarm->TempLimitMax)
-        || (gParam[P->AxisID].MotorTemp0x230C > pAlarm->TempLimitMax))
+	//Pwmout Break Alarm
+    if (P->sEncoder.HallEnable == 2)
     {
-        pAlarm->TempOverCnt++;
-    }
-    else if(pAlarm->TempOverCnt)
-    {
-        pAlarm->TempOverCnt--;
-    }
-    
-    // Over temperature alarm
-    if(pAlarm->TempOverCnt >= TEMPERATURE_TIME)
-    {
-        pAlarm->ErrReg.bit.TempOver = 1;
-        pAlarm->TempOverCnt = TEMPERATURE_TIME;
+        if (P->sEncoder.PosCorrectEnUsingPwmout)
+        {
+            pAlarm->PwmoutDisconnectCnt++;
+        }
+        else
+        {
+            pAlarm->PwmoutDisconnectCnt = 0;
+        }
+        
+        #define MAX_PWMOUT_DISCONNECT   (1000)
+        if (pAlarm->PwmoutDisconnectCnt >= MAX_PWMOUT_DISCONNECT)
+        {
+            pAlarm->PwmoutDisconnectCnt = MAX_PWMOUT_DISCONNECT;
+            pAlarm->ErrReg.bit.PwmoutBreak = 1;
+        }
     }
 
 	 if(gParam[P->AxisID].MosTemp0x230B > pAlarm->TempLimitMax)
@@ -493,8 +573,27 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 		
 		if(m_Cur < 1000)
 		{
-			pAlarm->I2T_accumulator = 0;
-		}
+					if(m_Cur < 100)
+							m_Data = invUnOvLdTb[0];
+					else
+					{
+							for(i_index = 0;i_index < MTR_OV_LD_TB_END_ID;i_index++)
+							{
+								if((m_Cur >= invUnCurLdTb[i_index]) && (m_Cur < invUnCurLdTb[i_index+1]))
+								{
+									m_Index = i_index;
+									m_Data  = (m_Cur - invUnCurLdTb[m_Index])*(invUnOvLdTb[m_Index+1]-invUnOvLdTb[m_Index]);
+									m_Data  = invUnOvLdTb[m_Index] + m_Data / (invUnCurLdTb[m_Index+1] - invUnCurLdTb[m_Index]);
+									break;
+								}
+							}
+					}
+					m_LDeta = (4000UL) / m_Data;
+					if(pAlarm->I2T_accumulator>=m_LDeta)
+							pAlarm->I2T_accumulator = pAlarm->I2T_accumulator - m_LDeta;		//
+					else
+							pAlarm->I2T_accumulator = 0;
+		}	
 		else
 		{
 			if(m_Cur >= 2000)
@@ -563,18 +662,22 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
         if((P->CtrlMode == SPD_CTRL || P->CtrlMode == POS_CTRL) && (P->PowerEn == POWER_ON))
         {            
             // Speed Following Error judgement
-            if(P->sSpdLoop.SpdErr > gParam[P->AxisID].SpeedFollowErrWindow0x2008 
-                || P->sSpdLoop.SpdErr < -((INT32)gParam[P->AxisID].SpeedFollowErrWindow0x2008))
+						SpdErr_Threshold = gParam[P->AxisID].SpeedFollowErrWindow0x2008;
+            if(fabs(P->sSpdLoop.SpdErr) > SpdErr_Threshold)
             {
-                pAlarm->SpdFollwCnt++;
+                pAlarm->SpdFollwCnt+=4;
             }
-            else if(pAlarm->SpdFollwCnt)
+						else if(fabs(P->sSpdLoop.SpdErr) > (SpdErr_Threshold>>1))
+						{
+								pAlarm->SpdFollwCnt+=1;
+						}
+            else if(pAlarm->SpdFollwCnt>=4)
             {
-                pAlarm->SpdFollwCnt--;
+                pAlarm->SpdFollwCnt-=4;
             }
             
             // Speed Following Error Alarm
-            UINT16 SpdFollowTime = gParam[P->AxisID].SpeedFollowErrTime0x2009*2;
+            UINT16 SpdFollowTime = gParam[P->AxisID].SpeedFollowErrTime0x2009*20; //30r/min 400*20/2 = 4000ms   60r/min 1s
             if(pAlarm->SpdFollwCnt >= SpdFollowTime)
             {
                 pAlarm->ErrReg.bit.SpeedFollow = 1;
@@ -584,8 +687,12 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
         } // end if(P->CtrlMode..
         
     } // end if(P->PowerFlag == POWER_ON)
-
-    // can lost alarm
+		else
+		{
+				pAlarm->I2T_accumulator = 0;
+			  pAlarm->SpdFollwCnt = 0;
+		}
+		// can lost alarm
     if(sMyCan.CanLostErr)
     {
         sAxis[0].sAlarm.ErrReg.bit.CanLost = 1;

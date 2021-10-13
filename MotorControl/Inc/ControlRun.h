@@ -20,7 +20,7 @@
 #include "Filter.h"
 #include "Encoder.h"
 #include "Alarm.h"
-
+#include "gd32f4xx_exti.h"
 
 /*------------------------- Public Constants ----------------------*/
 #define MAX_AXIS_NUM        2
@@ -40,7 +40,7 @@
 #define INNER_CUR_CTRL      6
 #define INNER_SPD_CTRL      7
 
-#define PWM_PERIOD_VALUE   (9999)  /* PWM Period Value  100us */
+#define PWM_PERIOD_VALUE   (10800)  /* PWM Period Value  100us */
 #define SYSTEM_FRQ          216000000
 
 #define PWM_FRQ             (SYSTEM_FRQ/PWM_PERIOD_VALUE/2)
@@ -72,8 +72,8 @@
 #define C_SinUint1D2        (C_SinUint>>1)
 #define C_SinUint3D4        ((C_SinUint>>2)*3)
 
-#define MAX_TIMER_ISR_TIME   (15000*27)  // 15MS
-#define MAX_PWM_ISR_TIME     (80*27)     // Max is 100us
+#define MAX_TIMER_ISR_TIME   (15000*108)  // 15MS
+#define MAX_PWM_ISR_TIME     (80*108)     // Max is 100us
 
 #define VBUS_VOLTAGE_CLIMB_SLOPE_CONDITION  0.03f
 #define VBUS_VOLTAGE_CONDITION  18.0f
@@ -297,6 +297,30 @@ struct EncoderStruct
     UINT16      HallStateLast;
     
     INT16       MotorDirection;     // 1 for positive, -1 for negagive
+    
+    //Purpose: Encoder Pwmout function
+    UINT8       PwmoutNewMechAngle_SM;
+    
+    UINT8       PosCorrectEnUsingPwmout;
+    UINT8       PartnerPosCorrectEnUsingPwmout;
+    UINT8       InitPosDoneUsingPwmout;
+    
+    UINT32      EdgeTimestamp[2];
+    UINT32      EdgeAB_Cnt[2];
+    UINT8       EdgeTriged;
+    
+    UINT32      Rising0Timestamp;
+    UINT32      Rising1Timestamp;
+    UINT32      Falling0Timestamp;
+    UINT32      Rising0AB_Cnt;
+    UINT32      Rising1AB_Cnt;
+    UINT32      Falling0AB_Cnt;  
+    UINT32      PwmoutPd;   // Pd:  Period
+    UINT32      PwmoutPPW;  // PPM: Positive Pulse Width
+
+    
+    UINT8       PwmoutIRQn;
+    exti_line_enum      PwmoutExtiLineN;
 };
 
 struct FilterCfgBits {   		    // bits   description
@@ -383,5 +407,7 @@ extern PUBLIC void ControlRunExec(void);
 extern PUBLIC void TimerIsrExec(void);
 
 PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P);
+PUBLIC void RecordEdgeInfo(struct AxisCtrlStruct *P);
+PUBLIC void TransferToPartner(struct AxisCtrlStruct *P1, struct AxisCtrlStruct *P2);
 
 #endif /* SOURCES_CONTROL_RUN_H_ */

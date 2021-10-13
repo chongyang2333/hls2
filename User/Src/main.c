@@ -130,7 +130,7 @@ void HardwareInit()
 		MX_TIM8_Init();
 
 		/* Initialize usart3 module: for pc comm*/
-		MX_USART3_UART_Init();
+		MX_USART2_UART_Init();
          
 		/* Initialize Gyro module.(MPU6050) */
 		GyroInit();

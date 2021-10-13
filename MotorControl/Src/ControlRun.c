@@ -121,7 +121,9 @@ PUBLIC void ControlRunExec(void)
 	/* Encoder calculation: 
              for electric angle,speed increment,position increment */
 	EncoderCalExec(&sAxis[0]);
+    TransferToPartner(&sAxis[0], &sAxis[1]);
     EncoderCalExec(&sAxis[1]);
+    TransferToPartner(&sAxis[1], &sAxis[0]);
     
 	/* Alarm execute each cycle*/
 	AlarmExec(&sAxis[0]);
@@ -291,50 +293,91 @@ PUBLIC void VeneerAgingTest(void)
 	if(VeneerAgingTestState() == 2 && testStateBak == 2 && testFlg != 2)
 	{
 		testFlg = 1;
-		
-		gParam[1].ProfileAcc0x6083 = gParam[1].ProfileDec0x6084 = 40000;
-		gParam[0].ProfileAcc0x6083 = gParam[0].ProfileDec0x6084 = 40000;
-		gParam[0].ControlWord0x6040 = 0xF;
-		gParam[1].ControlWord0x6040 = 0xF;
-		Cnt_25ms ++;
-		if(Cnt_25ms <= 60)
+		if(gMachineInfo.motorVersion == 7)
 		{
-			gParam[0].TargetVelocity0x60FF = 13653;
-			//gParam[1].TargetVelocity0x60FF = 13653;
-		}
-		else if(Cnt_25ms <= 120)
-		{
-			//gParam[0].TargetVelocity0x60FF = 13653;
-			gParam[1].TargetVelocity0x60FF = 13653;
-		}
-		else if(Cnt_25ms <= 180)
-		{
-			gParam[0].TargetVelocity0x60FF = -13653;
-			//gParam[1].TargetVelocity0x60FF = 13653;
-		}
-		else if(Cnt_25ms <= 240)
-		{
-			//gParam[0].TargetVelocity0x60FF = -13653;
-			gParam[1].TargetVelocity0x60FF = -13653;
-			if(Cnt_25ms == 240)
+			gParam[1].ProfileAcc0x6083 = gParam[1].ProfileDec0x6084 = 150000;
+			gParam[0].ProfileAcc0x6083 = gParam[0].ProfileDec0x6084 = 150000;
+			gParam[0].ControlWord0x6040 = 0xF;
+			gParam[1].ControlWord0x6040 = 0xF;
+			Cnt_25ms ++;
+			if(Cnt_25ms <= 60)
 			{
-				Cnt_25ms = 0;
+				gParam[0].TargetVelocity0x60FF = 54612;
+				//gParam[1].TargetVelocity0x60FF = 13653;
 			}
-		}	
+			else if(Cnt_25ms <= 120)
+			{
+				//gParam[0].TargetVelocity0x60FF = 13653;
+				gParam[1].TargetVelocity0x60FF = 54612;
+			}
+			else if(Cnt_25ms <= 180)
+			{
+				gParam[0].TargetVelocity0x60FF = -54612;
+				//gParam[1].TargetVelocity0x60FF = 13653;
+			}
+			else if(Cnt_25ms <= 240)
+			{
+				//gParam[0].TargetVelocity0x60FF = -13653;
+				gParam[1].TargetVelocity0x60FF = -54612;
+				if(Cnt_25ms == 240)
+				{
+					Cnt_25ms = 0;
+				}
+			}	
+		}
+		else
+		{
+			gParam[1].ProfileAcc0x6083 = gParam[1].ProfileDec0x6084 = 40000;
+			gParam[0].ProfileAcc0x6083 = gParam[0].ProfileDec0x6084 = 40000;
+			gParam[0].ControlWord0x6040 = 0xF;
+			gParam[1].ControlWord0x6040 = 0xF;
+			Cnt_25ms ++;
+			if(Cnt_25ms <= 60)
+			{
+				gParam[0].TargetVelocity0x60FF = 13653;
+				//gParam[1].TargetVelocity0x60FF = 13653;
+			}
+			else if(Cnt_25ms <= 120)
+			{
+				//gParam[0].TargetVelocity0x60FF = 13653;
+				gParam[1].TargetVelocity0x60FF = 13653;
+			}
+			else if(Cnt_25ms <= 180)
+			{
+				gParam[0].TargetVelocity0x60FF = -13653;
+				//gParam[1].TargetVelocity0x60FF = 13653;
+			}
+			else if(Cnt_25ms <= 240)
+			{
+				//gParam[0].TargetVelocity0x60FF = -13653;
+				gParam[1].TargetVelocity0x60FF = -13653;
+				if(Cnt_25ms == 240)
+				{
+					Cnt_25ms = 0;
+				}
+			}	
+		}
 	}
 	else if((testFlg != 0) )//&& (VeneerAgingTestState() == 0))
 	{
+		if(testFlg ==1)
+		{
+				Cnt_25ms = 0;
+		}
 		Cnt_25ms++;
 		testFlg = 2;
-		if(Cnt_25ms > 250)
+		if(Cnt_25ms > 40)
 		{
-			testFlg = 0;
-			Cnt_25ms = 0;
+			gParam[0].ControlWord0x6040 = 0x6;
+			gParam[1].ControlWord0x6040 = 0x6;
+			if(Cnt_25ms>50)//2??¨®¨º¡À¡ê?¨®?¨¤¡äD????¡¥?¨¹¨¢??¨¢¨¤??¨¬¨°?¨¦¨´¡ê?¨°a¡ã?¨ª¡ê?1¦Ì?¡¤a¨¨y?¨¤????100ms?¨®¨º¡À¦Ì?
+			{
+				testFlg = 0;
+				Cnt_25ms = 0;
+			}
 		}		
-		gParam[0].ControlWord0x6040 = 0x6;
-		gParam[1].ControlWord0x6040 = 0x6;
-		//gParam[0].TargetVelocity0x60FF = 0;
-		//gParam[1].TargetVelocity0x60FF = 0;
+		gParam[0].TargetVelocity0x60FF = 0;
+		gParam[1].TargetVelocity0x60FF = 0;
 	}
 	testStateBak = VeneerAgingTestState();
 
