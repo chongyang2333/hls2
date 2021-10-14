@@ -382,7 +382,7 @@ void MX_TIM4_Init(void)
     
     timer_deinit(TIMER4);
 
-    timer_initpara.prescaler = (8 - 1);    // 25mhz
+    timer_initpara.prescaler = (1 - 1);    // 100mhz
     timer_initpara.period = 0xFFFFFFFF; 
     timer_initpara.counterdirection = TIMER_COUNTER_EDGE;
     timer_initpara.repetitioncounter = 0;

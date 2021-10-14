@@ -376,16 +376,16 @@ PUBLIC void GetDcVoltage(float *Vbus)
 { 
     float Vbus_tmp = 0.0f;
     
-    if (!ApplicationMode)
-    {
-        /*<= B04, Use ADC1->JDR1, PA4*/
-         Vbus_tmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
-    }
-    else
-    {
+//    if (!ApplicationMode)
+//    {
+//        /*<= B04, Use ADC1->JDR1, PA4*/
+//         Vbus_tmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
+//    }
+//    else
+//    {
         /*>= A06, Use ADC2->JDR4, PA3*/
          Vbus_tmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
-    }
+//    }
     
     Vbus_local_voltage = Vbus_tmp;
     UTILS_LP_FAST(*Vbus, Vbus_tmp, 0.01f);

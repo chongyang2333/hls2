@@ -1111,7 +1111,7 @@ void UartSendData(uint8_t *buf, uint16_t size)
 
     while (SET != usart_transmit_dma_done_get(USART1))
     {
-        if ((ReadTimeStampTimer() - StartTime) > 25*5000000)  // 5s
+        if ((ReadTimeStampTimer() - StartTime) > 100*5000000)  // 5s
         {
             break;
         }
@@ -1121,7 +1121,7 @@ void UartSendData(uint8_t *buf, uint16_t size)
     StartTime = ReadTimeStampTimer();
     while (SET != usart_transmit_dma_done_get(USART1))
     {
-        if ((ReadTimeStampTimer() - StartTime) > 25*5000000)  // 5s
+        if ((ReadTimeStampTimer() - StartTime) > 100*5000000)  // 5s
         {
             break;
         }

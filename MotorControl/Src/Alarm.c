@@ -258,26 +258,26 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
     {
     	pAlarm->EmergencyStopRstCnt++;
         
-        if (!ApplicationMode)
-        {
-            pAlarm->EmergencyStopSetCnt = 0;
-            if(pAlarm->EmergencyStopRstCnt > 300)
-            {
-                pAlarm->ErrReg.bit.StutterStop = 0;
-                pAlarm->EmergencyStopRstCnt = 300;
-                ClearScramStatus(P->AxisID);
-            }
-            else if(pAlarm->EmergencyStopRstCnt > 200)
-            {
-                HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);// 12V
-            }
-            else if(pAlarm->EmergencyStopRstCnt > 3)
-            {
-                VbusEnable();
-            }        
-        }
-        else
-        {
+//        if (!ApplicationMode)
+//        {
+//            pAlarm->EmergencyStopSetCnt = 0;
+//            if(pAlarm->EmergencyStopRstCnt > 300)
+//            {
+//                pAlarm->ErrReg.bit.StutterStop = 0;
+//                pAlarm->EmergencyStopRstCnt = 300;
+//                ClearScramStatus(P->AxisID);
+//            }
+//            else if(pAlarm->EmergencyStopRstCnt > 200)
+//            {
+//                HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);// 12V
+//            }
+//            else if(pAlarm->EmergencyStopRstCnt > 3)
+//            {
+//                VbusEnable();
+//            }        
+//        }
+//        else
+//        {
             #define WAIT_SOFT_START_FINISH (3000)
             #define SOFT_START_BEGIN (3)          
    
@@ -293,39 +293,39 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
                     sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 1;
                 }        
             }            
-        }
+//        }
 	}
 	else if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == 0))// && (pAlarm->ErrReg.bit.StutterStop == 0))
 	{  
 		pAlarm->ErrReg.bit.StutterStop = 1;
 		pAlarm->EmergencyStopRstCnt = 0;
         
-        if (!ApplicationMode)
-        {      
-            if (pAlarm->EmergencyStopSetCnt < 2000)
-            {
-                VbusDisable();//关24V
-            }
-            //Drv Power Disable after 200ms
-            else
-            {
-                pAlarm->EmergencyStopSetCnt = 2000;
-                DrvPwDisable();// 关12V
-            }
-            pAlarm->EmergencyStopSetCnt++;
-        }
-        else
-        {
+//        if (!ApplicationMode)
+//        {      
+//            if (pAlarm->EmergencyStopSetCnt < 2000)
+//            {
+//                VbusDisable();//关24V
+//            }
+//            //Drv Power Disable after 200ms
+//            else
+//            {
+//                pAlarm->EmergencyStopSetCnt = 2000;
+//                DrvPwDisable();// 关12V
+//            }
+//            pAlarm->EmergencyStopSetCnt++;
+//        }
+//        else
+//        {
             sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 0;
             sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 0;
             VbusDisable();
             SetVbusPower(0);        
-        }
+//        }
 		
 	}
     
-    if (ApplicationMode)
-    {
+//    if (ApplicationMode)
+//    {
         if (2 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
         {
             sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
@@ -343,7 +343,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
                 VbusSoftStartNoBlock(GetDcVoltageNoFilter());
             }
         }
-    }
+//    }
     
     if(GetHardOverCurState(P->AxisID))
     {

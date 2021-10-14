@@ -39,6 +39,9 @@ OF SUCH DAMAGE.
 #include "delay.h"
 #include "ControlRun.h"
 
+extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
+
+
 /*!
     \brief    this function handles NMI exception
     \param[in]  none
@@ -182,4 +185,26 @@ void CAN0_RX1_IRQHandler(void)
 {
     CanAppDispatch();
 }
+
+
+/**
+* @brief This function handles EXTI line4 interrupt.
+*/
+void EXTI0_IRQHandler(void)
+{
+  RecordEdgeInfo(&sAxis[0]);
+  exti_interrupt_flag_clear(EXTI_0);
+}
+
+/**
+* @brief This function handles EXTI line4 interrupt.
+*/
+void EXTI3_IRQHandler(void)
+{
+  RecordEdgeInfo(&sAxis[1]);
+  exti_interrupt_flag_clear(EXTI_3);
+    
+
+}
+
 

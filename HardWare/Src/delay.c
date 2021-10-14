@@ -37,7 +37,7 @@ void delay_us(uint32_t nus)
 {
 	uint32_t temp = ReadTimeStampTimer();
     
-    while((ReadTimeStampTimer()-temp) < nus*25) ;
+    while((ReadTimeStampTimer()-temp) < nus*100) ;
 }
 
 void delay_ms(uint32_t nms)

@@ -2603,15 +2603,15 @@ REAL32 Vbus_climb_Slope_Debug[200];
 #endif
 PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode)
 {
-    if (!ApplicationMode)
-    {
-        VbusEnable();
-        delay_ms(2);
-        DrvPwEnable();
-        SetVbusPower(1);
-        
-        return;
-    }
+//    if (!ApplicationMode)
+//    {
+//        VbusEnable();
+//        delay_ms(2);
+//        DrvPwEnable();
+//        SetVbusPower(1);
+//        
+//        return;
+//    }
     
     UINT8 BlockSoftStartTick = 0;
     UINT8 Vbus_Judge_Cnt = 0;

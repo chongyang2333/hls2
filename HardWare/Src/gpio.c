@@ -78,6 +78,8 @@ UINT8 MX_GPIO_Init(void)
     rcu_periph_clock_enable(RCU_GPIOD);
     rcu_periph_clock_enable(RCU_GPIOE);
 
+   
+    
      /*Configure Left HALL GPIO pins PD7::HA  PB6:HB  PB7:HC */
     gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_7);
     gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_6);
@@ -209,7 +211,7 @@ UINT8 MX_GPIO_Init(void)
        gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_15);
        TmpChar = ReadApplicationMode();
        
-/*Configure GPIO pin : PA3-->RIGHT MOTOR PWMOUT */
+/*Configure GPIO pin : PA0-->LEFT MOTOR PWMOUT */
           
        gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_PULLUP,GPIO_PIN_0);
        nvic_irq_enable(EXTI0_IRQn,1,0);
@@ -218,7 +220,7 @@ UINT8 MX_GPIO_Init(void)
        LL_EXTI_DisableRisingTrig_0_31(EXTI_0);
        exti_interrupt_flag_clear(EXTI_0);
        
-/*Configure GPIO pin : PA0-->LEFT MOTOR PWMOUT */
+/*Configure GPIO pin : PA3-->RIGHT MOTOR PWMOUT */
        gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_PULLUP,GPIO_PIN_3);
        nvic_irq_enable(EXTI3_IRQn,1,0);
        syscfg_exti_line_config(EXTI_SOURCE_GPIOA,EXTI_SOURCE_PIN3);
@@ -379,27 +381,27 @@ PRIVATE UINT8 ChargeMosState = 0;
 void EnableCharge(UINT8 ApplicationMode)
 {
     ChargeMosState = 1;
-    if (!ApplicationMode)
-    {
-        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_RESET);
-    }
-    else
-    {
+//    if (!ApplicationMode)
+//    {
+//        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_RESET);
+//    }
+//    else
+//    {
         HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_SET);
-    }
+//    }
 }
 
 void DisableCharge(UINT8 ApplicationMode)
 {
     ChargeMosState = 0;
-    if (!ApplicationMode)
-    {
-        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_SET);
-    }
-    else
-    {
+//    if (!ApplicationMode)
+//    {
+//        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_SET);
+//    }
+//    else
+//    {
         HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_RESET);
-    }
+//    }
 }
 
 
