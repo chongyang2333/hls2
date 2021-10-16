@@ -52,7 +52,7 @@ PRIVATE void AdcSumPort(uint16_t * sum);
 ***********************************************************************/
 PUBLIC void TimeStampTimerInit(void)
 {
-    MX_TIM4_Init();
+    MX_TIM1_Init();
 }
 
 /***********************************************************************
@@ -64,10 +64,10 @@ PUBLIC void TimeStampTimerInit(void)
 uint32_t TEST_V32 = 0;
 PUBLIC UINT32 ReadTimeStampTimer(void)
 {
-    TEST_V32 = TIMER_CNT(TIMER4);
-    return TIMER_CNT(TIMER4);
+    TEST_V32 = TIMER_CNT(TIMER1);
+    return TIMER_CNT(TIMER1);
 	
-	//return TIMER4->TIMER_CNT;
+	//return TIMER1->TIMER_CNT;
 }
 
 /***********************************************************************

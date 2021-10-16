@@ -394,6 +394,32 @@ void MX_TIM4_Init(void)
 }
 
 /***********************************************************************
+ * DESCRIPTION: 用于延迟计时  在GD中timer4 对应st的timer5 计数器宽度32位
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void MX_TIM1_Init(void)
+{
+	timer_parameter_struct timer_initpara;
+    
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    rcu_periph_clock_enable(RCU_TIMER1);
+    
+    timer_deinit(TIMER1);
+
+    timer_initpara.prescaler = (1 - 1);    // 100mhz
+    timer_initpara.period = 0xFFFFFFFF; 
+    timer_initpara.counterdirection = TIMER_COUNTER_EDGE;
+    timer_initpara.repetitioncounter = 0;
+    timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
+    timer_init(TIMER1,&timer_initpara);
+    nvic_irq_disable(TIMER1_IRQn);
+    timer_enable(TIMER1);
+
+}
+
+/***********************************************************************
  * DESCRIPTION: 40HZ timer中断  在GD中timer8 对应st的timer7
  *
  * RETURNS:
@@ -420,6 +446,37 @@ void MX_TIM8_Init(void)
     timer_interrupt_disable(TIMER8,TIMER_INT_UP);
 
     timer_enable(TIMER8);
+    
+}
+
+
+/***********************************************************************
+ * DESCRIPTION: 40HZ timer中断  在GD中timer8 对应st的timer7
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void MX_TIM11_Init(void)
+{
+    timer_parameter_struct timer_initpara;
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    rcu_periph_clock_enable(RCU_TIMER11);
+    
+    nvic_irq_enable(TIMER7_BRK_TIMER11_IRQn,3,0);
+    
+    timer_deinit(TIMER11);
+
+    timer_initpara.prescaler = (2000 - 1);    // 100khz
+    timer_initpara.period = (2500 - 1); 
+    timer_initpara.counterdirection = TIMER_COUNTER_CENTER_UP;
+    timer_initpara.repetitioncounter = 0;
+    timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
+    
+    timer_init(TIMER11,&timer_initpara);
+    
+    timer_interrupt_disable(TIMER11,TIMER_INT_UP);
+
+    timer_enable(TIMER11);
     
 }
 

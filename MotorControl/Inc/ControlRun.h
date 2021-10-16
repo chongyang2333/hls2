@@ -72,7 +72,7 @@
 #define C_SinUint1D2        (C_SinUint>>1)
 #define C_SinUint3D4        ((C_SinUint>>2)*3)
 
-#define MAX_TIMER_ISR_TIME   (15000*100)  // 15MS
+#define MAX_TIMER_ISR_TIME   (30000*100)  // 15MS
 #define MAX_PWM_ISR_TIME     (80*100)     // Max is 100us
 
 #define VBUS_VOLTAGE_CLIMB_SLOPE_CONDITION  0.03f

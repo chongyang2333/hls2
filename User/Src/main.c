@@ -127,7 +127,7 @@ void HardwareInit()
 		//    MX_TIM3_Init();
 		MX_TIM2_Init();
 		/* Initialize general timer interrupt  40Hz*/
-		MX_TIM8_Init();
+		MX_TIM11_Init();
 
 		/* Initialize usart3 module: for pc comm*/
 		MX_USART2_UART_Init();
@@ -146,7 +146,7 @@ void HardwareInit()
 //		HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn); 
 //		/* Enable general timer interrupt */
 //		HAL_NVIC_EnableIRQ(TIM7_IRQn);
-        timer_interrupt_enable(TIMER8,TIMER_INT_UP);
+        timer_interrupt_enable(TIMER11,TIMER_INT_UP);
         timer_interrupt_enable(TIMER0,TIMER_INT_UP);
         /* Enable EXTI4 interrupt */
 //        HAL_NVIC_EnableIRQ(EXTI4_IRQn); 

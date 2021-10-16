@@ -156,12 +156,12 @@ void SysTick_Handler(void)
 //    delay_decrement();
 }
 
-void TIMER0_BRK_TIMER8_IRQHandler(void)
+void TIMER7_BRK_TIMER11_IRQHandler(void)
 {
-    if(timer_interrupt_flag_get(TIMER8,TIMER_INT_FLAG_UP) == SET)
+    if(timer_interrupt_flag_get(TIMER11,TIMER_INT_FLAG_UP) == SET)
     {
         TimerIsrExec();
-        timer_interrupt_flag_clear(TIMER8,TIMER_INT_FLAG_UP);
+        timer_interrupt_flag_clear(TIMER11,TIMER_INT_FLAG_UP);
     }
 }
 
