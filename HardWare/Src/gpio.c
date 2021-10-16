@@ -214,7 +214,7 @@ UINT8 MX_GPIO_Init(void)
 /*Configure GPIO pin : PA0-->LEFT MOTOR PWMOUT */
           
        gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_PULLUP,GPIO_PIN_0);
-       nvic_irq_enable(EXTI0_IRQn,1,0);
+       nvic_irq_enable(EXTI0_IRQn,0,0);
        syscfg_exti_line_config(EXTI_SOURCE_GPIOA,EXTI_SOURCE_PIN0);
        exti_init(EXTI_0,EXTI_INTERRUPT,EXTI_TRIG_RISING);
        LL_EXTI_DisableRisingTrig_0_31(EXTI_0);
@@ -222,7 +222,7 @@ UINT8 MX_GPIO_Init(void)
        
 /*Configure GPIO pin : PA3-->RIGHT MOTOR PWMOUT */
        gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_PULLUP,GPIO_PIN_3);
-       nvic_irq_enable(EXTI3_IRQn,1,0);
+       nvic_irq_enable(EXTI3_IRQn,0,0);
        syscfg_exti_line_config(EXTI_SOURCE_GPIOA,EXTI_SOURCE_PIN3);
        exti_init(EXTI_3,EXTI_INTERRUPT,EXTI_TRIG_RISING);
        LL_EXTI_DisableRisingTrig_0_31(EXTI_3);

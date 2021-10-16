@@ -90,7 +90,6 @@ void HAL_NVIC_SystemReset(void)
 void LL_EXTI_EnableRisingTrig_0_31(exti_line_enum linex)
 {
     EXTI_RTEN |= (uint32_t)linex;
-    EXTI_FTEN &= ~(uint32_t)linex;
 }
 
 void LL_EXTI_DisableRisingTrig_0_31(exti_line_enum linex)

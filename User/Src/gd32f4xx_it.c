@@ -193,7 +193,7 @@ void CAN0_RX1_IRQHandler(void)
 void EXTI0_IRQHandler(void)
 {
   RecordEdgeInfo(&sAxis[0]);
-  exti_interrupt_flag_clear(EXTI_0);
+  EXTI_PD = (uint32_t)EXTI_0;
 }
 
 /**
@@ -202,9 +202,7 @@ void EXTI0_IRQHandler(void)
 void EXTI3_IRQHandler(void)
 {
   RecordEdgeInfo(&sAxis[1]);
-  exti_interrupt_flag_clear(EXTI_3);
-    
-
+  EXTI_PD = (uint32_t)EXTI_3;
 }
 
 

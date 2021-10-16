@@ -55,15 +55,12 @@ void gpio_adc_config(void)
     ** ADC1: PA1,PA2 PA3        IN1 IN2 IN3
     ** ADC2: PC0,PC1,PC2        IN10 IN11 IN12
     **/
-//    gpio_mode_set(GPIOA,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
-//                    |GPIO_PIN_4|GPIO_PIN_5);
-//    gpio_mode_set(GPIOF,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2
-//					|GPIO_PIN_4|GPIO_PIN_5);
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOC);
     
-    gpio_mode_set(GPIOA,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
-                    |GPIO_PIN_4|GPIO_PIN_5);
+//    gpio_mode_set(GPIOA,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_0|GPIO_PIN_3);
+    
+    gpio_mode_set(GPIOA,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_4|GPIO_PIN_5);
     gpio_mode_set(GPIOC,GPIO_MODE_ANALOG,GPIO_PUPD_NONE,GPIO_PIN_0|GPIO_PIN_1
 					|GPIO_PIN_4|GPIO_PIN_5);
     
@@ -93,8 +90,8 @@ void adc_config(void)
     
     /* ADC channel length config */
     adc_channel_length_config(ADC0,ADC_INSERTED_CHANNEL,4);
-    adc_channel_length_config(ADC1,ADC_INSERTED_CHANNEL,3);
-    adc_channel_length_config(ADC2,ADC_INSERTED_CHANNEL,3);
+    adc_channel_length_config(ADC1,ADC_INSERTED_CHANNEL,2);
+    adc_channel_length_config(ADC2,ADC_INSERTED_CHANNEL,2);
     /* ADC insert channel config */
     adc_inserted_channel_config(ADC0,0,ADC_CHANNEL_14,ADC_SAMPLETIME_3); //MT_BUS_V_SAMPLE
     adc_inserted_channel_config(ADC0,1,ADC_CHANNEL_15,ADC_SAMPLETIME_3);//MAIN_V_SAMPLE
@@ -102,10 +99,10 @@ void adc_config(void)
     adc_inserted_channel_config(ADC0,3,ADC_CHANNEL_5,ADC_SAMPLETIME_3); //CHARGE_I_SAMPLE
     adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3); //R_U_I_SAMPLE
     adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3); //R_V_I_SAMPLE
-    adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_3,ADC_SAMPLETIME_3); //R_MORTEMP_AD
+//    adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_3,ADC_SAMPLETIME_3); //R_MORTEMP_AD
     adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3); //L_U_I_SAMPLE
     adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3); //L_V_I_SAMPLE
-    adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_0,ADC_SAMPLETIME_3); //L_MORTEMP_AD
+//    adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_0,ADC_SAMPLETIME_3); //L_MORTEMP_AD
     /* ADC external trigger enable */
     //adc_external_trigger_config(ADC0,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_RISING);
     //adc_external_trigger_config(ADC1,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_DISABLE);

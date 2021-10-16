@@ -209,8 +209,8 @@ PUBLIC void ParamLoop(void)
 		if((gMachineInfo.motorVersion != 4)&&(init_isr_flag == 0))//非maxwell电机，取消外部中断
 		{	
 			init_isr_flag = 1;		
-		    nvic_irq_disable(EXTI4_IRQn);
-        	nvic_irq_disable(EXTI2_IRQn); 
+		    nvic_irq_disable(EXTI3_IRQn);
+        	nvic_irq_disable(EXTI0_IRQn); 
 		}
 }
 

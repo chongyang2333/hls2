@@ -141,11 +141,11 @@ static void usart_gpio_init(uint32_t usart_periph)
 
         /* configure I2C GPIO */
         gpio_output_options_set(__USART1_Tx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __USART1_Tx_GPIO);
-        gpio_mode_set(__USART1_Tx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __USART1_Tx_GPIO);
+        gpio_mode_set(__USART1_Tx_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, __USART1_Tx_GPIO);
         gpio_af_set(__USART1_Tx_PORT, __USART1_Tx_AF, __USART1_Tx_GPIO);
         
         gpio_output_options_set(__USART1_Rx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __USART1_Rx_GPIO);
-        gpio_mode_set(__USART1_Rx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __USART1_Rx_GPIO);
+        gpio_mode_set(__USART1_Rx_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, __USART1_Rx_GPIO);
         gpio_af_set(__USART1_Rx_PORT, __USART1_Rx_AF, __USART1_Rx_GPIO);
     }
 }
@@ -652,7 +652,7 @@ void MX_USART2_UART_Init(void)
 
     /* configure USART interrupt */
     usart_interrupt_enable(USART1, USART_INT_IDLE);
-    nvic_irq_enable(USART1_IRQn, 2, 0);
+    nvic_irq_enable(USART1_IRQn, 6, 0);
     
     /* start receive with dma methods */
     usart_receive_dma(USART1, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
