@@ -652,7 +652,7 @@ void MX_USART2_UART_Init(void)
 
     /* configure USART interrupt */
     usart_interrupt_enable(USART1, USART_INT_IDLE);
-    nvic_irq_enable(USART1_IRQn, 6, 0);
+    nvic_irq_enable(USART1_IRQn, 2, 0);
     
     /* start receive with dma methods */
     usart_receive_dma(USART1, sUartApp.RecvBuf, UART_RECV_MAX_NUM);

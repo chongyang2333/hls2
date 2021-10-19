@@ -252,6 +252,8 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
     }// end if(pEnc->HallEnable)
     else if(pEnc->HallEnable == 2)
     {
+        
+#ifdef USING_ENCODER_EXTI        
         #define IDLE                    0
         #define SET_RISING_TRIG         1
         #define WAIT_TWO_RISING_EDGE    2
@@ -373,6 +375,56 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
                 }
                 break;
         } /*end switch (pEnc->PwmoutNewMechAngle_SM)*/
+#else
+       if (pEnc->VirtualPhaseZTrig || (!pEnc->InitPosDoneUsingPwmout))
+        {
+             pEnc->VirtualPhaseZTrig = 0;
+
+            if(P->AxisID == AXIS_LEFT)
+            {
+               pEnc->PwmoutPPW = TIMER_CH1CV(TIMER4);
+               pEnc->PwmoutPd = TIMER_CH0CV(TIMER4);
+             }
+            else 
+            {
+               pEnc->PwmoutPPW = TIMER_CH0CV(TIMER8);
+               pEnc->PwmoutPd = TIMER_CH1CV(TIMER8);
+            }
+            INT32 Tmp = pEnc->PwmoutPPW * 4119 / pEnc->PwmoutPd;
+            
+            if (Tmp < 17)
+            {
+                Tmp = 17 -16;
+            }
+            else if (Tmp > 4111)
+            {
+                Tmp = 4111 - 16;
+            }
+            else
+            {
+                Tmp -= 16;                    
+            }
+
+            //Init MechAngle
+            //if (!pEnc->InitPosDoneUsingPwmout)
+            //{
+            pEnc->MechAngle = Tmp;
+            pEnc->PosCorrectEnUsingPwmout = 0;
+            pEnc->InitPosDoneUsingPwmout = 1;
+            //}               
+
+            #define MT6701_Encoder_Resolution   (12)
+            #define MT6701_Encoder_Shift        (32 - MT6701_Encoder_Resolution)
+            INT32 MechAngleErr = ((pEnc->MechAngle<<MT6701_Encoder_Shift) - (Tmp<<MT6701_Encoder_Shift)) >> MT6701_Encoder_Shift;
+
+            if ((MechAngleErr > 17) && (MechAngleErr<-17))
+            {
+                P->sAlarm.ErrReg.bit.EncCount = 1;   
+            }   
+        }
+
+#endif
+        
     } /*end if(pEnc->HallEnable == 2)*/
 }
 

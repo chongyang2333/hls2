@@ -210,7 +210,8 @@ UINT8 MX_GPIO_Init(void)
        gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_14);
        gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_15);
        TmpChar = ReadApplicationMode();
-       
+ 
+#ifdef USING_ENCODER_EXTI 
 /*Configure GPIO pin : PA0-->LEFT MOTOR PWMOUT */
           
        gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_PULLUP,GPIO_PIN_0);
@@ -227,7 +228,7 @@ UINT8 MX_GPIO_Init(void)
        exti_init(EXTI_3,EXTI_INTERRUPT,EXTI_TRIG_RISING);
        LL_EXTI_DisableRisingTrig_0_31(EXTI_3);
        exti_interrupt_flag_clear(EXTI_3);
-
+#endif
     
 // //    /*Configure GPIO pin : PF4 */
 // //    GPIO_InitStruct.Pin = GPIO_PIN_4;
