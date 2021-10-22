@@ -452,7 +452,7 @@ void DisinfectionModulePowerOff(void)
 // Read pad power State
 uint8_t ReadPadPowerState(void)
 {
-    return HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_6);
+    return HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_9);
 }
 
 UINT16 VeneerAgingTestState(void)

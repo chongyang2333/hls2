@@ -20,6 +20,7 @@ void myiic_stop(MyIICStruct* MyIIC)
     MyIIC->SDA_WritePin(0);
     delay_us(5);
     MyIIC->SCL_WritePin(1);
+    delay_us(4);
     MyIIC->SDA_WritePin(1);
     delay_us(5);
 }

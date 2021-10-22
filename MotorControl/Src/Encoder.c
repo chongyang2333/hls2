@@ -378,19 +378,16 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
 #else
        if (pEnc->VirtualPhaseZTrig || (!pEnc->InitPosDoneUsingPwmout))
         {
-             pEnc->VirtualPhaseZTrig = 0;
+         
+            pEnc->InitPosDoneUsingPwmout = 1;
+            pEnc->VirtualPhaseZTrig = 0;
+            
+            pEnc->PwmoutAB_Crt_Cnt =  GetIncEncoderPulse(P->AxisID);
 
-            if(P->AxisID == AXIS_LEFT)
-            {
-               pEnc->PwmoutPPW = TIMER_CH1CV(TIMER4);
-               pEnc->PwmoutPd = TIMER_CH0CV(TIMER4);
-             }
-            else 
-            {
-               pEnc->PwmoutPPW = TIMER_CH0CV(TIMER8);
-               pEnc->PwmoutPd = TIMER_CH1CV(TIMER8);
-            }
+            
             INT32 Tmp = pEnc->PwmoutPPW * 4119 / pEnc->PwmoutPd;
+            
+            INT32 AngleCompensate = pEnc->PwmoutAB_Crt_Cnt-  pEnc->PwmoutAB_Cnt_old ;
             
             if (Tmp < 17)
             {
@@ -408,9 +405,19 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
             //Init MechAngle
             //if (!pEnc->InitPosDoneUsingPwmout)
             //{
-            pEnc->MechAngle = Tmp;
+            pEnc->MechAngle = Tmp + AngleCompensate;
+            
+            if (pEnc->MechAngle  >= pEnc->PulseMax)
+            {
+                pEnc->MechAngle -= pEnc->PulseMax;
+            }
+            else if (pEnc->MechAngle  < 0)
+            {
+                pEnc->MechAngle += pEnc->PulseMax;
+            }
+//            pEnc->MechAngle = Tmp;
             pEnc->PosCorrectEnUsingPwmout = 0;
-            pEnc->InitPosDoneUsingPwmout = 1;
+
             //}               
 
             #define MT6701_Encoder_Resolution   (12)

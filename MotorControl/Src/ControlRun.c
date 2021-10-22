@@ -661,7 +661,7 @@ PRIVATE void ParamFdbUpdate(void)
             gParam[i].ErrorRegister0x230D = sAxis[i].sAlarm.ErrReg.all;
  
             gParam[i].ActualVelocity0x606C = (float)sAxis[i].sEncoder.PulseMax*sAxis[i].sSpdLoop.SpdFdb/60.0f;
-            gParam[i].ActualCurrent0x6078 = sAxis[i].sCurLoop.IqFdb*1000.0f;
+            gParam[i].ActualCurrent0x6078 = sAxis[i].sCurLoop.IValidFdb*1000.0f;
             
             gParam[i].ActualPosition0x6064 = sAxis[i].sPosLoop.PosFdb;
         }

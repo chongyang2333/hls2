@@ -1038,7 +1038,7 @@ PRIVATE void PowerManageInfoUploadingExec(void)
 	//为了填之前协议的坑，需要对0x73帧头的数据做特殊处理
 	UINT8 dataFrame0x73Header = GetFrame0x73Header(sPowerManager.sAlarm.PowerAlarmReg, sPowerManager.sChargeInfo.ChargeAppState, sPowerManager.sBatteryInfo.BatteryLevelOptimized);
 	//上传电量、异常等相关信息
-	CanSendBatteryChargeInfo(dataFrame0x73Header, sPowerManager.sBatteryInfo.BatteryLevelOptimized, sPowerManager.sBatteryInfo.BatteryLevelOptimized, sPowerManager.sBatteryInfo.BatteryVoltage);
+	CanSendBatteryChargeInfo(dataFrame0x73Header, sPowerManager.sBatteryInfo.BatteryLevelOptimized, sPowerManager.sBatteryInfo.BatteryLevelRaw, sPowerManager.sBatteryInfo.BatteryVoltage);
 	//上传电流
 	CanSendSupplyChargeVI_Info(sPowerManager.sChargeInfo.ChargeVoltage, sPowerManager.sChargeInfo.ChargeCurrent, sPowerManager.sBatteryInfo.BatteryLevelOptimized);
 	//上传电池温度等信息

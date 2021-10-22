@@ -44,7 +44,7 @@ UINT32 MaxLoopTime = 0;
 void HardwareInit(void);
 BootLoaderInfo bootloaderInfo={0};
 
-ST_VersionStruct NowSoftWareVersion = {21, 0, 7};
+ST_VersionStruct NowSoftWareVersion = {21, 0, 10};
 
 void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo);
 
@@ -54,7 +54,7 @@ uint32_t TestSysClock = 0;
 
 int main()
 {  
-    HardwareInit();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            HardwareInit();
+    HardwareInit();
     
     __set_PRIMASK( 0 ); // 开启总中断
     __set_FAULTMASK( 0 ); // 没关异常

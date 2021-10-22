@@ -382,6 +382,8 @@ void MX_TIM4_Init(void)
     rcu_periph_clock_enable(RCU_TIMER4);
     rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
     
+    nvic_irq_enable(TIMER4_IRQn, 2, 0);
+    
     /*configure PB4 (TIMER2 CH0) as alternate function*/
     gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_0);
     gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_0);
@@ -415,6 +417,10 @@ void MX_TIM4_Init(void)
 
     /* auto-reload preload enable */
     timer_auto_reload_shadow_enable(TIMER4);
+    
+    timer_interrupt_flag_clear(TIMER4,TIMER_INT_CH0);
+    /* channel 0 interrupt enable */
+    timer_interrupt_enable(TIMER4,TIMER_INT_CH0);
 
     /* TIMER2 counter enable */
     timer_enable(TIMER4);
@@ -462,6 +468,9 @@ timer_ic_parameter_struct timer_icinitpara;
     rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
     rcu_periph_clock_enable(RCU_GPIOA);
 
+    nvic_irq_enable(TIMER0_BRK_TIMER8_IRQn, 2, 0);
+    
+    
     /*configure PA3 (TIMER8 CH1) as alternate function*/
     gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_3);
     gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_3);
@@ -496,6 +505,10 @@ timer_ic_parameter_struct timer_icinitpara;
     /* auto-reload preload enable */
     timer_auto_reload_shadow_enable(TIMER8);
     
+    timer_interrupt_flag_clear(TIMER8,TIMER_INT_CH1);
+    /* channel 1 interrupt enable */
+    timer_interrupt_enable(TIMER8,TIMER_INT_CH1);
+    
     /* TIMER8 counter enable */
     timer_enable(TIMER8);
     
@@ -514,7 +527,7 @@ void MX_TIM11_Init(void)
     rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
     rcu_periph_clock_enable(RCU_TIMER11);
     
-    nvic_irq_enable(TIMER7_BRK_TIMER11_IRQn,2,0);
+    nvic_irq_enable(TIMER7_BRK_TIMER11_IRQn,3,0);
     
     timer_deinit(TIMER11);
 

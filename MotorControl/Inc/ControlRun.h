@@ -317,6 +317,9 @@ struct EncoderStruct
     UINT32      Falling0AB_Cnt;  
     UINT32      PwmoutPd;   // Pd:  Period
     UINT32      PwmoutPPW;  // PPM: Positive Pulse Width
+    UINT32      PwmoutAB_Cnt;
+    UINT32      PwmoutAB_Cnt_old;
+    UINT32      PwmoutAB_Crt_Cnt; // 矫正时AB编码器的数值
 
     
     UINT8       PwmoutIRQn;
