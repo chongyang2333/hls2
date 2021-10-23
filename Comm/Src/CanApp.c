@@ -30,7 +30,7 @@
 
 #define IMITATE_RESPONSE_MCU3_ENABLE   (1)
 
-#define CAN_SLAVE_ID  0x02
+#define CAN_SLAVE_ID  0x0D
 
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 extern const struct ParameterStruct gDefaultParam_Left[10];

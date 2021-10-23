@@ -85,7 +85,7 @@ void CMDGetSoftWareVersionTreatment(CAN_RX_Message* CanRxMessage,BootLoaderInfo*
 #define DisableInterupt() __set_FAULTMASK(1);//关闭异常
 #define EnableInterrupt()  __set_FAULTMASK(0);
 #define EN_IAP_CMD 0x16
-#define EN_SELF_ID 0x02
+#define EN_SELF_ID 0x0d
 //#define EN_NO_CHECK_SUM 
 //#define EN_NO_CHECK_CRC 
 

@@ -116,8 +116,8 @@ void MX_TIM0_Init(void)
     timer_init(TIMER0,&timer_initpara);
 
     /* CH0/CH0N configuration in PWM mode0 */
-    timer_ocintpara.outputstate  = TIMER_CCX_ENABLE;
-    timer_ocintpara.outputnstate = TIMER_CCXN_ENABLE;
+    timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
+    timer_ocintpara.outputnstate = TIMER_CCXN_DISABLE;
     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
     timer_ocintpara.ocnpolarity  = TIMER_OCN_POLARITY_HIGH;
     timer_ocintpara.ocidlestate  = TIMER_OC_IDLE_STATE_LOW;
@@ -148,7 +148,7 @@ void MX_TIM0_Init(void)
     timer_breakpara.breakstate       = TIMER_BREAK_DISABLE;
     timer_break_config(TIMER0,&timer_breakpara);
 
-		 timer_master_slave_mode_config(TIMER0,TIMER_MASTER_SLAVE_MODE_ENABLE);
+	timer_master_slave_mode_config(TIMER0,TIMER_MASTER_SLAVE_MODE_ENABLE);
 //		 timer_slave_mode_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
     timer_master_output_trigger_source_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
     /* TIMER0 primary output function enable */
@@ -322,8 +322,8 @@ void MX_TIM7_Init(void)
     timer_init(TIMER7,&timer_initpara);
 
     /* CH0/CH0N configuration in PWM mode0 */
-    timer_ocintpara.outputstate  = TIMER_CCX_ENABLE;
-    timer_ocintpara.outputnstate = TIMER_CCXN_ENABLE;
+    timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
+    timer_ocintpara.outputnstate = TIMER_CCXN_DISABLE;
     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
     timer_ocintpara.ocnpolarity  = TIMER_OCN_POLARITY_HIGH;
     timer_ocintpara.ocidlestate  = TIMER_OC_IDLE_STATE_LOW;

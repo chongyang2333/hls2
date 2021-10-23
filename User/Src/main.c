@@ -54,6 +54,9 @@ uint32_t TestSysClock = 0;
 
 int main()
 {  
+    __set_PRIMASK( 1 );
+    __set_FAULTMASK( 1 );
+    
     HardwareInit();
     
     __set_PRIMASK( 0 ); // 开启总中断
@@ -115,6 +118,10 @@ void HardwareInit()
         MX_CAN1_Init();
         
 		AdcInit();		
+    
+    	/* Initialize pwm:for motor drive*/
+		PwmInit();
+    
 		PowerManagerInit(ApplicationMode);
         
 		/* Initialize DMA for usart tx */
@@ -142,8 +149,7 @@ void HardwareInit()
         
 		/* Initialize motor control module*/
 		ControlRunInit();
-		/* Initialize pwm:for motor drive*/
-		PwmInit();
+
 		/* Enable pwm timer interrupt */
 //		HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn); 
 //		/* Enable general timer interrupt */
