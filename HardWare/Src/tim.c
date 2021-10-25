@@ -461,7 +461,7 @@ void MX_TIM1_Init(void)
 ***********************************************************************/
 void MX_TIM8_Init(void)
 {
-timer_ic_parameter_struct timer_icinitpara;
+    timer_ic_parameter_struct timer_icinitpara;
     timer_parameter_struct timer_initpara;
 
     rcu_periph_clock_enable(RCU_TIMER8);

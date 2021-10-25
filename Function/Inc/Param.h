@@ -157,9 +157,16 @@ struct MachineInfoStruct
     
     UINT8  LidarCommunicateType;  // Index 29
     UINT8  LidarType;
-    UINT8  Version4G; 
+    UINT8  Version4G;
+    UINT8  CarbinDoorMotorType;
     
-    UINT32  rsv[43];
+    /*INSERT->2021.10.25 */
+    UINT8  TrayBoardType;  // Index 30 
+    UINT8  FunctionBoardType;
+    UINT8  ChassisBoardType;
+    UINT8  Index30_res0;
+    
+    UINT32  rsv[42];
     
     UINT16  EepromCRC;
     UINT16  CrcState;
@@ -526,8 +533,14 @@ const OBJ_ENTRY ApplicationObjDic[] = {
 /*INSERT->20210831 Index 29*/ 
 {NULL, NULL, 0x4128, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.LidarCommunicateType},
 {NULL, NULL, 0x4129, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.LidarType},
-{NULL, NULL, 0x412A, DEFTYPE_UNSIGNED8,  0x10, ACCESS_READWRITE, &gMachineInfo.Version4G},
+{NULL, NULL, 0x412A, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.Version4G},
+{NULL, NULL, 0x412B, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.CarbinDoorMotorType},
 
+/*INSERT->20211025 Index 30*/ 
+{NULL, NULL, 0x412C, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.TrayBoardType},
+{NULL, NULL, 0x412D, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.FunctionBoardType},
+{NULL, NULL, 0x412E, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.ChassisBoardType},
+{NULL, NULL, 0x412F, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.Index30_res0},
 
 {NULL, NULL, 0x603F, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gParam[0].ErrorCode0x603F},
 {NULL, NULL, 0x6040, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READWRITE, &gParam[0].ControlWord0x6040},
