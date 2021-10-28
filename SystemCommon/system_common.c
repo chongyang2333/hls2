@@ -18,6 +18,8 @@ auther:
 volatile unsigned long ResetSignature[2]     __attribute__( ( at( RESET_SIGNATURE_ADDRESS + 0x00 ) ) );
 volatile unsigned long HotBootSignature[2]   __attribute__( ( at( RESET_SIGNATURE_ADDRESS + 0x08 ) ) );
 volatile unsigned long ResetMode             __attribute__( ( at( RESET_SIGNATURE_ADDRESS + 0x10 ) ) );
+
+
 /***************************************************************************************************
                                     Bootloader
 ***************************************************************************************************/
@@ -81,6 +83,9 @@ const STRUCT_FIRMWARE_INFO FirmwareInfo      __attribute__( ( at( FIRMWARE_BASE_
     .Product = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "Robotic Dog", .Value = 0 },
     .FirmwareVersion = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "Firmware", .Value = 0x001E0063 },
 };
+
+const unsigned char mcu_type[10] __attribute__( ( at( FIRMWARE_BASE_ADDRESS + FIRMWARE_SIGNATURE_OFFSET + 0x0C + sizeof(FirmwareInfo) ) ) ) = "gd32f45x";
+
 /*==================================================================================================
 Name:
 Work:

@@ -44,7 +44,7 @@ UINT32 MaxLoopTime = 0;
 void HardwareInit(void);
 BootLoaderInfo bootloaderInfo={0};
 
-ST_VersionStruct NowSoftWareVersion = {21, 0, 9};
+ST_VersionStruct NowSoftWareVersion = {21, 0, 10};
 
 void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo);
 
@@ -98,7 +98,8 @@ void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo)
 
 void HardwareInit()
 {
-        NVIC_SetPriorityGrouping(NVIC_PRIGROUP_PRE4_SUB0);     
+//        NVIC_SetPriorityGrouping(NVIC_PRIGROUP_PRE4_SUB0);   // 不能用这个，形参不同  
+        nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
         
 		/* Initialize all configured peripherals */
 		ApplicationMode = MX_GPIO_Init();
