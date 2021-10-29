@@ -17,6 +17,7 @@
 #include "ControlRun.h"
 #include "HardApi.h"
 #include "Param.h"
+#include "gd_hal.h"
 
 #define C_EncoderShift  16
 
@@ -65,6 +66,16 @@ PUBLIC void EncoderInit(struct AxisCtrlStruct *P)
     pEnc->HallStateBuffer = pEnc->HallState;
     pEnc->HallDebounceCnt = 0;
     
+    if (P->AxisID == AXIS_LEFT)
+    {
+        pEnc->PwmoutIRQn = EXTI0_IRQn;
+        pEnc->PwmoutExtiLineN = GPIO_PIN_0;
+    }
+    else if (P->AxisID == AXIS_RIGHT)
+    {
+        pEnc->PwmoutIRQn = EXTI3_IRQn;
+        pEnc->PwmoutExtiLineN = GPIO_PIN_3;        
+    }
 }
 
 /***********************************************************************
@@ -77,6 +88,9 @@ PUBLIC void EncoderInit(struct AxisCtrlStruct *P)
 PUBLIC void GetEncoderPulse(struct EncoderStruct *P, UINT16 AxisID)
 {
 	P->Pulse = GetIncEncoderPulse(AxisID);
+    
+    if (P->HallEnable != 1)
+        return;
     
     // hall debounce
     UINT16  HallStateNew = GetHallState(AxisID, gMachineInfo.motorVersion);
@@ -133,7 +147,7 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
     
     IncEncoderCal(pEnc);
     
-    if(pEnc->HallEnable)
+    if(pEnc->HallEnable == 1)
     {
         // UVW Hall Alarm
         if(pEnc->HallState > 6)
@@ -236,7 +250,189 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
         }//end if(pEnc->HallState > 6)
         
     }// end if(pEnc->HallEnable)
+    else if(pEnc->HallEnable == 2)
+    {
+        
+#ifdef USING_ENCODER_EXTI        
+        #define IDLE                    0
+        #define SET_RISING_TRIG         1
+        #define WAIT_TWO_RISING_EDGE    2
+        #define WAIT_ONE_FALLING_EDGE   3
+        
+        if (P->sAlarm.ErrReg.bit.PwmoutBreak)
+        {
+            pEnc->PosCorrectEnUsingPwmout = 0;
+            pEnc->PwmoutNewMechAngle_SM = IDLE;
+            return;
+        }
+        
+        //Purpose: avoid exist two exit IRQs together for more accurate count
+        if (pEnc->PartnerPosCorrectEnUsingPwmout)
+            return;   
+        
+        if (pEnc->VirtualPhaseZTrig || (!pEnc->InitPosDoneUsingPwmout))
+        {
+            pEnc->PosCorrectEnUsingPwmout = 1;        
+        }
+        
+        //Purpose: update MechAngle Using State Machine
+        //Reference: .\Doc\PWMOUT占空比计算方法（适应窄脉宽）.dwg
+        switch (pEnc->PwmoutNewMechAngle_SM)
+        {
+            case IDLE:
+                if (pEnc->PosCorrectEnUsingPwmout)
+                {
+                    pEnc->PwmoutNewMechAngle_SM = SET_RISING_TRIG;
+                    pEnc->VirtualPhaseZTrig = 0;
+                }
+                break;
+            
+            case SET_RISING_TRIG:
+                //Clear record data
+                pEnc->EdgeTriged = 0;
+                pEnc->EdgeAB_Cnt[0] = 0;
+                pEnc->EdgeAB_Cnt[1] = 0;
+                pEnc->EdgeTimestamp[0] = 0;
+                pEnc->EdgeTimestamp[1] = 0;
+                
+                //Wait Rising Info
+                pEnc->PwmoutNewMechAngle_SM = WAIT_TWO_RISING_EDGE;
+                //if occur Rising Edge 10ns after EnableRisingTrig, what will happen?
+                LL_EXTI_EnableRisingTrig_0_31(pEnc->PwmoutExtiLineN);
+                
+            
+                break;
+            
+            case WAIT_TWO_RISING_EDGE:
+                if (2 == pEnc->EdgeTriged)
+                {
+                    LL_EXTI_DisableRisingTrig_0_31(pEnc->PwmoutExtiLineN);
+                    
+                    pEnc->Rising0Timestamp = pEnc->EdgeTimestamp[0];
+                    pEnc->Rising1Timestamp = pEnc->EdgeTimestamp[1];
+                    pEnc->Rising0AB_Cnt = pEnc->EdgeAB_Cnt[0];
+                    pEnc->Rising1AB_Cnt = pEnc->EdgeAB_Cnt[1];
+                    pEnc->PwmoutPd = pEnc->Rising1Timestamp - pEnc->Rising0Timestamp;
+                    
+                    //Clear record data
+                    pEnc->EdgeTriged = 0;
+                    pEnc->EdgeAB_Cnt[0] = 0;
+                    pEnc->EdgeAB_Cnt[1] = 0;
+                    pEnc->EdgeTimestamp[0] = 0;
+                    pEnc->EdgeTimestamp[1] = 0;
+                    
+                    //Wait Falling Info
+                    pEnc->PwmoutNewMechAngle_SM = WAIT_ONE_FALLING_EDGE;
+                    LL_EXTI_EnableFallingTrig_0_31(pEnc->PwmoutExtiLineN);
+                }
+                break;
+                
+            case WAIT_ONE_FALLING_EDGE:
+                if (pEnc->EdgeTriged)
+                {
+                    //record falling edge info
+                    LL_EXTI_DisableFallingTrig_0_31(pEnc->PwmoutExtiLineN);
+                    pEnc->Falling0Timestamp = pEnc->EdgeTimestamp[0];
+                    pEnc->Falling0AB_Cnt = pEnc->EdgeAB_Cnt[0];
+                    
+                    //Calculate Pulse Width, Pulse Duty and throw away bad data
+                    pEnc->PwmoutPPW = (pEnc->Falling0Timestamp - pEnc->Rising1Timestamp) % (pEnc->PwmoutPd);
+                    //Reference: MT6701 datasheet
+                    INT32 AngleCompensate = ((GetIncEncoderPulse(P->AxisID)<< C_EncoderShift) - (pEnc->Falling0AB_Cnt<< C_EncoderShift)) >> C_EncoderShift;
+                    INT32 Tmp = pEnc->PwmoutPPW * 4119 / pEnc->PwmoutPd;
+                    if (Tmp < 17)
+                    {
+                        Tmp = 17 -16;
+                    }
+                    else if (Tmp > 4111)
+                    {
+                        Tmp = 4111 - 16;
+                    }
+                    else
+                    {
+                        Tmp -= 16;                    
+                    }
+                    
+                    
+                    //Init MechAngle
+                    //if (!pEnc->InitPosDoneUsingPwmout)
+                    //{
+                    pEnc->MechAngle = Tmp+AngleCompensate;
+				    pEnc->PosCorrectEnUsingPwmout = 0;
+                    pEnc->InitPosDoneUsingPwmout = 1;
+                    //}               
+                    
+                    #define MT6701_Encoder_Resolution   (12)
+                    #define MT6701_Encoder_Shift        (32 - MT6701_Encoder_Resolution)
+                    INT32 MechAngleErr = ((pEnc->MechAngle<<MT6701_Encoder_Shift) - (Tmp<<MT6701_Encoder_Shift)) >> MT6701_Encoder_Shift;
+                    
+                    if ((MechAngleErr > 17) && (MechAngleErr<-17))
+                    {
+                        P->sAlarm.ErrReg.bit.EncCount = 1;   
+                    }
+                    
+                    pEnc->PwmoutNewMechAngle_SM = IDLE;
+                }
+                break;
+        } /*end switch (pEnc->PwmoutNewMechAngle_SM)*/
+#else
+       if (pEnc->VirtualPhaseZTrig || (!pEnc->InitPosDoneUsingPwmout))
+        {
+         
+            pEnc->InitPosDoneUsingPwmout = 1;
+            pEnc->VirtualPhaseZTrig = 0;
+            
+            pEnc->PwmoutAB_Crt_Cnt =  GetIncEncoderPulse(P->AxisID);
 
+            
+            INT32 Tmp = pEnc->PwmoutPPW * 4119 / pEnc->PwmoutPd;
+            
+            INT32 AngleCompensate = pEnc->PwmoutAB_Crt_Cnt-  pEnc->PwmoutAB_Cnt_old ;
+            
+            if (Tmp < 17)
+            {
+                Tmp = 17 -16;
+            }
+            else if (Tmp > 4111)
+            {
+                Tmp = 4111 - 16;
+            }
+            else
+            {
+                Tmp -= 16;                    
+            }
+
+            //Init MechAngle
+            //if (!pEnc->InitPosDoneUsingPwmout)
+            //{
+            pEnc->MechAngle = Tmp + AngleCompensate;
+            
+            if (pEnc->MechAngle  >= pEnc->PulseMax)
+            {
+                pEnc->MechAngle -= pEnc->PulseMax;
+            }
+            else if (pEnc->MechAngle  < 0)
+            {
+                pEnc->MechAngle += pEnc->PulseMax;
+            }
+//            pEnc->MechAngle = Tmp;
+            pEnc->PosCorrectEnUsingPwmout = 0;
+
+            //}               
+
+            #define MT6701_Encoder_Resolution   (12)
+            #define MT6701_Encoder_Shift        (32 - MT6701_Encoder_Resolution)
+            INT32 MechAngleErr = ((pEnc->MechAngle<<MT6701_Encoder_Shift) - (Tmp<<MT6701_Encoder_Shift)) >> MT6701_Encoder_Shift;
+
+            if ((MechAngleErr > 17) && (MechAngleErr<-17))
+            {
+                P->sAlarm.ErrReg.bit.EncCount = 1;   
+            }   
+        }
+
+#endif
+        
+    } /*end if(pEnc->HallEnable == 2)*/
 }
 
 /***********************************************************************
@@ -253,17 +449,7 @@ PUBLIC void ClearEncoderPulses(struct EncoderStruct *P, UINT16 AxisID)
 
 }
 
-/***********************************************************************
- * DESCRIPTION:
- *
- * RETURNS:
- *
-***********************************************************************/
-PUBLIC void EncoderParUpdate(struct EncoderStruct *P)
-{
 
-
-}
 
 
 /***********************************************************************
@@ -319,4 +505,28 @@ PRIVATE void IncEncoderCal(struct EncoderStruct *P)
 
 }
 
+/***********************************************************************
+ * DESCRIPTION:record edge trig time.
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PUBLIC void RecordEdgeInfo(struct AxisCtrlStruct *P)
+{
+    //pwm frequency about 1Khz, Pwmout Event State Machine Run at 10Khz
+    //sizeof(storage buffer) = 2, is enough
+    P->sEncoder.EdgeTimestamp[P->sEncoder.EdgeTriged] = ReadTimeStampTimer();
+    P->sEncoder.EdgeAB_Cnt[P->sEncoder.EdgeTriged] = GetIncEncoderPulse(P->AxisID);
+    P->sEncoder.EdgeTriged++;
+}
 
+/***********************************************************************
+ * DESCRIPTION:record edge trig time.
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PUBLIC void TransferToPartner(struct AxisCtrlStruct *P1, struct AxisCtrlStruct *P2)
+{
+    P2->sEncoder.PartnerPosCorrectEnUsingPwmout = P1->sEncoder.PosCorrectEnUsingPwmout;
+}

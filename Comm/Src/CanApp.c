@@ -30,7 +30,7 @@
 
 #define IMITATE_RESPONSE_MCU3_ENABLE   (1)
 
-#define CAN_SLAVE_ID  0x02
+#define CAN_SLAVE_ID  0x0D
 
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 extern const struct ParameterStruct gDefaultParam_Left[10];
@@ -56,6 +56,7 @@ PRIVATE void CanSendMachineInfoWriteStatus(void);
 PRIVATE void CanSendMachineInfoCrcState(void);
 
 PRIVATE void can_tx(UINT8 *pData);
+PRIVATE void can_tx_machineinfo(UINT8 *pData);
 PRIVATE void CanSetTimeStamp(UINT8 *pData);
 PRIVATE void CanSetMotion(UINT8 *pData);
 PRIVATE void CanModifyMachineInfo(const UINT8 *pData);
@@ -418,9 +419,9 @@ PRIVATE void CMDGetSoftWareVersionTreatmentFromBootloaderInfo(CAN_RX_Message* Ca
 
 void CMDOpenOrCloseCanTreatment(CAN_RX_Message* CanRxMessage)
 {
-	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
-	if( CompareCheckSum(CheckSumCalc,CanRxMessage->RxData[7]))
-	{
+//	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
+//	if( CompareCheckSum(CheckSumCalc,CanRxMessage->RxData[7]))
+//	{
 		CMDResponseRegular(CanRxMessage);
 		if(CanRxMessage->RxData[3])
 		{
@@ -430,7 +431,7 @@ void CMDOpenOrCloseCanTreatment(CAN_RX_Message* CanRxMessage)
 		{
 			g_CanTxEnable = 0;
 		}
-	}
+//	}
 }
 
 
@@ -546,8 +547,16 @@ PRIVATE void CarpetModeSet(UINT8 *pData)
 {
     if (0x01 == pData[1])
     {
-        gParam[0].MotorRatedCurrent0x2209 = 6000;
-        gParam[1].MotorRatedCurrent0x2209 = 6000;
+				if(gMachineInfo.motorVersion == 4)
+				{
+						gParam[0].MotorRatedCurrent0x2209 = 4000;
+						gParam[1].MotorRatedCurrent0x2209 = 4000;
+				}
+				else
+				{
+					  gParam[0].MotorRatedCurrent0x2209 = 6000;
+					  gParam[1].MotorRatedCurrent0x2209 = 6000;
+				}
         gParam[0].SaveParameter0x2401 = 1;        
     }
     else if (0 == pData[1])
@@ -573,10 +582,17 @@ PUBLIC void CanCarpetModeFdb(UINT16 MotorRatedCurrent0x2209)
     {
         CarpetMode = 0;
     }
-    else if(6000 == MotorRatedCurrent0x2209)
-    {
-        CarpetMode = 1;
-    }
+		else
+		{
+				if((gMachineInfo.motorVersion == 4)&&(4000 == MotorRatedCurrent0x2209))
+				{
+						CarpetMode = 1;
+				}
+				else if(6000 == MotorRatedCurrent0x2209)
+				{
+						CarpetMode = 1;
+				}		
+		}
     
     txd[0] = 0x46;
     txd[1] = CarpetMode;
@@ -607,7 +623,8 @@ PUBLIC void CanSendSpdFdb(INT16 LeftSpdInc, INT16 RightSpdInc)
     datasend[2] = (LeftSpdInc)&0XFF;
     datasend[3] = (RightSpdInc>>8)&0XFF;
     datasend[4] = (RightSpdInc)&0XFF;
-    datasend[5] = 0x00;
+    //datasend[5] = 0x00;
+	datasend[5] = sMyCan.CanLostCnt;
     datasend[6] = _40hzCnt;   //序号
     datasend[7] = BCC_CheckSum(datasend,7);   //校验码
     can_tx(datasend);		   
@@ -1006,7 +1023,7 @@ PRIVATE void PcRequestHandle(UINT8 *pData)
         break;
                 
         case 0x53:
-            if(pData[6]==CAN_SLAVE_ID)
+            if(pData[6]==CAN_SLAVE_ID || pData[6]== 2)
             {
                 CanSendMachineInfo(pData);
             }
@@ -1066,10 +1083,10 @@ PRIVATE void CanSendMachineInfo(UINT8 *pData)
     datasend[3] = tmp_32bit_data >> 16; 
     datasend[4] = tmp_32bit_data >> 8;
     datasend[5] = tmp_32bit_data;
-    datasend[6] = CAN_SLAVE_ID;
+    datasend[6] = 2;
     datasend[7] = BCC_CheckSum(datasend,7);
 
-    can_tx(datasend);
+    can_tx_machineinfo(datasend);
 }
 /***********************************************************************
  * DESCRIPTION:
@@ -1087,9 +1104,9 @@ PRIVATE void CanSendMachineInfoWriteStatus(void)
     datasend[3] = 0x00; 
     datasend[4] = 0x00;
     datasend[5] = 0x00;
-    datasend[6] = CAN_SLAVE_ID;
+    datasend[6] = 2;
     datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx(datasend);
+    can_tx_machineinfo(datasend);
 }
 
 /***********************************************************************
@@ -1108,9 +1125,9 @@ PRIVATE void CanSendMachineInfoCrcState(void)
     datasend[3] = 0x00; 
     datasend[4] = 0x00;
     datasend[5] = 0x00;
-    datasend[6] = CAN_SLAVE_ID;
+    datasend[6] = 2;
     datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx(datasend);
+    can_tx_machineinfo(datasend);
 }
 
 /***********************************************************************
@@ -1134,6 +1151,47 @@ PRIVATE void can_tx(UINT8 *pData)
     /* initialize transmit message */
     can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
     transmit_message.tx_sfid = CAN_SLAVE_ID;
+    transmit_message.tx_ft   = CAN_FT_DATA;
+    transmit_message.tx_ff   = CAN_FF_STANDARD;
+    transmit_message.tx_dlen = 8;
+    memcpy(transmit_message.tx_data, pData, 8);
+
+    /* prepare to transmit */
+    UINT32 StartTime = ReadTimeStampTimer();
+    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
+    {
+        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        {
+            sMyCan.CanBreakErr = 1;
+            break;
+        }
+    }
+    
+    sMyCan.CanRxTxState |= 0x01;
+}
+
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void can_tx_machineinfo(UINT8 *pData)
+{
+    if (!ReadPadPowerState() || sMyCan.CanBreakErr)
+    {
+        return;
+    }
+
+    if (!g_CanTxEnable)
+    {
+        return;
+    }
+
+    /* initialize transmit message */
+    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
+    transmit_message.tx_sfid = 2;
     transmit_message.tx_ft   = CAN_FT_DATA;
     transmit_message.tx_ff   = CAN_FF_STANDARD;
     transmit_message.tx_dlen = 8;

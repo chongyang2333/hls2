@@ -43,6 +43,7 @@ struct SensorDataStruct gSensorData = {0};
 
 UINT16 EepromErrorFlag=0;
 UINT8 MotorVersionParam = 0;
+UINT16 init_isr_flag = 0;
 
 PRIVATE void LoadParamFromEeprom(UINT16 AxisID);
 PRIVATE void SaveParamToEeprom(UINT16 AxisID);
@@ -205,6 +206,12 @@ PUBLIC void ParamLoop(void)
     }
 
     MachineAddInfoProcess();    
+		if((gMachineInfo.motorVersion != 4)&&(init_isr_flag == 0))//非maxwell电机，取消外部中断
+		{	
+			init_isr_flag = 1;		
+		    nvic_irq_disable(EXTI3_IRQn);
+        	nvic_irq_disable(EXTI0_IRQn); 
+		}
 }
 
 /***********************************************************************

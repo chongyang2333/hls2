@@ -37,7 +37,7 @@ PRIVATE INT16 ADC0_JDR3_Offset = 2048;
 #define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
 #define ADC0_JDR1_GAIN  0.01859225f    // Dc Voltage coff MAIN_V/BATTERY_V
 #define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff CHARGE_V
-#define ADC0_JDR3_GAIN  0.01464844f    // (+/-)30A/2048   CHARGE_I
+#define ADC0_JDR3_GAIN  0.01464844f    //0.01592221f    // (+/-)30A/2048   CHARGE_I
 
 
 extern PUBLIC UINT8 ApplicationMode;
@@ -52,7 +52,7 @@ PRIVATE void AdcSumPort(uint16_t * sum);
 ***********************************************************************/
 PUBLIC void TimeStampTimerInit(void)
 {
-    MX_TIM4_Init();
+    MX_TIM1_Init();
 }
 
 /***********************************************************************
@@ -64,10 +64,10 @@ PUBLIC void TimeStampTimerInit(void)
 uint32_t TEST_V32 = 0;
 PUBLIC UINT32 ReadTimeStampTimer(void)
 {
-    TEST_V32 = TIMER_CNT(TIMER4);
-    return TIMER_CNT(TIMER4);
+    TEST_V32 = TIMER_CNT(TIMER1);
+    return TIMER_CNT(TIMER1);
 	
-	//return TIMER4->TIMER_CNT;
+	//return TIMER1->TIMER_CNT;
 }
 
 /***********************************************************************
@@ -376,16 +376,16 @@ PUBLIC void GetDcVoltage(float *Vbus)
 { 
     float Vbus_tmp = 0.0f;
     
-    if (!ApplicationMode)
-    {
-        /*<= B04, Use ADC1->JDR1, PA4*/
-         Vbus_tmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
-    }
-    else
-    {
+//    if (!ApplicationMode)
+//    {
+//        /*<= B04, Use ADC1->JDR1, PA4*/
+//         Vbus_tmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
+//    }
+//    else
+//    {
         /*>= A06, Use ADC2->JDR4, PA3*/
          Vbus_tmp = ADC_IDATA0(ADC0)*ADC0_JDR0_GAIN;
-    }
+//    }
     
     Vbus_local_voltage = Vbus_tmp;
     UTILS_LP_FAST(*Vbus, Vbus_tmp, 0.01f);
@@ -475,13 +475,14 @@ PUBLIC void ClearIncEncoderPulse(UINT16 AxisID)
 ***********************************************************************/
 const UINT16 bldc_hall_tab[20][8]={ {0x7F, 0, 0, 0, 0, 0, 0, 0xFF},
                                     {0x7F, 6, 4, 5, 2, 1, 3, 0xFF}, //ZL 5.5" 1024PRD(ZLLG55ASM150-PD), gMachineInfo.motorVersion = 1
-                                    {0x7F, 4, 6, 5, 2, 3, 1, 0xFF}, //WeiYi 5.5" 1024PRD, gMachineInfo.motorVersion = 2
+                                    {0x7F, 6, 4, 5, 2, 1, 3, 0xFF}, //ZL 5.5" 4096PRD, gMachineInfo.motorVersion = 2
                                     {0x7F, 2, 6, 1, 4, 3, 5, 0xFF}, //ZL 6.5" 1024PRD(ZLLG65ASM250-L), gMachineInfo.motorVersion = 3
                                     {0x7F, 0, 0, 0, 0, 0, 0, 0xFF}, //ZL 6.5" 2048PRD(), gMachineInfo.motorVersion = 4
                                     {0x7F, 0, 0, 0, 0, 0, 0, 0xFF}, //ZL 6.5" 4096PRD(), gMachineInfo.motorVersion = 5
                                     {0x7F, 6, 2, 1, 4, 5, 3, 0xFF}, //DongXingChang.Tech 6.5" 1024PRD(FDK10529B024-1), gMachineInfo.motorVersion = 6
-                                    {0x7F, 2, 4, 3, 6, 1, 5, 0xFF}  //YaTeng.Tech 5.5" 1024PRD), gMachineInfo.motorVersion = 7
-                                  };
+                                    {0x7F, 2, 4, 3, 6, 1, 5, 0xFF},  //YaTeng.Tech 5.5" 4096PRD), gMachineInfo.motorVersion = 7
+                                  	{0x7F, 4, 2, 3, 6, 5, 1, 0xFF} // YaTeng 6.5 4096 gMachineInfo.motorVersion = 8 add by hzy
+																	};
 PUBLIC UINT16 GetHallState(UINT16 AxisID, UINT32 MotorVersion)
 {
 	UINT16 hall_val=0;
@@ -528,6 +529,12 @@ PUBLIC UINT16 GetHardOverCurState(UINT16 AxisID)
     return res;
 }
 
+PUBLIC UINT16 GetIbusOverCurState(UINT16 AxisID)
+{
+		UINT16 res = !HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_2);
+    
+    return res;
+}
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -536,7 +543,25 @@ PUBLIC UINT16 GetHardOverCurState(UINT16 AxisID)
 ***********************************************************************/
 PUBLIC void ResetACS711(void)
 {
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET);
     delay_us(300);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET);
+}
+
+/***********************************************************************
+ * DESCRIPTION: Start adc sample
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PUBLIC UINT16 ReadPwmoutIOState(UINT16 AxisID)
+{
+    if (AXIS_LEFT == AxisID)
+    {
+        return HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+    }
+    else  if (AXIS_RIGHT == AxisID)
+    {
+        return HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3);
+    }
 }

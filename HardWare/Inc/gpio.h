@@ -57,6 +57,13 @@
 
 /* USER CODE END Private defines */
 
+
+#define MUSIC_ENABLE_PORT   GPIOB
+#define MUSIC_ENABLE_PIN    GPIO_PIN_14
+#define MUSIC_MUTE_PORT     GPIOB
+#define MUSIC_MUTE_PIN      GPIO_PIN_15
+
+
 UINT8 MX_GPIO_Init(void);
 
 void battery_I2C_GPIO_Init(void);
@@ -102,6 +109,12 @@ void DisinfectionModulePowerOn(void);
 void DisinfectionModulePowerOff(void);
 
 PUBLIC UINT8 ReadApplicationMode(void);
+
+void MusicPwEnable(void);
+void MusicPwDisable(void);
+
+void MuteEnable(void);
+void MuteDisable(void);
 
 #ifdef __cplusplus
 }

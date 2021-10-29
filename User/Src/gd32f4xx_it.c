@@ -39,6 +39,9 @@ OF SUCH DAMAGE.
 #include "delay.h"
 #include "ControlRun.h"
 
+extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
+
+
 /*!
     \brief    this function handles NMI exception
     \param[in]  none
@@ -153,12 +156,12 @@ void SysTick_Handler(void)
 //    delay_decrement();
 }
 
-void TIMER0_BRK_TIMER8_IRQHandler(void)
+void TIMER7_BRK_TIMER11_IRQHandler(void)
 {
-    if(timer_interrupt_flag_get(TIMER8,TIMER_INT_FLAG_UP) == SET)
+    if(timer_interrupt_flag_get(TIMER11,TIMER_INT_FLAG_UP) == SET)
     {
         TimerIsrExec();
-        timer_interrupt_flag_clear(TIMER8,TIMER_INT_FLAG_UP);
+        timer_interrupt_flag_clear(TIMER11,TIMER_INT_FLAG_UP);
     }
 }
 
@@ -183,3 +186,93 @@ void CAN0_RX1_IRQHandler(void)
     CanAppDispatch();
 }
 
+
+/**
+* @brief This function handles EXTI line4 interrupt.
+*/
+void EXTI0_IRQHandler(void)
+{
+  RecordEdgeInfo(&sAxis[0]);
+  EXTI_PD = (uint32_t)EXTI_0;
+}
+
+/**
+* @brief This function handles EXTI line4 interrupt.
+*/
+void EXTI3_IRQHandler(void)
+{
+  RecordEdgeInfo(&sAxis[1]);
+  EXTI_PD = (uint32_t)EXTI_3;
+}
+
+/*!
+    \brief      this function handles TIMER2 interrupt request.
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
+
+
+
+void TIMER4_IRQHandler(void)
+{
+    if(SET == timer_interrupt_flag_get(TIMER4,TIMER_INT_CH0)){
+        /* clear channel 0 interrupt bit */
+        timer_interrupt_flag_clear(TIMER4,TIMER_INT_CH0);
+        
+        __disable_irq();
+        
+        sAxis[0].sAlarm.PwmoutDisconnectCnt = 0;
+        
+        /* read channel 0 capture value */
+        sAxis[0].sEncoder.PwmoutPd = timer_channel_capture_value_register_read(TIMER4,TIMER_CH_0)+1;
+        
+        if (sAxis[0].sEncoder.PwmoutPd != 0)
+        {
+            /* read channel 1 capture value */
+            sAxis[0].sEncoder.PwmoutPPW = timer_channel_capture_value_register_read(TIMER4,TIMER_CH_1)+1;
+        }
+        else
+        {
+            sAxis[0].sAlarm.ErrReg.bit.PwmoutBreak = 1;
+        }
+        sAxis[0].sEncoder.PwmoutAB_Cnt_old = sAxis[0].sEncoder.PwmoutAB_Cnt;       
+        sAxis[0].sEncoder.PwmoutAB_Cnt = TIMER_CNT(TIMER3);  
+
+        
+        __enable_irq();
+        
+        
+    }
+}
+
+
+void TIMER0_BRK_TIMER8_IRQHandler(void)
+{
+    if(SET == timer_interrupt_flag_get(TIMER8,TIMER_INT_CH1)){
+        /* clear channel 0 interrupt bit */
+        timer_interrupt_flag_clear(TIMER8,TIMER_INT_CH1);
+        
+       __disable_irq();
+        
+        sAxis[1].sAlarm.PwmoutDisconnectCnt = 0;
+        
+        /* read channel 0 capture value */
+        sAxis[1].sEncoder.PwmoutPd = timer_channel_capture_value_register_read(TIMER8,TIMER_CH_1)+1;
+        
+        if (sAxis[1].sEncoder.PwmoutPd != 0)
+        {
+            /* read channel 1 capture value */
+            sAxis[1].sEncoder.PwmoutPPW = timer_channel_capture_value_register_read(TIMER8,TIMER_CH_0)+1;
+        }
+        else
+        {
+            sAxis[1].sAlarm.ErrReg.bit.PwmoutBreak = 1;
+        }
+        
+        sAxis[1].sEncoder.PwmoutAB_Cnt_old = sAxis[1].sEncoder.PwmoutAB_Cnt;       
+        sAxis[1].sEncoder.PwmoutAB_Cnt = TIMER_CNT(TIMER2);
+        
+        __enable_irq();
+    }
+}
