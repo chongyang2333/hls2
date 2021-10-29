@@ -51,7 +51,27 @@ PUBLIC void CurrentLoopInit(struct AxisCtrlStruct *P)
 	pCur->Ci = 0.01f;
     
 	pCur->M_PeakI = 0.001f*(float)gParam[P->AxisID].MotorPeakCurrent0x220A;
-	pCur->M_RatedI = 0.001f*(float)gParam[P->AxisID].MotorRatedCurrent0x2209*1.414f;
+	//pCur->M_RatedI = 0.001f*(float)gParam[P->AxisID].MotorRatedCurrent0x2209*1.414f;
+	//pCur->M_RatedI = 0.001f*(float)gParam[P->AxisID].MotorRatedCurrent0x2209*1.414f;
+	if(gMachineInfo.motorVersion == 4)
+	{
+			pCur->M_RatedI = 4.0f;
+			gParam[P->AxisID].MotorRatedCurrent0x2209 = 4000;
+	}
+	else if((gMachineInfo.motorVersion == 1)||(gMachineInfo.motorVersion == 2))
+	{
+				pCur->M_RatedI = 5.5f;
+				gParam[P->AxisID].MotorRatedCurrent0x2209 = 5500;
+	}
+	else if(gMachineInfo.motorVersion == 7)
+	{
+			pCur->M_RatedI = 4.5f;
+			gParam[P->AxisID].MotorRatedCurrent0x2209 = 4500;
+	}
+	else
+	{
+			pCur->M_RatedI = 0.001f*(float)gParam[P->AxisID].MotorRatedCurrent0x2209*1.414f;
+	}
 	pCur->M_Ke = 0;
 	pCur->M_Ld = 0;
 	pCur->M_Lq = 0;

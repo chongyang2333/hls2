@@ -93,16 +93,16 @@ void gpio_timer0_config(void)
 /* TIM1 init function */
 void MX_TIM0_Init(void)
 {
-		timer_oc_parameter_struct timer_ocintpara;
+    timer_oc_parameter_struct timer_ocintpara;
     timer_parameter_struct timer_initpara;
     timer_break_parameter_struct timer_breakpara;
 	  /*gpio set*/
-	  gpio_timer0_config();
-	
-	  rcu_periph_clock_enable(RCU_TIMER0);
-	  rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
-    
-       nvic_irq_enable(TIMER0_UP_TIMER9_IRQn,0,0);
+    gpio_timer0_config();
+
+    rcu_periph_clock_enable(RCU_TIMER0);
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+
+    nvic_irq_enable(TIMER0_UP_TIMER9_IRQn,0,0);
     
     timer_deinit(TIMER0);
 
@@ -116,8 +116,8 @@ void MX_TIM0_Init(void)
     timer_init(TIMER0,&timer_initpara);
 
     /* CH0/CH0N configuration in PWM mode0 */
-    timer_ocintpara.outputstate  = TIMER_CCX_ENABLE;
-    timer_ocintpara.outputnstate = TIMER_CCXN_ENABLE;
+    timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
+    timer_ocintpara.outputnstate = TIMER_CCXN_DISABLE;
     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
     timer_ocintpara.ocnpolarity  = TIMER_OCN_POLARITY_HIGH;
     timer_ocintpara.ocidlestate  = TIMER_OC_IDLE_STATE_LOW;
@@ -148,7 +148,7 @@ void MX_TIM0_Init(void)
     timer_breakpara.breakstate       = TIMER_BREAK_DISABLE;
     timer_break_config(TIMER0,&timer_breakpara);
 
-		 timer_master_slave_mode_config(TIMER0,TIMER_MASTER_SLAVE_MODE_ENABLE);
+	timer_master_slave_mode_config(TIMER0,TIMER_MASTER_SLAVE_MODE_ENABLE);
 //		 timer_slave_mode_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
     timer_master_output_trigger_source_select(TIMER0,TIMER_TRI_OUT_SRC_UPDATE);
     /* TIMER0 primary output function enable */
@@ -322,8 +322,8 @@ void MX_TIM7_Init(void)
     timer_init(TIMER7,&timer_initpara);
 
     /* CH0/CH0N configuration in PWM mode0 */
-    timer_ocintpara.outputstate  = TIMER_CCX_ENABLE;
-    timer_ocintpara.outputnstate = TIMER_CCXN_ENABLE;
+    timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
+    timer_ocintpara.outputnstate = TIMER_CCXN_DISABLE;
     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
     timer_ocintpara.ocnpolarity  = TIMER_OCN_POLARITY_HIGH;
     timer_ocintpara.ocidlestate  = TIMER_OC_IDLE_STATE_LOW;
@@ -375,21 +375,81 @@ void MX_TIM7_Init(void)
 ***********************************************************************/
 void MX_TIM4_Init(void)
 {
-	timer_parameter_struct timer_initpara;
-    
-    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    timer_ic_parameter_struct timer_icinitpara;
+    timer_parameter_struct timer_initpara;
+
+    rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_TIMER4);
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    
+    nvic_irq_enable(TIMER4_IRQn, 2, 0);
+    
+    /*configure PB4 (TIMER2 CH0) as alternate function*/
+    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_0);
+    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_0);
+    gpio_af_set(GPIOA, GPIO_AF_2, GPIO_PIN_0);
     
     timer_deinit(TIMER4);
 
-    timer_initpara.prescaler = (8 - 1);    // 25mhz
+    /* TIMER2 configuration */
+    timer_initpara.prescaler         = 5-1;
+    timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
+    timer_initpara.counterdirection  = TIMER_COUNTER_UP;
+    timer_initpara.period            = 0xffff;
+    timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
+    timer_initpara.repetitioncounter = 0;
+    timer_init(TIMER4,&timer_initpara);
+
+    /* TIMER2 configuration */
+    /* TIMER2 CH0 PWM input capture configuration */
+    timer_icinitpara.icpolarity  = TIMER_IC_POLARITY_RISING;
+    timer_icinitpara.icselection = TIMER_IC_SELECTION_DIRECTTI;
+    timer_icinitpara.icprescaler = TIMER_IC_PSC_DIV1;
+    timer_icinitpara.icfilter    = 0x0;
+    timer_input_pwm_capture_config(TIMER4,TIMER_CH_0,&timer_icinitpara);
+
+    /* slave mode selection: TIMER2 */
+    timer_input_trigger_source_select(TIMER4,TIMER_SMCFG_TRGSEL_CI0FE0);
+    timer_slave_mode_select(TIMER4,TIMER_SLAVE_MODE_RESTART);
+
+    /* select the master slave mode */
+    timer_master_slave_mode_config(TIMER4,TIMER_MASTER_SLAVE_MODE_ENABLE);
+
+    /* auto-reload preload enable */
+    timer_auto_reload_shadow_enable(TIMER4);
+    
+    timer_interrupt_flag_clear(TIMER4,TIMER_INT_CH0);
+    /* channel 0 interrupt enable */
+    timer_interrupt_enable(TIMER4,TIMER_INT_CH0);
+
+    /* TIMER2 counter enable */
+    timer_enable(TIMER4);
+
+}
+
+/***********************************************************************
+ * DESCRIPTION: 用于延迟计时  在GD中timer4 对应st的timer5 计数器宽度32位
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void MX_TIM1_Init(void)
+{
+	timer_parameter_struct timer_initpara;
+    
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    rcu_periph_clock_enable(RCU_TIMER1);
+    
+    timer_deinit(TIMER1);
+
+    timer_initpara.prescaler = 2-1;    // 40mhz
     timer_initpara.period = 0xFFFFFFFF; 
     timer_initpara.counterdirection = TIMER_COUNTER_EDGE;
     timer_initpara.repetitioncounter = 0;
     timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
-    timer_init(TIMER4,&timer_initpara);
-    
-    timer_enable(TIMER4);
+    timer_init(TIMER1,&timer_initpara);
+    nvic_irq_disable(TIMER1_IRQn);
+    timer_enable(TIMER1);
 
 }
 
@@ -401,13 +461,75 @@ void MX_TIM4_Init(void)
 ***********************************************************************/
 void MX_TIM8_Init(void)
 {
+    timer_ic_parameter_struct timer_icinitpara;
     timer_parameter_struct timer_initpara;
-    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+
     rcu_periph_clock_enable(RCU_TIMER8);
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    rcu_periph_clock_enable(RCU_GPIOA);
+
+    nvic_irq_enable(TIMER0_BRK_TIMER8_IRQn, 2, 0);
     
-    nvic_irq_enable(TIMER0_BRK_TIMER8_IRQn,1,2);
+    
+    /*configure PA3 (TIMER8 CH1) as alternate function*/
+    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_3);
+    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_3);
+    gpio_af_set(GPIOA, GPIO_AF_3, GPIO_PIN_3);
     
     timer_deinit(TIMER8);
+
+    /* TIMER8 configuration */
+    timer_initpara.prescaler         = 4; // 40m   1K 40000 CT 
+    timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
+    timer_initpara.counterdirection  = TIMER_COUNTER_UP;
+    timer_initpara.period            = 0xffff;
+    timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
+    timer_initpara.repetitioncounter = 0;
+    timer_init(TIMER8,&timer_initpara);
+
+    /* TIMER8 configuration */
+    /* TIMER8 CH0 PWM input capture configuration */
+    timer_icinitpara.icpolarity  = TIMER_IC_POLARITY_RISING;
+    timer_icinitpara.icselection = TIMER_IC_SELECTION_DIRECTTI;
+    timer_icinitpara.icprescaler = TIMER_IC_PSC_DIV1;
+    timer_icinitpara.icfilter    = 0x0;
+    timer_input_pwm_capture_config(TIMER8,TIMER_CH_1,&timer_icinitpara);
+
+    /* slave mode selection: TIMER8 */
+    timer_input_trigger_source_select(TIMER8,TIMER_SMCFG_TRGSEL_CI1FE1);
+    timer_slave_mode_select(TIMER8,TIMER_SLAVE_MODE_RESTART);
+
+    /* select the master slave mode */
+    timer_master_slave_mode_config(TIMER8,TIMER_MASTER_SLAVE_MODE_ENABLE);
+
+    /* auto-reload preload enable */
+    timer_auto_reload_shadow_enable(TIMER8);
+    
+    timer_interrupt_flag_clear(TIMER8,TIMER_INT_CH1);
+    /* channel 1 interrupt enable */
+    timer_interrupt_enable(TIMER8,TIMER_INT_CH1);
+    
+    /* TIMER8 counter enable */
+    timer_enable(TIMER8);
+    
+}
+
+
+/***********************************************************************
+ * DESCRIPTION: 40HZ timer中断  在GD中timer8 对应st的timer7
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void MX_TIM11_Init(void)
+{
+    timer_parameter_struct timer_initpara;
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    rcu_periph_clock_enable(RCU_TIMER11);
+    
+    nvic_irq_enable(TIMER7_BRK_TIMER11_IRQn,3,0);
+    
+    timer_deinit(TIMER11);
 
     timer_initpara.prescaler = (2000 - 1);    // 100khz
     timer_initpara.period = (2500 - 1); 
@@ -415,11 +537,11 @@ void MX_TIM8_Init(void)
     timer_initpara.repetitioncounter = 0;
     timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
     
-    timer_init(TIMER8,&timer_initpara);
+    timer_init(TIMER11,&timer_initpara);
     
-    timer_interrupt_disable(TIMER8,TIMER_INT_UP);
+    timer_interrupt_disable(TIMER11,TIMER_INT_UP);
 
-    timer_enable(TIMER8);
+    timer_enable(TIMER11);
     
 }
 

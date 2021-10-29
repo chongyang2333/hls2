@@ -75,10 +75,11 @@ static void can_networking_init(uint32_t can_periph)
     can_parameter.trans_fifo_order      = ENABLE;
     can_parameter.working_mode          = CAN_NORMAL_MODE;
     can_parameter.resync_jump_width     = CAN_BT_SJW_1TQ;
-    can_parameter.time_segment_1        = CAN_BT_BS1_5TQ;
-    can_parameter.time_segment_2        = CAN_BT_BS2_4TQ;
+    can_parameter.time_segment_1        = CAN_BT_BS1_7TQ;
+    can_parameter.time_segment_2        = CAN_BT_BS2_2TQ;
     /* baudrate 1Mbps */
     can_parameter.prescaler = 5;
+
     can_init(can_periph, &can_parameter);
 
     /* initialize filter */
@@ -152,7 +153,7 @@ void MX_CAN1_Init(void)
     can_interrupt_enable(CAN0, CAN_INT_RFNE1);
 
     /* configure CAN0 NVIC */
-    nvic_irq_enable(CAN0_RX1_IRQn, 1, 1);
+    nvic_irq_enable(CAN0_RX1_IRQn, 1, 0);
 
     delay_ms(10);
     JumpAppFb(GetResetType());

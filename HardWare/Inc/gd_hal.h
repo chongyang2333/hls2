@@ -24,6 +24,12 @@ typedef enum
 void HAL_GPIO_WritePin(uint32_t gpio_periph,uint32_t pin,GPIO_PinState PinState);
 GPIO_PinState HAL_GPIO_ReadPin(uint32_t gpio_periph,uint32_t pin);
 
+void LL_EXTI_EnableRisingTrig_0_31(exti_line_enum linex);
+void LL_EXTI_DisableRisingTrig_0_31(exti_line_enum linex);
+void LL_EXTI_EnableFallingTrig_0_31(exti_line_enum linex);
+void LL_EXTI_DisableFallingTrig_0_31(exti_line_enum linex);
+
+
 void HAL_NVIC_SystemReset(void);
 
 #ifdef __cplusplus

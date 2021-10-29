@@ -131,7 +131,8 @@ struct PowerAlarmRegBits   // bits   description
     UINT32 VoltageElectricityMismatch:1;
     UINT32 ChargerVoltageUnder:1;       //充电器欠压
     UINT32 BatteryLowPower:1;           //电池电量过低
-    UINT32 Rsv:24;
+	  UINT32 ChargeTempUnder:1;           //电池充电低温
+    UINT32 Rsv:22;
 };
 
 union PowerAlarmReg
@@ -160,8 +161,11 @@ struct PowerAlarmStruct
     UINT16  ChargeCurrentOverCntMax;
 
     INT16  ChargeTempMax;
+    INT16  ChargeTempMin;
     UINT16  ChargeTempOverCnt;
     UINT16  ChargeTempOverCntMax;
+		UINT16  ChargeTempUnderCnt;
+		UINT16  ChargeTempUnderCntMax;
 
     UINT16  BatteryLowPowerLevel;
     UINT16  BatteryLowPowerCnt;

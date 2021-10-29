@@ -47,8 +47,10 @@ struct AlarmBits  // bits   description
 	UINT32 MotorTempOver:1;
 	UINT32 MosTempOver:1;
     UINT32 VbusSSMosOpenCircuitFailure:1; // Mos for Soft Start Open Circuit Failure
+    UINT32 Rsv1:1;
+    UINT32 PwmoutBreak:1;
     
-	UINT32 Rsv31:7;
+	UINT32 Rsv31:5;
 	UINT32 StutterStop:1;
 };
 
@@ -97,6 +99,8 @@ struct AlarmStruct
 	REAL32  IvTotle;			 //  v相电流累加值
 	REAL32  IwTotle;			 //  w相电流累加值
 	REAL32  phaselose_time;		 //  缺相累加值检测时间
+	UINT16  PwmoutDisconnectCnt;
+	UINT16  phaselose_cnt;
 };
 
 

@@ -120,12 +120,11 @@ PUBLIC void TemperatureExec(void)
     gParam[0].MosTemp0x230B = ReadMosTemperature(LeftMosAdc);
     gParam[1].MosTemp0x230B = ReadMosTemperature(RightMosAdc);
     
-    GetMotorAdc(&leftMotorAdc, &rightMotorAdc);
-    gParam[0].MotorTemp0x230C = ReadMotorTemperature(leftMotorAdc);
-    gParam[1].MotorTemp0x230C = ReadMotorTemperature(rightMotorAdc);
-
-
-
+//    GetMotorAdc(&leftMotorAdc, &rightMotorAdc);
+//    gParam[0].MotorTemp0x230C = ReadMotorTemperature(leftMotorAdc);
+//    gParam[1].MotorTemp0x230C = ReadMotorTemperature(rightMotorAdc);
+    gParam[0].MotorTemp0x230C = 0;
+    gParam[1].MotorTemp0x230C = 0;
 }
 
 /***********************************************************************
