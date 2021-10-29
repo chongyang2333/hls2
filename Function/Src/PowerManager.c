@@ -1018,10 +1018,16 @@ PRIVATE void SpeakerOnOffExec(void)
 		sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower;
 		if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower)
 		{
-			YDA138_MuteOff();
+            MusicPwEnable();
+            MuteDisable();   // GPIO控制
+            
+			YDA138_MuteOff(); // 59108控制
 		}
 		else
 		{
+            MuteEnable();
+            MusicPwDisable();
+            
 			YDA138_MuteOn();
 		}
 	}

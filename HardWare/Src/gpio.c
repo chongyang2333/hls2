@@ -181,30 +181,21 @@ UINT8 MX_GPIO_Init(void)
        gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_11);
        McuPowerOn();
     
+//     /*Configure GPIO pins : PB15 : MUSIC ENABLE*/
+       gpio_mode_set(MUSIC_ENABLE_PORT,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,MUSIC_ENABLE_PIN);
+       gpio_output_options_set(MUSIC_ENABLE_PORT,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,MUSIC_ENABLE_PIN);
+       MusicPwDisable();
+
+//     /*Configure GPIO pins : PB14 : MUTE*/
+       gpio_mode_set(MUSIC_MUTE_PORT,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,MUSIC_MUTE_PIN);
+       gpio_output_options_set(MUSIC_MUTE_PORT,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,MUSIC_MUTE_PIN);
+       MuteEnable(); // 静音使能
+       
+       
 //     /*Configure GPIO pins : PC15 : Tlc59108 RSTn*/
        gpio_mode_set(GPIOC,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_15);
        gpio_output_options_set(GPIOC,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);
        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
-
-// 	/************************超声雷达，暂时没用**********************************/
-// 	GPIO_InitStruct.Pin = GPIO_PIN_14;
-//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-//     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-// 	GPIO_InitStruct.Pin = GPIO_PIN_6;
-//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-//     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-// 	GPIO_InitStruct.Pin = GPIO_PIN_5;
-//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//     GPIO_InitStruct.Pull = GPIO_PULLUP;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct); 
-//     HAL_GPIO_WritePin(GPIOG, GPIO_PIN_5, GPIO_PIN_SET);
-// 	/**************************************************************/
-   
     
 //     /*Configure GPIO pins : PD14:S1 PD15:S2：ApplicationMode*/
        gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_14);
@@ -458,6 +449,30 @@ uint8_t ReadPadPowerState(void)
 UINT16 VeneerAgingTestState(void)
 {
 //	return HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_14) + HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_6);
+}
+
+// Enable Music Power 
+void MusicPwEnable(void)
+{
+    HAL_GPIO_WritePin(MUSIC_ENABLE_PORT, MUSIC_ENABLE_PIN,GPIO_PIN_RESET );  
+}
+
+// Disable MUSIC Power 
+void MusicPwDisable(void)
+{
+    HAL_GPIO_WritePin(MUSIC_ENABLE_PORT, MUSIC_ENABLE_PIN, GPIO_PIN_SET);  
+}
+
+// Enable MUTE
+void MuteEnable(void)
+{
+    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_SET );  
+}
+
+// Disable MUTE
+void MuteDisable(void)
+{
+    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_RESET );  
 }
 
 // Read Application Mode
