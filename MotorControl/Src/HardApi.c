@@ -37,7 +37,7 @@ PRIVATE INT16 ADC0_JDR3_Offset = 2048;
 #define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
 #define ADC0_JDR1_GAIN  0.01859225f    // Dc Voltage coff MAIN_V/BATTERY_V
 #define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff CHARGE_V
-#define ADC0_JDR3_GAIN  0.01464844f    //0.01592221f    // (+/-)30A/2048   CHARGE_I
+#define ADC0_JDR3_GAIN  0.01592221f    // (+/-)30A/2048   CHARGE_I
 
 
 extern PUBLIC UINT8 ApplicationMode;
