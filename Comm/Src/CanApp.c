@@ -216,7 +216,7 @@ PUBLIC void CanAppDispatch(void)
         case 0x50 :
             if((CanRxMessage.RxData[0]==0x50) && (CanRxMessage.RxData[1]==0x7A) && (CanRxMessage.RxData[2]==0x8A) \
             && (CanRxMessage.RxData[3]==0x85) && (CanRxMessage.RxData[4]==0x75) && (CanRxMessage.RxData[5]==0x5A) \
-            && (CanRxMessage.RxData[6]==CAN_SLAVE_ID)) 
+            && (CanRxMessage.RxData[6]==CAN_SLAVE_ID|| CanRxMessage.RxData[6]==0X02)) 
             {
                 gParam[0].SaveParameter0x2401 = 1;
                 EnableMachineAddInfoSave();
@@ -224,14 +224,14 @@ PUBLIC void CanAppDispatch(void)
         break;
         
         case 0x51 :
-            if(CanRxMessage.RxData[6]==CAN_SLAVE_ID)
+            if(CanRxMessage.RxData[6]==CAN_SLAVE_ID || CanRxMessage.RxData[6]==0X02)
             {
                 CanModifyMachineInfo(CanRxMessage.RxData);
             }
             break;
             
         case 0x5F:
-            if(CanRxMessage.RxData[6]==CAN_SLAVE_ID)
+            if(CanRxMessage.RxData[6]==CAN_SLAVE_ID|| CanRxMessage.RxData[6]==0X02)
             {
 				RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
                 HAL_NVIC_SystemReset();
