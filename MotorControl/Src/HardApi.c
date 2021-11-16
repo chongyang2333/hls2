@@ -37,7 +37,7 @@ PRIVATE INT16 ADC0_JDR3_Offset = 2048;
 #define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
 #define ADC0_JDR1_GAIN  0.01859225f    // Dc Voltage coff MAIN_V/BATTERY_V
 #define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff CHARGE_V
-#define ADC0_JDR3_GAIN  0.01464844f    //0.01592221f    // (+/-)30A/2048   CHARGE_I
+#define ADC0_JDR3_GAIN  0.01592221f    // (+/-)30A/2048   CHARGE_I
 
 
 extern PUBLIC UINT8 ApplicationMode;
@@ -316,13 +316,13 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 { 
     if(AXIS_LEFT == AxisID) //ADC_IDATA3(ADC2);
     {
-         *Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
-         *Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
+         *Ia = -((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
+         *Ib = -((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
     }
     else if(AXIS_RIGHT == AxisID)
     { 
-         *Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
-         *Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
+         *Ia = -((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
+         *Ib = -((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
     }
     
 }

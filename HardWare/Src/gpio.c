@@ -165,9 +165,9 @@ UINT8 MX_GPIO_Init(void)
   
 //      /*Configure GPIO pins : PB9 PB8: EEPROM SDA SCL */
        gpio_mode_set(GPIOB,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_8);
-       gpio_output_options_set(GPIOB,GPIO_OTYPE_OD,GPIO_OSPEED_50MHZ,GPIO_PIN_8);
+       gpio_output_options_set(GPIOB,GPIO_OTYPE_OD,GPIO_OSPEED_2MHZ,GPIO_PIN_8);
        gpio_mode_set(GPIOB,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_9);
-       gpio_output_options_set(GPIOB,GPIO_OTYPE_OD,GPIO_OSPEED_50MHZ,GPIO_PIN_9);
+       gpio_output_options_set(GPIOB,GPIO_OTYPE_OD,GPIO_OSPEED_2MHZ,GPIO_PIN_9);
     
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
@@ -246,10 +246,10 @@ void battery_I2C_GPIO_Init(void)
     rcu_periph_clock_enable(RCU_GPIOC);
 
     /* configure I2C GPIO */
-    gpio_output_options_set(__I2C_SCL_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, __I2C_SCL_GPIO);
+    gpio_output_options_set(__I2C_SCL_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_2MHZ, __I2C_SCL_GPIO);
     gpio_mode_set(__I2C_SCL_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, __I2C_SCL_GPIO);
     
-    gpio_output_options_set(__I2C_SDA_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, __I2C_SDA_GPIO);
+    gpio_output_options_set(__I2C_SDA_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_2MHZ, __I2C_SDA_GPIO);
     gpio_mode_set(__I2C_SDA_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, __I2C_SDA_GPIO);
 
     gpio_bit_write(__I2C_SCL_PORT, __I2C_SCL_GPIO, SET);

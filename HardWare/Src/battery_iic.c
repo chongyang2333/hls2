@@ -3,13 +3,13 @@
 #include "battery_iic.h"
 #include "delay.h"
 
-#define  DELAY_TIME 20
+#define  DELAY_TIME 5
 #define  IIC_DELAY  delay_us(DELAY_TIME)
-#define  CLOCK_STRETCH_TIME (25*1000/DELAY_TIME-1)  //max clock time limit to 25ms
+#define  CLOCK_STRETCH_TIME (100*1000/DELAY_TIME-1)  //max clock time limit to 25ms
 
 void sda_out(void)
 {
-    gpio_output_options_set(GPIOC, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
+    gpio_output_options_set(GPIOC, GPIO_OTYPE_OD, GPIO_OSPEED_2MHZ, GPIO_PIN_9);
     gpio_mode_set(GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_PIN_9);
 
     
