@@ -316,13 +316,13 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 { 
     if(AXIS_LEFT == AxisID) //ADC_IDATA3(ADC2);
     {
-         *Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
-         *Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
+         *Ia = -((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
+         *Ib = -((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
     }
     else if(AXIS_RIGHT == AxisID)
     { 
-         *Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
-         *Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
+         *Ia = -((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
+         *Ib = -((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
     }
     
 }

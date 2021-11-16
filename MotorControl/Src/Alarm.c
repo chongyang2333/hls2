@@ -475,9 +475,14 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 	            pAlarm->VdcOverCnt--;
 	        }
 		}
+        else
+        {
+            pAlarm->VdcOverCnt++;
+        }
     }
     else
     {
+        BEMF_DischargeOff();
         pAlarm->VdcOverCnt = 0;
 		if (sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) // 防止按急停松开上电中报欠压
         {
@@ -592,6 +597,10 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 		{
 			if(m_Cur >= 2000)
 				m_Data = invOvLdTb[MTR_OV_LD_TB_END_ID];
+            else if(m_Cur < 1100)
+            {
+                m_Data = 4000ul;
+            }
 			else//1100<= m_Cur <2000
 			{
 				for(i_index = 0;i_index < MTR_OV_LD_TB_END_ID;i_index++)
