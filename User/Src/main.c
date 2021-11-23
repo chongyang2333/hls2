@@ -38,19 +38,16 @@ uint8_t aTxBuffer[10] = {0xaa,0x02,0x0a,0x0b,0x03,0x04,0x05,0xc,0x0d,0xe};
 
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f) 
 
-
 UINT32 LoopElapsedTime = 0;
 UINT32 MaxLoopTime = 0;
 void HardwareInit(void);
 BootLoaderInfo bootloaderInfo={0};
 
-ST_VersionStruct NowSoftWareVersion = {21, 0, 14};
+ST_VersionStruct NowSoftWareVersion = {21, 0, 16};
 
 void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo);
 
 PUBLIC UINT8 ApplicationMode = 0;
-
-uint32_t TestSysClock = 0;
 
 int main()
 {  

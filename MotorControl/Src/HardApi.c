@@ -544,7 +544,7 @@ PUBLIC UINT16 GetIbusOverCurState(UINT16 AxisID)
 PUBLIC void ResetACS711(void)
 {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET);
-    delay_us(300);
+    delay_us(1000);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET);
 }
 

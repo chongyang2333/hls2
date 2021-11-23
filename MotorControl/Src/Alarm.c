@@ -459,6 +459,7 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     {
         pAlarm->VdcOverCnt++;
         BEMF_DischargeOn();  
+        pAlarm->VdcDischargeFlag = 1;
     }
     else if(P->sCurLoop.Vdc > pAlarm->VdcMin)
     {
@@ -470,6 +471,7 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 		if(P->sCurLoop.Vdc < pAlarm->VdcWarn -2)
 		{
 			BEMF_DischargeOff();
+            pAlarm->VdcDischargeFlag = 0;
 			 if(pAlarm->VdcOverCnt)
 	        {
 	            pAlarm->VdcOverCnt--;
@@ -477,12 +479,17 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 		}
         else
         {
-            pAlarm->VdcOverCnt++;
+            if(pAlarm->VdcDischargeFlag == 1)
+			{
+                pAlarm->VdcOverCnt++;
+            }
+
         }
     }
     else
     {
         BEMF_DischargeOff();
+        pAlarm->VdcDischargeFlag = 0;
         pAlarm->VdcOverCnt = 0;
 		if (sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) // 防止按急停松开上电中报欠压
         {
@@ -493,6 +500,7 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     // Vdc Over Alarm
     if(pAlarm->VdcOverCnt >= BEMF_DISCHATGE_TIME)
     {
+        pAlarm->VdcDischargeFlag = 0;
         BEMF_DischargeOff();
         pAlarm->ErrReg.bit.VdcOver = 1;
         pAlarm->VdcOverCnt = BEMF_DISCHATGE_TIME;
@@ -596,7 +604,9 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 		else
 		{
 			if(m_Cur >= 2000)
+            {
 				m_Data = invOvLdTb[MTR_OV_LD_TB_END_ID];
+            }
             else if(m_Cur < 1100)
             {
                 m_Data = 4000ul;
