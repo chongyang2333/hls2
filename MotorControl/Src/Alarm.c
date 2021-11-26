@@ -23,6 +23,7 @@
 #include "CanApp.h"
 #include "LedDriver.h"
 #include "gd_hal.h"
+#include "math.h"
 
 extern struct CanAppStruct    sMyCan;
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
