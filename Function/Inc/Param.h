@@ -177,7 +177,7 @@ struct MachineInfoStruct
     UINT8 res32_2;
     UINT8 res32_3;
     
-    UINT32  rsv[41];
+    UINT32  rsv[40];
     
     UINT16  EepromCRC;
     UINT16  CrcState;
