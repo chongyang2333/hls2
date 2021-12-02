@@ -214,7 +214,8 @@ enum BatteryManageSystemType
     GSA7S140 = 5,
     GSA7S141 = 6,    
     GF_7S6P = 7,
-    GF_7S8P = 8
+    GF_7S8P = 8,
+    DESAY_7S8P = 9
 };
 
 struct BatteryLifeTimeDataBlock

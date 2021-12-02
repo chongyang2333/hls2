@@ -40,6 +40,7 @@
 #define TI_BQ34Z100_IIC_ADDR 0xAA
 #define GSA7S_IIC_ADDR 0x16
 #define GF_7S6P_7S8P_IIC_ADDR 0x18
+#define DESAY_7S5P_7S8P_IIC_ADDR 0x22 
     
 BatteryIICStruct sBatI2C;
 
@@ -104,7 +105,7 @@ PUBLIC void PowerManagerInit(UINT8 ApplicationMode)
 	LedPowerOn();
   //LidarPowerOff();  //初始化已经关了
 	PadPowerOn();
-
+    
     delay_us(300);
     ResetACS711();
     
@@ -1643,6 +1644,7 @@ PUBLIC void BatteryInfoReadLoop(void)
         const UINT8 GSA7S139_DeviceName[8] = "GSA7S139";
         const UINT8 GSA7S140_DeviceName[8] = "GSA7S140";
         const UINT8 GSA7S141_DeviceName[8] = "GSA7S141";
+        const UINT8 DESAY7S8P_DeviceName[6]= "DESAY";
         
         //100ms刷新一次电池类型识别
         if (sPowerManager.uTick - ReadOperationTime <= 4)
@@ -1665,8 +1667,8 @@ PUBLIC void BatteryInfoReadLoop(void)
             return;
         }
         
-        MX_I2C3_Init();
-        if (Battery_Serial_Read(GSA7S_IIC_ADDR, 0x21, Tmp1, 11, 1))
+//        MX_I2C3_Init();
+        if (Battery_Serial_Read(GSA7S_IIC_ADDR, 0x21, Tmp1, 11, 0))
         {
             sPowerManager.sBatteryInfo.BatteryFloorLevelLimit = 5;
             sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
@@ -1711,7 +1713,7 @@ PUBLIC void BatteryInfoReadLoop(void)
             }            
         }
         
-        if (Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x6C, Tmp1, 11, 1))
+        if (Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x6C, Tmp1, 11, 0))
         {
             sPowerManager.sBatteryInfo.BatteryFloorLevelLimit = 5;
             sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
@@ -1732,8 +1734,17 @@ PUBLIC void BatteryInfoReadLoop(void)
                 return;
             } 
         }
-        
-
+        if (Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x6B, Tmp1, 6, 0))
+        {
+            sPowerManager.sBatteryInfo.BatteryFloorLevelLimit = 10;
+            sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
+            sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel = 95;
+            sPowerManager.sBatteryInfo.BatteryFullChargeTopLevel = 100;  
+           
+			sPowerManager.sAlarm.ChargeCurrentMax = 10000;
+			sPowerManager.sBatteryInfo.BMS_icType = DESAY_7S8P;
+			return; 
+        }
     }
     
     BatteryI2cReadSOC_Temp();
@@ -1766,13 +1777,16 @@ PRIVATE BOOL BatteryReadSN(UINT32 *pSN)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:            
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x1C, (UINT8 *)pSN, 2, 1);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x1C, (UINT8 *)pSN, 2, 0);
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-
             break;
+		case DESAY_7S8P:
+         
+            break;
+
             
         default:
             break;
@@ -1795,6 +1809,7 @@ PRIVATE BOOL BatteryReadSN(UINT32 *pSN)
 PRIVATE BOOL BatteryReadSoc(UINT8 *pSoc)
 {
     UINT8 ret = 0;
+    UINT16 soc_tmp =0;
     
     switch(sPowerManager.sBatteryInfo.BMS_icType)
     {
@@ -1810,14 +1825,19 @@ PRIVATE BOOL BatteryReadSoc(UINT8 *pSoc)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:            
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x0D, pSoc, 1, 1); 
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x0D, pSoc, 1, 0); 
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x0D, pSoc, 1, 1);
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x0D, pSoc, 1, 0);
             break;
-            
+         
+        case DESAY_7S8P:
+			ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x0D, (UINT8 *)&soc_tmp, 2, 0);
+			*pSoc = soc_tmp/100;
+			break;
+    
         default:
             break;
     }
@@ -1854,13 +1874,17 @@ PRIVATE BOOL BatteryReadTemp(INT16 *pTemp)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2, 1);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2, 0);
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-//            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2, 1);
-            break;            
+//            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2, 0);
+            break;  
+                 
+        case DESAY_7S8P:
+//			ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2,0);
+			break;
             
         default:
             break;
@@ -1882,6 +1906,7 @@ PRIVATE BOOL BatteryReadTemp(INT16 *pTemp)
 PRIVATE BOOL BatteryReadFcc(UINT32 *pFcc)
 {
     UINT8 ret = 0;
+    UINT32 Fcc_Temp = 0;
     
     switch(sPowerManager.sBatteryInfo.BMS_icType)
     {
@@ -1897,7 +1922,7 @@ PRIVATE BOOL BatteryReadFcc(UINT32 *pFcc)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x10, (UINT8 *)pFcc, 2, 1);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x10, (UINT8 *)pFcc, 2,0);
             
             if (ret)
             {
@@ -1907,8 +1932,13 @@ PRIVATE BOOL BatteryReadFcc(UINT32 *pFcc)
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x10, (UINT8 *)pFcc, 2, 1);
-            break;            
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x10, (UINT8 *)pFcc, 2, 0);
+            break;      
+                 
+        case DESAY_7S8P:
+			ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x10, (UINT8 *)&Fcc_Temp, 2, 0);
+			*pFcc = Fcc_Temp<<3;
+			break;
               
         default:
             break;
@@ -1932,6 +1962,7 @@ PRIVATE BOOL BatteryReadFcc(UINT32 *pFcc)
 PRIVATE BOOL BatteryReadRc(UINT32 *pRc)
 {
     UINT8 ret = 0;
+    UINT32 Rcc_Temp = 0;
     
     switch(sPowerManager.sBatteryInfo.BMS_icType)
     {
@@ -1947,7 +1978,7 @@ PRIVATE BOOL BatteryReadRc(UINT32 *pRc)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x0F, (UINT8 *)pRc, 2, 1);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x0F, (UINT8 *)pRc, 2, 0);
             
             if (ret)
             {
@@ -1957,8 +1988,13 @@ PRIVATE BOOL BatteryReadRc(UINT32 *pRc)
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x0F, (UINT8 *)pRc, 2, 1);
-            break;            
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x0F, (UINT8 *)pRc, 2, 0);
+            break;  
+                 
+        case DESAY_7S8P:
+			ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0xf, (UINT8 *)&Rcc_Temp, 2, 0);
+			*pRc = Rcc_Temp<<3;
+            break;
             
         default:
             break;
@@ -1996,13 +2032,17 @@ PRIVATE BOOL BatteryReadBv(UINT32 *pBv)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 1); 
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 0); 
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 1);
-            break;            
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 0);
+            break;     
+                 
+        case DESAY_7S8P:
+            ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 0);
+            break;
             
         default:
             break;
@@ -2039,7 +2079,7 @@ PRIVATE BOOL BatteryReadSoh(UINT32 *pSoh)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x4F, (UINT8 *)pSoh, 1, 1);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x4F, (UINT8 *)pSoh, 1, 0);
             
             if (ret)
             {
@@ -2049,13 +2089,18 @@ PRIVATE BOOL BatteryReadSoh(UINT32 *pSoh)
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x7C, (UINT8 *)pSoh, 1, 1);
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x7C, (UINT8 *)pSoh, 1, 0);
             
             if (ret)
             {
                 *pSoh = *pSoh & 0xFF;
             }  
-            break;            
+            break; 
+                   
+        case DESAY_7S8P:
+            ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x70, (UINT8 *)pSoh, 2, 0);
+            break;  
+            
             
         default:
             break;
@@ -2093,13 +2138,17 @@ PRIVATE BOOL BatteryReadCc(UINT32 *pCc)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x17, (UINT8 *)pCc, 2, 1);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x17, (UINT8 *)pCc, 2, 0);
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x7B, (UINT8 *)pCc, 2, 1);            
-            break;             
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x7B, (UINT8 *)pCc, 2, 0);            
+            break;   
+                 
+        case DESAY_7S8P:
+            ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x17, (UINT8 *)pCc, 2, 0);  
+			break;
             
         default:
             break;
@@ -2130,7 +2179,8 @@ PRIVATE BOOL BatteryReadCellVoltage(UINT16  CellV[7])
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-            
+         
+        case DESAY_7S8P:    
             return 0;
             break;
     
@@ -2196,7 +2246,8 @@ PRIVATE BOOL BatteryReadSafetyAlert(UINT32 *pSafetyAlert)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-            
+                     
+        case DESAY_7S8P:    
             return 0;
             break;
 
@@ -2239,7 +2290,8 @@ PRIVATE BOOL BatteryReadSafetyStatus(UINT32 *pSafetyStatus)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-            
+                     
+        case DESAY_7S8P:    
             return 0;
             break;
 
@@ -2282,7 +2334,8 @@ PRIVATE BOOL BatteryReadPFAlert(UINT32 *pPFAlert)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-            
+                     
+        case DESAY_7S8P:    
             return 0;
             break;
 
@@ -2325,7 +2378,8 @@ PRIVATE BOOL BatteryReadPFStatus(UINT32 *pPFStatus)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-            
+                     
+        case DESAY_7S8P:    
             return 0;
             break;
 
@@ -2368,7 +2422,8 @@ PRIVATE BOOL BatteryReadOperationStatus(UINT32 *pOperationStatus)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-            
+                     
+        case DESAY_7S8P:    
             return 0;
             break;
 
@@ -2411,7 +2466,8 @@ PRIVATE BOOL BatteryReadChargingStatus(UINT32 *pChargingStatus)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-            
+                     
+        case DESAY_7S8P:    
             return 0;
             break;
 
@@ -2460,7 +2516,8 @@ PRIVATE BOOL BatteryReadLifetimeData(struct BatteryLifeTimeDataBlock *pData)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-            
+                     
+        case DESAY_7S8P:    
             return 0;
             break;
 

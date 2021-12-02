@@ -124,8 +124,11 @@ PUBLIC void ParamLoop(void)
     
     if(gParam[0].SaveParameter0x2401)
     {
-        /*MotorVersion In MachineInfo Changed*/
-        if (gMachineInfo.motorVersion != gMachineInfo.MotorVersionLast)
+        /*MotorVersion In MachineInfo Changed
+        * SaveParameter0x2401 == 1 : save debuger param ;
+        * SaveParameter0x2401 == 2 : download param & rst motor-config param;
+        */
+        if (gMachineInfo.motorVersion != gMachineInfo.MotorVersionLast || gParam[0].SaveParameter0x2401 == 2) 
         {
             UINT32 len= (UINT32)&gParam[AXIS_LEFT].EepromCRC - (UINT32)&gParam[AXIS_LEFT].PositionLimitMin0x2000;
             gMachineInfo.MotorVersionLast = gMachineInfo.motorVersion;

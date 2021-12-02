@@ -164,9 +164,20 @@ struct MachineInfoStruct
     UINT8  TrayBoardType;  // Index 30 
     UINT8  FunctionBoardType;
     UINT8  ChassisBoardType;
-    UINT8  Index30_res0;
+    UINT8  DoorBoardType;
     
-    UINT32  rsv[42];
+    /*INSERT->2021.11.23 */
+    UINT8 LaserProjection;
+    UINT8 VedioOutput;
+    UINT8 DistributionAreaLight;
+    UINT8 res31_1;
+    
+    UINT8 PowerBoardType;
+    UINT8 res32_1;
+    UINT8 res32_2;
+    UINT8 res32_3;
+    
+    UINT32  rsv[40];
     
     UINT16  EepromCRC;
     UINT16  CrcState;
@@ -540,7 +551,19 @@ const OBJ_ENTRY ApplicationObjDic[] = {
 {NULL, NULL, 0x412C, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.TrayBoardType},
 {NULL, NULL, 0x412D, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.FunctionBoardType},
 {NULL, NULL, 0x412E, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.ChassisBoardType},
-{NULL, NULL, 0x412F, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.Index30_res0},
+{NULL, NULL, 0x412F, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.DoorBoardType},
+
+/*INSERT->20211123 Index 31*/ 
+{NULL, NULL, 0x4130, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.LaserProjection},
+{NULL, NULL, 0x4131, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.VedioOutput},
+{NULL, NULL, 0x4132, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.DistributionAreaLight},
+{NULL, NULL, 0x4133, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res31_1},
+
+/*INSERT->20211123 Index 32*/ 
+{NULL, NULL, 0x4134, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.PowerBoardType},
+{NULL, NULL, 0x4135, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res32_1},
+{NULL, NULL, 0x4136, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res32_2},
+{NULL, NULL, 0x4137, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res32_3},
 
 {NULL, NULL, 0x603F, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gParam[0].ErrorCode0x603F},
 {NULL, NULL, 0x6040, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READWRITE, &gParam[0].ControlWord0x6040},

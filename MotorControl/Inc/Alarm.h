@@ -76,6 +76,7 @@ struct AlarmStruct
     
     UINT16  VdcOverCnt;
     UINT16  VdcUnderCnt;
+    UINT16  VdcDischargeFlag;
     UINT16  SpdOverCnt;
     UINT16  SpdFollwCnt;
     UINT16  StallCnt;

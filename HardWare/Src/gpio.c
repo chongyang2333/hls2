@@ -88,7 +88,11 @@ UINT8 MX_GPIO_Init(void)
     gpio_mode_set(GPIOC,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_12);
     gpio_mode_set(GPIOC,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_10);
     gpio_mode_set(GPIOC,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
-
+    
+    // pcb 将此引脚接到了12V
+    gpio_mode_set(GPIOB,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_12);
+    gpio_output_options_set(GPIOB,GPIO_OTYPE_OD,GPIO_OSPEED_2MHZ,GPIO_PIN_12);
+    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
     
      /*Configure GPIO pins : PE5 :DRVE_PW_EN(12V)*/
     gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_5);
@@ -96,9 +100,9 @@ UINT8 MX_GPIO_Init(void)
 
     DrvPwDisable();
    
-//     /*Configure GPIO pins : PC3 :MOTOR POWER ENABLE, PA15:MOTOR POWER BUFF ENABLE*/
-    gpio_mode_set(GPIOA,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_15);
-    gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);
+//     /*Configure GPIO pins : PC3 :MOTOR POWER ENABLE, PD10:MOTOR POWER BUFF ENABLE*/
+    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_10);
+    gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_10);
     VbusBufferDisable();
     
     gpio_mode_set(GPIOC,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_3);
@@ -313,13 +317,13 @@ UINT8 ReadVbusEnableState(void)
 // Enable DC Voltage Buffer
 void VbusBufferEnable(void)
 {
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);    
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET);    
 }
 
 // Disable DC Voltage Buffer
 void VbusBufferDisable(void)
 {
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);  
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);  
 }
 
 // Enable DC Voltage Buffer
