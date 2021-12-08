@@ -76,6 +76,8 @@ PRIVATE void CarpetModeSet(UINT8 *pData);
 PRIVATE void CanSendAcc(UINT8 AccType);
 PRIVATE void CanSetAcc(UINT8 *pData);
 
+PRIVATE void SetMagicThreshold(UINT8 *pData);
+
 PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage);
 
 /***********************************************************************
@@ -92,6 +94,8 @@ PUBLIC void CanAppInit(void)
     
     sMyCan.CanLostMaxNum = Tmp;
     sMyCan.CanRxTxState = 0;
+	
+	  sMyCan.Magic_Enable = 0;
 }
 
 
@@ -259,6 +263,9 @@ PUBLIC void CanAppDispatch(void)
             DisinfectionModulePowerCtrl(CanRxMessage.RxData[1]);
             CanSendDisinfectionModuleStateFb(CanRxMessage.RxData[1]);					
             break;
+				case 0xAC: //校正防跌落地磁计阈�?�和使能
+						SetMagicThreshold(&CanRxMessage.RxData[0]);
+						break;
         
         default:
             break;
@@ -992,6 +999,44 @@ PUBLIC void CanSendBatteryInfo(UINT8 index, UINT32 data)
     
     can_tx(datasend);		
 }
+
+
+PUBLIC void CanSendMagXYZ(INT16 *P,UINT8 addr)
+{
+		UINT8 datasend[8]={0};
+    datasend[0] = addr;
+    datasend[1] = P[0]>>8;
+    datasend[2] = P[0]&0xff;
+    datasend[3] = P[1]>>8;
+    datasend[4] = P[1]&0xff;
+    datasend[5] = P[2]>>8;
+    datasend[6] = P[2]&0xff;
+    datasend[7] = BCC_CheckSum(datasend,7);
+    can_tx(datasend);
+}
+
+
+PRIVATE void SetMagicThreshold(UINT8 *pData)
+{
+		UINT16 temp;
+		if(pData[1] == 1)
+		{
+				sMyCan.Magic_Enable = 1;
+		}
+		else
+		{
+				sMyCan.Magic_Enable = 0;
+		}
+		temp = (pData[2]<<8)|pData[3];
+		if(temp<300)
+			temp = 300;
+		sMyCan.MagicThreshold_left = temp;
+		temp = ((pData[4]<<8)|pData[5]);
+		if(temp<300)
+			temp = 300;
+		sMyCan.MagicThreshold_Right = temp;
+}
+
 
 /***********************************************************************
  * DESCRIPTION:

@@ -32,6 +32,9 @@
 #include "gpio.h"
 #include "MachineAdditionalInfo.h"
 
+#include "ISTMagic.h"
+#include "math.h"
+
 #define CAN_LOG_MODULE
 
 #define MAX_SCH_NUM  10000  // max scheduler number  1s
@@ -58,14 +61,18 @@ extern PUBLIC void InnerCtrlExec(struct AxisCtrlStruct *P);
 extern PUBLIC void VeneerAgingTest(void);
 
 
-
 struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 struct SchedulerStruct sScheduler;
+
+extern UINT8 alarm_level ;
+extern UINT8 alarm_levelBak; 
+UINT16 alarm_cnt = 0;
 
 PRIVATE void CanFdbMcInfoExec(void);
 PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime);
 PRIVATE void MotionParamUpdateExec(void);
 PRIVATE void ParamFdbUpdate(void);
+PRIVATE void SpeedSetAvoidFalling(void);
 
 
 /***********************************************************************
@@ -96,6 +103,81 @@ PUBLIC void ControlRunInit(void)
         sAxis[i].sFilterCfg.all = gParam[i].FilterConfig0x2105;
     }    
 }
+
+
+
+PRIVATE void SpeedSetAvoidFalling(void)
+{
+	if(alarm_levelBak == 0)
+	{
+		alarm_levelBak = alarm_level;
+	}
+	
+	if(alarm_levelBak == 0)
+	{
+		alarm_cnt = 0;
+		sAxis[0].sSpdLoop.AccMax = sAxis[0].sSpdLoop.AccMax2; // ??
+		sAxis[0].sSpdLoop.DecMax = sAxis[0].sSpdLoop.DecMax2;
+		sAxis[1].sSpdLoop.AccMax = sAxis[1].sSpdLoop.AccMax2;
+		sAxis[1].sSpdLoop.DecMax = sAxis[1].sSpdLoop.DecMax2;
+	}
+	else if(alarm_levelBak == 1)
+	{
+		sAxis[0].sSpdLoop.SpdRef = 0; //???
+		sAxis[1].sSpdLoop.SpdRef = 0;
+	  sAxis[0].sSpdLoop.AccMax = 30.0f; //300r/min  300/60*0.14*3.14=2.2m/s
+		sAxis[0].sSpdLoop.DecMax = 100.0f;   //100/6 r/s  7m/s
+		sAxis[1].sSpdLoop.AccMax = 30.0f;
+		sAxis[1].sSpdLoop.DecMax = 100.0f;
+		if((fabs(sAxis[0].sSpdLoop.SpdFdb)>2.0f)||(fabs(sAxis[1].sSpdLoop.SpdFdb)>2.0f))
+		{
+			alarm_cnt = 0; // ??????????
+		}
+		else
+		{
+			if(alarm_cnt++>10000)//2s ?2s???????????,?????0.5m/s
+			{
+				alarm_levelBak =2;
+			}
+		}
+	}
+	else //== 2
+	{
+		sAxis[0].sSpdLoop.AccMax = sAxis[0].sSpdLoop.AccMax2; // ??
+		sAxis[0].sSpdLoop.DecMax = sAxis[0].sSpdLoop.DecMax2;
+		sAxis[1].sSpdLoop.AccMax = sAxis[1].sSpdLoop.AccMax2;
+		sAxis[1].sSpdLoop.DecMax = sAxis[1].sSpdLoop.DecMax2;
+		if(alarm_level == 0)
+		{
+			alarm_levelBak = 0;
+		}
+		
+		if(sAxis[0].sSpdLoop.SpdRef > 60)
+		{
+			sAxis[0].sSpdLoop.SpdRef= 60;
+		}
+		else if(sAxis[0].sSpdLoop.SpdRef < -60)
+		{
+			sAxis[0].sSpdLoop.SpdRef= -60;
+		}	
+		if(sAxis[1].sSpdLoop.SpdRef > 60)
+		{
+			sAxis[1].sSpdLoop.SpdRef= 60;
+		}
+		else if(sAxis[1].sSpdLoop.SpdRef < -60)
+		{
+			sAxis[1].sSpdLoop.SpdRef= -60;
+		}
+		
+	}
+	if((sAxis[0].PowerFlag == 0)||(sAxis[1].PowerFlag == 0))//??????????	
+	{
+		alarm_levelBak = 0;
+		alarm_cnt = 0;
+	}
+}
+
+
 
 /***********************************************************************
  * DESCRIPTION: main ISR 10khz
@@ -137,6 +219,7 @@ PUBLIC void ControlRunExec(void)
 //*
 	if(sScheduler.SchNum%2)
 	{
+		SpeedSetAvoidFalling();
 		SpeedLoopExec(&sAxis[0]);
         SpeedLoopExec(&sAxis[1]);
 	}
@@ -268,6 +351,8 @@ PUBLIC void TimerIsrExec(void)
     
     ClearCanBreakAlarm();
     
+		MagXYZ_Exec();
+		
     sScheduler.Tim7IsrTime = ReadTimeStampTimer() - StartTime;
     
     if(sScheduler.Tim7IsrTime > MAX_TIMER_ISR_TIME) // 15ms
@@ -576,6 +661,8 @@ PRIVATE void MotionParamUpdateExec(void)
         Tmp = (float)gParam[0].ProfileDec0x6084/(float)gParam[0].EncoderPPR0x2202;
     }
     sAxis[0].sSpdLoop.DecMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
+		sAxis[0].sSpdLoop.AccMax2 = sAxis[0].sSpdLoop.AccMax;
+		sAxis[0].sSpdLoop.DecMax2 = sAxis[0].sSpdLoop.DecMax;
     
     Tmp = (float)gParam[1].ProfileAcc0x6083/(float)gParam[1].EncoderPPR0x2202;
     sAxis[1].sSpdLoop.AccMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
@@ -588,7 +675,9 @@ PRIVATE void MotionParamUpdateExec(void)
         Tmp = (float)gParam[1].ProfileDec0x6084/(float)gParam[1].EncoderPPR0x2202;
     }
     sAxis[1].sSpdLoop.DecMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
-    
+    sAxis[1].sSpdLoop.AccMax2 = sAxis[1].sSpdLoop.AccMax;
+		sAxis[1].sSpdLoop.DecMax2 = sAxis[1].sSpdLoop.DecMax;
+		
     sAxis[0].sCurLoop.Cp = (float)gParam[0].CurrentLoopKp0x2103*CUR_KP_FACTOR;
     sAxis[0].sCurLoop.Ci = (float)gParam[0].CurrentLoopKi0x2104*CUR_KI_FACTOR;
     
@@ -661,7 +750,7 @@ PRIVATE void ParamFdbUpdate(void)
             gParam[i].ErrorRegister0x230D = sAxis[i].sAlarm.ErrReg.all;
  
             gParam[i].ActualVelocity0x606C = (float)sAxis[i].sEncoder.PulseMax*sAxis[i].sSpdLoop.SpdFdb/60.0f;
-            gParam[i].ActualCurrent0x6078 = sAxis[i].sCurLoop.IValidFdb*1000.0f;
+            gParam[i].ActualCurrent0x6078 = sAxis[i].sCurLoop.IqFdb*1000.0f;
             
             gParam[i].ActualPosition0x6064 = sAxis[i].sPosLoop.PosFdb;
         }

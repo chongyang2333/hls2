@@ -190,6 +190,9 @@ struct SpeedLoopStruct
 	REAL32  AccMax;         // speed reference accerlation limit
 	REAL32  DecMax;         // speed reference decerlation limit
 
+	REAL32  AccMax2;
+	REAL32  DecMax2;
+	
 	REAL32  IncToRpmUnit;   // encoder pulse unit to RPM unit
 
 	REAL32  Jtotal;

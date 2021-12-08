@@ -1,0 +1,5 @@
+--c99 -c --cpu Cortex-M4.fp.sp -g -O0 --apcs=interwork --split_sections -I ..\Comm\Inc -I ..\Drivers\CMSIS\GD -I ..\Drivers\CMSIS\GD\GD32F4xx\Include -I ..\Drivers\GD32F4xx_standard_peripheral\Include -I ..\Function\Inc -I ..\HardWare\Inc -I ..\MotorControl\Inc -I ..\SystemCommon -I ..\User\Inc -I ..\Drivers\CMSIS
+-ID:\AppData\Local\Arm\Packs\GigaDevice\GD32F4xx_DFP\2.0.0\Device\F4XX\Include
+-ID:\Keil_v5\ARM\CMSIS\Include
+-D__UVISION_VERSION="532" -DGD32F450 -DUSE_STDPERIPH_DRIVER -DGD32F450
+-o .\chasis_project\magfieldsensor_iic.o --omf_browse .\chasis_project\magfieldsensor_iic.crf --depend .\chasis_project\magfieldsensor_iic.d "..\HardWare\Src\magfieldsensor_iic.c"
