@@ -175,6 +175,15 @@ UINT8 MX_GPIO_Init(void)
     
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+				
+								//      /*Configure GPIO pins : PE2 PE6: SDA2 SCL2 */
+			 gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_2);
+       gpio_output_options_set(GPIOE,GPIO_OTYPE_OD,GPIO_OSPEED_2MHZ,GPIO_PIN_2);
+       gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_6);
+       gpio_output_options_set(GPIOE,GPIO_OTYPE_OD,GPIO_OSPEED_2MHZ,GPIO_PIN_6);
+    
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
 
 //     /*Configure GPIO pins : PA12,PB3: KEY_IN_DET, CHARGE_IN_DET */
         gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_12); 

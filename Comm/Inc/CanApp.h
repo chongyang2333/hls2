@@ -27,7 +27,12 @@ struct CanAppStruct
     UINT8   CanBreakErr;
     UINT8   PcCloseLoopEn;
     UINT16  CanLostMaxNum;
-    UINT8   CanRxTxState;  //bit0: Tx State(Set Valid), bit1: Rx State(Set Valid)
+    UINT8   CanRxTxState;  //bit0: Tx State(Set Valid), bit1: Rx State(Set Valid
+		
+		UINT8   Magic_Enable;
+		UINT16  MagicThreshold_left;
+		UINT16  MagicThreshold_Right;
+	
 };
 
 typedef enum EN_CAN_CMD
@@ -88,6 +93,8 @@ void CMDGetSoftWareVersionTreatment(CAN_RX_Message* CanRxMessage,BootLoaderInfo*
 #define EN_SELF_ID 0x0d
 //#define EN_NO_CHECK_SUM 
 //#define EN_NO_CHECK_CRC 
+
+extern PUBLIC void CanSendMagXYZ(INT16 *P,UINT8 addr);
 
 extern PUBLIC void CanSendLedStateFb(UINT8 ledState);
 extern PUBLIC void CanSendLidarStateFb(UINT8 lidarState);
