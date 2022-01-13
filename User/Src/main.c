@@ -29,8 +29,6 @@
 #include "PowerManager.h"
 #include "LedDriver.h"
 #include "gd_hal.h"
-
-#include "IST8310I2C.h"
 #include "ISTMagic.h"
 
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
@@ -46,7 +44,7 @@ UINT32 MaxLoopTime = 0;
 void HardwareInit(void);
 BootLoaderInfo bootloaderInfo={0};
 
-ST_VersionStruct NowSoftWareVersion = {21, 0, 21};
+ST_VersionStruct NowSoftWareVersion = {21, 0, 22};
 
 void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo);
 
@@ -108,8 +106,7 @@ void HardwareInit()
 
         /* Initialize eeprom */
 		EepromInit();
-		IST8310I2C_Init();
-	
+	  ISTMagic_init();
 		GetLastSoftwareVersion(&bootloaderInfo);
  		WriteSoftWareVersion(&bootloaderInfo,&NowSoftWareVersion);
         /* Initialize eeprom parameter*/
