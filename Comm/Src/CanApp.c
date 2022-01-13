@@ -69,13 +69,13 @@ PRIVATE UINT8 BCC_CheckSum(const UINT8 *buf,UINT8 len);
 PRIVATE void CanSendData(UINT8 txd[8], UINT8 len);
 extern BootLoaderInfo bootloaderInfo;
 UINT8 g_CanTxEnable = 0;
-
+extern UINT16 IST8310_Cfg;
 PRIVATE void CMDGetSoftWareVersionTreatmentFromRam(CAN_RX_Message* CanRxMessage,ST_VersionStruct* st_ram_version);
 PRIVATE void CMDGetSoftWareVersionTreatmentFromBootloaderInfo(CAN_RX_Message* CanRxMessage,BootLoaderInfo* pst_bootLoaderInfo);
 PRIVATE void CarpetModeSet(UINT8 *pData);
 PRIVATE void CanSendAcc(UINT8 AccType);
 PRIVATE void CanSetAcc(UINT8 *pData);
-
+PRIVATE void SendIST8310_Cfg(void);
 PRIVATE void SetMagicThreshold(UINT8 *pData);
 
 PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage);
@@ -267,6 +267,14 @@ PUBLIC void CanAppDispatch(void)
 						SetMagicThreshold(&CanRxMessage.RxData[0]);
 						break;
         
+		    case 0xAF:
+		    {
+			     if(CanRxMessage.RxData[1] == 1)
+			     {
+				      SendIST8310_Cfg();	
+			     }
+			     break;
+		    }
         default:
             break;
     }
@@ -1106,7 +1114,6 @@ PRIVATE void CanSendSoftwareVersion(void)
     datasend[6] = CAN_SLAVE_ID;
     datasend[7] = BCC_CheckSum(datasend,7);	
     can_tx(datasend);	
-
 }
 
 /***********************************************************************
@@ -1673,6 +1680,20 @@ PRIVATE void CanSendAcc(UINT8 AccType)
     datasend[4] = TmpLong >> 8;
     datasend[5] = TmpLong;
     datasend[6] = 0x00;
+    datasend[7] = BCC_CheckSum(datasend,7);
+    can_tx(datasend);
+}
+PRIVATE void SendIST8310_Cfg(void)
+{
+	 UINT8 datasend[8];
+    
+	  datasend[0] = 0xAF;
+    datasend[1] = IST8310_Cfg;
+    datasend[2] = 0x0;
+    datasend[3] = 0x0;
+    datasend[4] = 0x0;
+		datasend[5] = 0x0;
+    datasend[6] = 0x2;
     datasend[7] = BCC_CheckSum(datasend,7);
     can_tx(datasend);
 }

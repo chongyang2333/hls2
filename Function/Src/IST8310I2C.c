@@ -25,6 +25,8 @@ GpioIICStruct  sGpioIIC;
 
 UINT8 IST8310I2C_WADDR;   
 UINT8 IST8310I2C_RADDR;   
+UINT16 IST8310_Cfg = 0;
+
 #define IST8310I2C_RETRY_NUM 3
 //PRIVATE void At24c02_Write_Byte(UINT16 addr,UINT8 dat);
 //PRIVATE UINT8 At24c02_Read_Byte(UINT16 addr);
@@ -38,11 +40,50 @@ UINT8 IST8310I2C_RADDR;
 ***********************************************************************/
 PUBLIC void IST8310I2C_Init(void)
 {
+		UINT8 dataread = 0;
+		UINT8 i = 0;
+
    	sGpioIIC.SDA_WritePin = IST8310_SDA_WritePin;
     sGpioIIC.SCL_WritePin = IST8310_SCL_WritePin;
     sGpioIIC.SDA_ReadPinState = IST8310_SDA_ReadPin;
     sGpioIIC.SCL_SetPinDir = IST8310_SCL_SetPinDir;
     sGpioIIC.SDA_SetPinDir = IST8310_SDA_SetPinDir;
+	
+	  IST8310_Cfg = 0;	  	 
+		IST8310I2C_WADDR = 0x18;
+		while(dataread != 0x10)
+		{
+			 IST8310I2C_Serial_Read(0x0,&dataread,1);
+			 i++;
+			 if(dataread == 0x10)
+			 {
+					IST8310_Cfg |= 0x1;
+					break;
+			 }
+			 
+			 if(i>=3)
+			 {
+					break;
+			 }
+		}
+	
+		IST8310I2C_WADDR = 0x1C;
+		i = 0;
+		dataread = 0;
+		while(dataread != 0x10)
+		{
+				IST8310I2C_Serial_Read(0x0,&dataread,1);
+				i++;
+				if(dataread == 0x10)
+				{
+						IST8310_Cfg |= 0x2;
+						break;
+				}
+				if(i>=3)
+				{
+						break;
+				}
+		}
 }
 
 

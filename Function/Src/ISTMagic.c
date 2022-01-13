@@ -34,7 +34,7 @@ extern struct CanAppStruct    sMyCan;
 ***********************************************************************/
 PUBLIC void ISTMagic_init(void)
 {
-
+	IST8310I2C_Init();
 	IST8310I2C_WADDR = 0x18;
 	IST8310_Byte_Write(IST8310_REG_CNTRL2, 0x01); //soft-reset
 	delay_ms(20);

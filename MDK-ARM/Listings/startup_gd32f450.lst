@@ -747,11 +747,10 @@ ARM Macro Assembler    Page 12
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend=.\chasis_project\startup_gd32f450.d -o.\chasis_project\startup_
-gd32f450.o -I.\RTE\_Chasis_Project -I"D:\PUDU work\softwave\Keil_v5\ARM\PACK\Gi
-gaDevice\GD32F4xx_DFP\2.0.0\Device\F4XX\Include" -I"D:\PUDU work\softwave\Keil_
-v5\ARM\CMSIS\Include" --predefine="__UVISION_VERSION SETA 525" --predefine="GD3
-2F450 SETA 1" --list=.\listings\startup_gd32f450.lst ..\Drivers\CMSIS\GD\GD32F4
-xx\Source\ARM\startup_gd32f450.s
+gd32f450.o -I.\RTE\_Chasis_Project -IC:\Keil_v5\ARM\PACK\GigaDevice\GD32F4xx_DF
+P\2.0.0\Device\F4XX\Include -IC:\Keil_v5\ARM\CMSIS\Include --predefine="__UVISI
+ON_VERSION SETA 525" --predefine="GD32F450 SETA 1" --list=.\listings\startup_gd
+32f450.lst ..\Drivers\CMSIS\GD\GD32F4xx\Source\ARM\startup_gd32f450.s
 
 
 
