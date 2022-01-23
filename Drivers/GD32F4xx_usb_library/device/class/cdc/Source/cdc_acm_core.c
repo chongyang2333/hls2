@@ -34,7 +34,7 @@ OF SUCH DAMAGE.
 */
 
 #include "cdc_acm_core.h"
-#include "CanApp.h"
+#include "USBApp.h"
 
 //#define USBD_VID                          0x28E9U
 //#define USBD_PID                          0x018AU
@@ -540,7 +540,7 @@ static uint8_t cdc_acm_out (usb_dev *udev, uint8_t ep_num)
     
     usbd_ep_recev(udev, CDC_DATA_OUT_EP, (uint8_t*)(cdc->data), USB_CDC_DATA_PACKET_SIZE);
 
-    USBRecvDispatch((uint8_t*)(cdc->data),cdc->receive_length);
+    USB_RecvDispatch((uint8_t*)(cdc->data),cdc->receive_length);
 
     return USBD_OK;
 }

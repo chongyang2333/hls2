@@ -953,30 +953,11 @@ void USART1_IRQHandler(void)
                 size = UART_RECV_MAX_NUM - sUartApp.RecvBufNum;
             } // end if(sUartApp.RecvBufNum..
         }
-        /*华大串口透传colson临时使用 start*/
-        else if ((0x57 == sUartApp.RecvBuf[0]) && (sUartApp.RecvBufNum > 0))
-        {
-            if (sUartApp.RecvBufNum >= 15)
-            {
-                void Uart_AutoChargeApp_RecvDispatch(UINT8 *data, UINT16 datalen);
-                    Uart_AutoChargeApp_RecvDispatch(sUartApp.RecvBuf,sUartApp.RecvBufNum );
-
-                    sUartApp.RecvBufNum = 0;
-                    p = sUartApp.RecvBuf;
-                    size = UART_RECV_MAX_NUM;
-
-            }
-            else {
-                p = sUartApp.RecvBuf + sUartApp.RecvBufNum;
-                size = UART_RECV_MAX_NUM - sUartApp.RecvBufNum;
-            } // end if(sUartApp.RecvBufNum..
-        }
         else {
             sUartApp.RecvBufNum = 0;
             p = sUartApp.RecvBuf;
             size = UART_RECV_MAX_NUM;
         } // end if((0xAA == sUartApp..
-        /*华大串口透传colson临时使用 end*/
 
         usart_receive_dma(USART1, p, size);
     }
@@ -1169,13 +1150,6 @@ void UartSendData_Weak(uint8_t * buf, uint16_t size)
   //   }
 
 }
-
-
-
-
-
-
-
 
 /**
   * @}

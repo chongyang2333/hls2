@@ -274,9 +274,11 @@ PUBLIC void CanAppDispatch(void)
 
 }
 
+#define AutoChage_MCU_ID 0x19
 
+void UartSendData(uint8_t *buf, uint16_t size);
 
-PUBLIC void USBRecvDispatch(uint8_t *data,uint16_t datalen)
+PUBLIC void USB2CAN_RecvDispatch(UINT8 *data,UINT16 datalen)
 {
     /*
        帧头（2bytes） id（2bytes） 数据（8bytes） 数据长度（1byte） 帧尾（2bytes）
@@ -309,6 +311,13 @@ PUBLIC void USBRecvDispatch(uint8_t *data,uint16_t datalen)
         memcpy(CanRxMessage.RxData,&data[4],frame.can_dlc);
 
         CmdType = CanRxMessage.RxData[0];
+        //colson
+        if( CmdType ==EN_IAP_CMD && CanRxMessage.RxData[1] == AutoChage_MCU_ID)
+        {
+            UartSendData(data,datalen);
+            return;
+        }
+  
         switch(CmdType)
         {
         case 0x00 :
@@ -321,96 +330,96 @@ PUBLIC void USBRecvDispatch(uint8_t *data,uint16_t datalen)
 
         case EN_IAP_CMD:
         {
-            IAPCmdTreatment(&CanRxMessage);
+           IAPCmdTreatment(&CanRxMessage);
         }
         break;
 
-        case 0x3F :
-            CanSetTimeStamp(CanRxMessage.RxData);
-            break;
+    case 0x3F :
+        CanSetTimeStamp(CanRxMessage.RxData);
+        break;
 
-        case 0x40 :
-            if(!(sAxis[0].sAlarm.ErrReg.all || sAxis[1].sAlarm.ErrReg.all))
-            {
-                CanSetMotion(CanRxMessage.RxData);
-            }
-            else
-            {
-                sMyCan.PcCloseLoopEn = 0;
-            }
-            sMyCan.CanLostCnt = 0;
-            break;
-
-        case 0x41 : // clear error
-            if(CanRxMessage.RxData[1] == 0x01)
-            {
-                gParam[0].ControlWord0x6040 = 0x86;
-                gParam[1].ControlWord0x6040 = 0x86;
-            }
-            break;
-
-        case 0x45 : // Set Carpet Mode
-            CarpetModeSet(CanRxMessage.RxData);
-            break;
-
-        case 0x48: //Set Acc Data
-            CanSetAcc(CanRxMessage.RxData);
-            break;
-
-        case 0x50 :
-            if((CanRxMessage.RxData[0]==0x50) && (CanRxMessage.RxData[1]==0x7A) && (CanRxMessage.RxData[2]==0x8A) \
-                    && (CanRxMessage.RxData[3]==0x85) && (CanRxMessage.RxData[4]==0x75) && (CanRxMessage.RxData[5]==0x5A) \
-                    && (CanRxMessage.RxData[6]==CAN_SLAVE_ID|| CanRxMessage.RxData[6]==0X02))
-            {
-                gParam[0].SaveParameter0x2401 = 1;
-                EnableMachineAddInfoSave();
-            }
-            break;
-
-        case 0x51 :
-            if(CanRxMessage.RxData[6]==CAN_SLAVE_ID || CanRxMessage.RxData[6]==0X02)
-            {
-                CanModifyMachineInfo(CanRxMessage.RxData);
-            }
-            break;
-
-        case 0x5F:
-            if(CanRxMessage.RxData[6]==CAN_SLAVE_ID|| CanRxMessage.RxData[6]==0X02)
-            {
-                RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
-                HAL_NVIC_SystemReset();
-            }
-            break;
-
-        case 0x75:
-            LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
-            CanSendLedStateFb(sLedFsm.curState);
-            break;
-
-        case 0x90:
-            if( CanRxMessage.RxData[1] == 13 || CanRxMessage.RxData[1] == 14 )
-            {
-                chassis_led_ctrl( CanRxMessage.RxData );
-            }
-            break;
-
-        case 0x77:
-            LdsPowerCtrl(CanRxMessage.RxData[1], CanRxMessage.RxData[2]);
-            CanSendLidarStateFb(ReadLidarPowerState());
-            break;
-
-        case 0x83:
-            DisinfectionModulePowerCtrl(CanRxMessage.RxData[1]);
-            CanSendDisinfectionModuleStateFb(CanRxMessage.RxData[1]);
-            break;
-        case 0xAC: //校正防跌落地磁计阈�?�和使能
-            SetMagicThreshold(&CanRxMessage.RxData[0]);
-            break;
-
-        default:
-            break;
+    case 0x40 :
+        if(!(sAxis[0].sAlarm.ErrReg.all || sAxis[1].sAlarm.ErrReg.all))
+        {
+            CanSetMotion(CanRxMessage.RxData);
         }
+        else
+        {
+            sMyCan.PcCloseLoopEn = 0;
+        }
+        sMyCan.CanLostCnt = 0;
+        break;
+
+    case 0x41 : // clear error
+        if(CanRxMessage.RxData[1] == 0x01)
+        {
+            gParam[0].ControlWord0x6040 = 0x86;
+            gParam[1].ControlWord0x6040 = 0x86;
+        }
+        break;
+
+    case 0x45 : // Set Carpet Mode
+        CarpetModeSet(CanRxMessage.RxData);
+        break;
+
+    case 0x48: //Set Acc Data
+        CanSetAcc(CanRxMessage.RxData);
+        break;
+
+    case 0x50 :
+        if((CanRxMessage.RxData[0]==0x50) && (CanRxMessage.RxData[1]==0x7A) && (CanRxMessage.RxData[2]==0x8A) \
+                && (CanRxMessage.RxData[3]==0x85) && (CanRxMessage.RxData[4]==0x75) && (CanRxMessage.RxData[5]==0x5A) \
+                && (CanRxMessage.RxData[6]==CAN_SLAVE_ID|| CanRxMessage.RxData[6]==0X02))
+        {
+            gParam[0].SaveParameter0x2401 = 1;
+            EnableMachineAddInfoSave();
+        }
+        break;
+
+    case 0x51 :
+        if(CanRxMessage.RxData[6]==CAN_SLAVE_ID || CanRxMessage.RxData[6]==0X02)
+        {
+            CanModifyMachineInfo(CanRxMessage.RxData);
+        }
+        break;
+
+    case 0x5F:
+        if(CanRxMessage.RxData[6]==CAN_SLAVE_ID|| CanRxMessage.RxData[6]==0X02)
+        {
+            RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
+            HAL_NVIC_SystemReset();
+        }
+        break;
+
+    case 0x75:
+        LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
+        CanSendLedStateFb(sLedFsm.curState);
+        break;
+
+    case 0x90:
+        if( CanRxMessage.RxData[1] == 13 || CanRxMessage.RxData[1] == 14 )
+        {
+            chassis_led_ctrl( CanRxMessage.RxData );
+        }
+        break;
+
+    case 0x77:
+        LdsPowerCtrl(CanRxMessage.RxData[1], CanRxMessage.RxData[2]);
+        CanSendLidarStateFb(ReadLidarPowerState());
+        break;
+
+    case 0x83:
+        DisinfectionModulePowerCtrl(CanRxMessage.RxData[1]);
+        CanSendDisinfectionModuleStateFb(CanRxMessage.RxData[1]);
+        break;
+    case 0xAC: //校正防跌落地磁计阈�?�和使能
+        SetMagicThreshold(&CanRxMessage.RxData[0]);
+        break;
+
+    default:
+        break;
     }
+}
 
 }
 
@@ -1334,29 +1343,31 @@ PRIVATE void can_tx(UINT8 *pData)
     {
         return;
     }
+#ifdef USE_CAN_APP
 
-//    /* initialize transmit message */
-//    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
-//    transmit_message.tx_sfid = CAN_SLAVE_ID;
-//    transmit_message.tx_ft   = CAN_FT_DATA;
-//    transmit_message.tx_ff   = CAN_FF_STANDARD;
-//    transmit_message.tx_dlen = 8;
-//    memcpy(transmit_message.tx_data, pData, 8);
+    /* initialize transmit message */
+    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
+    transmit_message.tx_sfid = CAN_SLAVE_ID;
+    transmit_message.tx_ft   = CAN_FT_DATA;
+    transmit_message.tx_ff   = CAN_FF_STANDARD;
+    transmit_message.tx_dlen = 8;
+    memcpy(transmit_message.tx_data, pData, 8);
 
-//    /* prepare to transmit */
-//    UINT32 StartTime = ReadTimeStampTimer();
-//    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
-//    {
-//        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
-//        {
-//            sMyCan.CanBreakErr = 1;
-//            break;
-//        }
-//    }
-    
+    /* prepare to transmit */
+    UINT32 StartTime = ReadTimeStampTimer();
+    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
+    {
+        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        {
+            sMyCan.CanBreakErr = 1;
+            break;
+        }
+    }
 
-        USB_send(CAN_SLAVE_ID,pData,8);
+#else
 
+    USB_send(CAN_SLAVE_ID,pData,8);
+#endif
 
     sMyCan.CanRxTxState |= 0x01;
 }
@@ -1380,26 +1391,31 @@ PRIVATE void can_tx_machineinfo(UINT8 *pData)
         return;
     }
 
-//    /* initialize transmit message */
-//    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
-//    transmit_message.tx_sfid = 2;
-//    transmit_message.tx_ft   = CAN_FT_DATA;
-//    transmit_message.tx_ff   = CAN_FF_STANDARD;
-//    transmit_message.tx_dlen = 8;
-//    memcpy(transmit_message.tx_data, pData, 8);
+#ifdef USE_CAN_APP
 
-//    /* prepare to transmit */
-//    UINT32 StartTime = ReadTimeStampTimer();
-//    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
-//    {
-//        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
-//        {
-//            sMyCan.CanBreakErr = 1;
-//            break;
-//        }
-//    }
-    
+    /* initialize transmit message */
+    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
+    transmit_message.tx_sfid = 2;
+    transmit_message.tx_ft   = CAN_FT_DATA;
+    transmit_message.tx_ff   = CAN_FF_STANDARD;
+    transmit_message.tx_dlen = 8;
+    memcpy(transmit_message.tx_data, pData, 8);
+
+    /* prepare to transmit */
+    UINT32 StartTime = ReadTimeStampTimer();
+    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
+    {
+        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        {
+            sMyCan.CanBreakErr = 1;
+            break;
+        }
+    }
+#else
+
     USB_send(2,pData,8);
+
+#endif
 
     sMyCan.CanRxTxState |= 0x01;
 }
@@ -1456,28 +1472,33 @@ PRIVATE void can_tx_no_block(UINT8 *pData)
         return;
     }
 
-//    /* initialize transmit message */
-//    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
-//    transmit_message.tx_sfid = CAN_SLAVE_ID;
-//    transmit_message.tx_ft   = CAN_FT_DATA;
-//    transmit_message.tx_ff   = CAN_FF_STANDARD;
-//    transmit_message.tx_dlen = 8;
-//    memcpy(transmit_message.tx_data, pData, 8);
+#ifdef USE_CAN_APP
 
-//    /* prepare to transmit */
-//    UINT32 StartTime = ReadTimeStampTimer();
-//    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
-//    {
-//        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
-//        {
-//            sMyCan.CanBreakErr = 1;
-//            break;
-//        }
-//    }
-    
+    /* initialize transmit message */
+    can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
+    transmit_message.tx_sfid = CAN_SLAVE_ID;
+    transmit_message.tx_ft   = CAN_FT_DATA;
+    transmit_message.tx_ff   = CAN_FF_STANDARD;
+    transmit_message.tx_dlen = 8;
+    memcpy(transmit_message.tx_data, pData, 8);
+
+    /* prepare to transmit */
+    UINT32 StartTime = ReadTimeStampTimer();
+    while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
+    {
+        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        {
+            sMyCan.CanBreakErr = 1;
+            break;
+        }
+    }
+#else
     USB_send(CAN_SLAVE_ID,pData,8);
+#endif
+
 
     sMyCan.CanRxTxState |= 0x01;
+
 }
 
 PRIVATE void can_tx_no_block_weak(UINT8 *pData)

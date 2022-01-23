@@ -643,6 +643,11 @@
               <FileType>1</FileType>
               <FilePath>..\Comm\Src\USBApp.c</FilePath>
             </File>
+            <File>
+              <FileName>Uart_AutoChargeApp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Comm\Src\Uart_AutoChargeApp.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -61,8 +61,11 @@ typedef struct _usb2can_frame
 void USB_init(void);
 
 uint8_t USB_send(uint32_t id,uint8_t *data,uint16_t datalen);
-uint8_t USB_receive(uint32_t *id,uint8_t *data,uint16_t *datalen);
+uint8_t USB_send_dirt(uint8_t *data,uint16_t datalen);
 
+
+uint8_t USB_receive(uint32_t *id,uint8_t *data,uint16_t *datalen);
+void USB_RecvDispatch(uint8_t *data,uint16_t datalen);
 
 
 /* configure USB clock */

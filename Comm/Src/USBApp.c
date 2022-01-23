@@ -33,6 +33,7 @@ OF SUCH DAMAGE.
 */
 
 #include "USBApp.h"
+#include "CanApp.h"
 #include "delay.h"
 #include <stdio.h>
 #include <string.h>
@@ -413,10 +414,18 @@ uint8_t USB_send(uint32_t id,uint8_t *data,uint16_t datalen)
     usbd_ep_send (&cdc_acm, CDC_DATA_IN_EP, (uint8_t*)SendData, index);
 }
 
+uint8_t USB_send_dirt(uint8_t *data,uint16_t datalen)
+{
+    usbd_ep_send (&cdc_acm, CDC_DATA_IN_EP, (uint8_t*)data, datalen);
+}
 
 
 
 
+void USB_RecvDispatch(uint8_t *data,uint16_t datalen)
+{
+    USB2CAN_RecvDispatch(data,datalen);
+}
 
 
 
