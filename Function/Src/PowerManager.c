@@ -30,6 +30,7 @@
 #include "MachineAdditionalInfo.h"
 #include "gd_hal.h"
 #include "delay.h"
+#include "LeadAcidBMS.h"
 
 
 #define ON 1
@@ -163,6 +164,8 @@ PUBLIC void PowerManagerInit(UINT8 ApplicationMode)
     sPowerManager.sChargeInfo.ChargerDisconnectJudgeTime = 10;
     
     sPowerManager.sBatteryInfo.BMS_icType = NONE_RECOGNIZED;
+
+    LeadAcidBatteryInit(); 
 }
 
 
@@ -248,15 +251,23 @@ PUBLIC void PowerManagerExec(void)
 ***********************************************************************/
 PRIVATE void PowerInfoUpdate(void)
 {
-    //这个IO设置为推挽输出，不知道所有机器能否完成读取IO操作
-    sPowerManager.sChargeInfo.eChargeMosState = ReadChargeMosState();	
-	sPowerManager.sChargeInfo.ChargeCurrent = 1000.0f * GetChargeCurrent() - sPowerManager.sChargeInfo.ChargeCurrentBias;
-	sPowerManager.sChargeInfo.ChargeVoltage = 1000.0f * GetChargeVoltage();
-	sPowerManager.sBatteryInfo.BatteryCurrent = 1000.0f * GetBatteryCurrent();
-	sPowerManager.sBatteryInfo.BatteryVoltage = 1000.0f * GetBatteryVoltage();
-	sPowerManager.sBatteryInfo.BatteryLevelRaw = gSensorData.BatteryLevel0x400D;
-	sPowerManager.sBatteryInfo.BatteryTemp = gSensorData.BatteryTemp0x4010;
 
+    if(sPowerManager.sBatteryInfo.BMS_icType == LEAD_ACID_BAT)
+    {
+        LeadAcidInfoUpdate();
+    }
+    else
+    {
+        //这个IO设置为推挽输出，不知道所有机器能否完成读取IO操作
+        sPowerManager.sChargeInfo.eChargeMosState = ReadChargeMosState();	
+        sPowerManager.sChargeInfo.ChargeCurrent = 1000.0f * GetChargeCurrent() - sPowerManager.sChargeInfo.ChargeCurrentBias;
+        sPowerManager.sChargeInfo.ChargeVoltage = 1000.0f * GetChargeVoltage();
+        sPowerManager.sBatteryInfo.BatteryCurrent = 1000.0f * GetBatteryCurrent();
+        sPowerManager.sBatteryInfo.BatteryVoltage = 1000.0f * GetBatteryVoltage();
+        sPowerManager.sBatteryInfo.BatteryLevelRaw = gSensorData.BatteryLevel0x400D;
+        sPowerManager.sBatteryInfo.BatteryTemp = gSensorData.BatteryTemp0x4010;
+    }
+    
 	//对电量进行虚拟化
 	if(sPowerManager.sBatteryInfo.BatteryLevelRaw <= sPowerManager.sBatteryInfo.BatteryFloorLevelLimit)
 	{
@@ -297,7 +308,8 @@ PRIVATE void ChargeCurrentBiasCal(void)
 	//MOS关闭1S后开始采集电流数据累积
 	//在随后的250ms内获取到的电流平均值作为采样电流平均值
 	//在获取充电电流采样偏置值后，不再重复进入采样电流偏置计算
-	if ((sPowerManager.uTick < CHARGE_CURRENT_CORRECT_LAUNCH_TIME) || (sPowerManager.uTick > CHARGE_CURRENT_CORRECT_END_TIME))
+//	if ((sPowerManager.uTick < CHARGE_CURRENT_CORRECT_LAUNCH_TIME) || (sPowerManager.uTick > CHARGE_CURRENT_CORRECT_END_TIME))
+    if (sPowerManager.uTick > CHARGE_CURRENT_CORRECT_END_TIME)
 		return;
 
 	if (sPowerManager.uTick < CHARGE_CURRENT_CORRECT_END_TIME)
@@ -355,7 +367,8 @@ PRIVATE void ChargerPlugEventUpdate(struct ChargeManageStruct *chargeInfo)
         else
         {
             chargeInfo->eChargerEvent = INSERT_IN;
-            chargeInfo->eChargerConnectState = CONNECT;             
+            chargeInfo->eChargerConnectState = CONNECT;         
+            LeadAcideEventTask(LEAD_ACID_EVENT_INSERT_IN);    
         }
         
         ChargeVoltageReachCnt = 0;
@@ -564,17 +577,26 @@ PRIVATE void PowerAlarmExec(void)
 		//sPowerManager.sAlarm.PowerAlarmReg.bit.ChargeTempUnder = 1;
 		sPowerManager.sAlarm.ChargeTempUnderCnt = sPowerManager.sAlarm.ChargeTempUnderCntMax;
 	}
+
 	//检查电池通讯是否脱落
-	if (sPowerManager.sAlarm.ComDisconnectCnt >= sPowerManager.sAlarm.ComDisconnectCntMax)
-	{
-		sPowerManager.sAlarm.ComDisconnectCnt = sPowerManager.sAlarm.ComDisconnectCntMax;
-		sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 1;
-	}
-	else if(!sPowerManager.sAlarm.ComDisconnectCnt)
-	{
-		sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 0;
-	}
-    
+    if(sPowerManager.sBatteryInfo.BMS_icType == LEAD_ACID_BAT)
+    {
+        sPowerManager.sAlarm.ComDisconnectCnt = 0;
+        sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 0;
+    }
+    else
+    {
+        if (sPowerManager.sAlarm.ComDisconnectCnt >= sPowerManager.sAlarm.ComDisconnectCntMax)
+        {
+            sPowerManager.sAlarm.ComDisconnectCnt = sPowerManager.sAlarm.ComDisconnectCntMax;
+            sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 1;
+        }
+        else if(!sPowerManager.sAlarm.ComDisconnectCnt)
+        {
+            sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 0;
+        }
+    }
+
     //检查电量是否过低
     if ((sPowerManager.sBatteryInfo.BatteryLevelOptimized <= sPowerManager.sAlarm.BatteryLowPowerLevel) && 
         (!sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet) &&
@@ -777,6 +799,7 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 				if (sPowerManager.sBatteryInfo.BatteryLevelRaw <= sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel)
 				{
 					sPowerManager.sChargeInfo.ChargeAppState = CHARGING;
+                    LeadAcideEventTask(LEAD_ACID_EVENT_CHARGING);
 				}	
 			}
 			//监测电池或者充电异常（非低电量异常），跳转入ALARM状态
@@ -803,6 +826,7 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 			else if (sPowerManager.sChargeInfo.eChargerEvent == PULL_OUT)
 			{
 				sPowerManager.sChargeInfo.ChargeAppState = NOT_CHARGED;
+                LeadAcideEventTask(LEAD_ACID_EVENT_PULL_OUT);
 			}
 			//电量高于95%时，跳转入CHECK_BEFORE_CHARGING
 			else if (sPowerManager.sBatteryInfo.BatteryLevelRaw >= sPowerManager.sBatteryInfo.BatteryTopLevelLimit)
@@ -1745,10 +1769,28 @@ PUBLIC void BatteryInfoReadLoop(void)
 			sPowerManager.sBatteryInfo.BMS_icType = DESAY_7S8P;
 			return; 
         }
+
+        if(sPowerManager.sBatteryInfo.BMS_icType == NONE_RECOGNIZED) ///xxx 需要与machineinfo共同作用
+        {
+            sPowerManager.sBatteryInfo.BMS_icType = LEAD_ACID_BAT;      //如果前面没识别到BMS芯片，则该产品可能使用的是铅酸电池
+            return;
+        }
     }
     
-    BatteryI2cReadSOC_Temp();
-    BatteryI2cReadInternalInfo();
+    if(sPowerManager.sBatteryInfo.BMS_icType == LEAD_ACID_BAT)
+    {
+        sPowerManager.sBatteryInfo.BatteryFloorLevelLimit = 20;     //铅酸电池预留20%电量
+        sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
+        sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel = 99;
+        sPowerManager.sBatteryInfo.BatteryFullChargeTopLevel = 100;  
+        sPowerManager.sAlarm.ChargeCurrentMax = 3500;
+        lead_acid_battery_info();
+    }
+    else
+    {
+        BatteryI2cReadSOC_Temp();
+        BatteryI2cReadInternalInfo();
+    }
 //    BatteryI2cReadLifetimeDataBlock(&sPowerManager.sBatteryInfo.sLifetimeData);
 }
 
@@ -2539,7 +2581,7 @@ PRIVATE BOOL BatteryReadLifetimeData(struct BatteryLifeTimeDataBlock *pData)
             if (ret_lifetimeDataBlock3)
             {
                 memcpy((UINT8 *)(&(pData->MaxDeltaCellVoltage)), Tmp+3, 13);
-                memcpy((UINT8 *)(&(pData->MaxTempFET)), Tmp+163, 1);
+                memcpy((UINT8 *)(&(pData->MaxTempFET)), Tmp+16, 1);
             }   
 
             ret_lifetimeDataBlock4 = ManufacturerBlockAccesRead(GSA7S_IIC_ADDR, 0x44, 0x63, Tmp, 4);

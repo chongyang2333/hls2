@@ -215,7 +215,8 @@ enum BatteryManageSystemType
     GSA7S141 = 6,    
     GF_7S6P = 7,
     GF_7S8P = 8,
-    DESAY_7S8P = 9
+    DESAY_7S8P = 9,
+    LEAD_ACID_BAT = 10,      //没有BMS，集成到机器人板卡上,适用铅酸电池
 };
 
 struct BatteryLifeTimeDataBlock
