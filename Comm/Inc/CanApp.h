@@ -63,6 +63,7 @@ typedef struct CAN_RX_Message
 extern PUBLIC void CanAppInit(void);
 extern PUBLIC void CanAppExec(void);
 extern PUBLIC void CanAppDispatch(void);
+extern PUBLIC void USB2CAN_RecvDispatch(UINT8 *data,UINT16 datalen);
 
 extern PUBLIC void CanSendSpdFdb(INT16 LeftSpdInc, INT16 RightSpdInc);
 extern PUBLIC void CanSendErrorCode(UINT16 LeftErr, UINT16 RightErr);

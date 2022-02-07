@@ -31,6 +31,8 @@
 #include "gd_hal.h"
 #include "ISTMagic.h"
 
+#include "USBApp.h"
+
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 
 //extern UART_HandleTypeDef huart3;
@@ -57,9 +59,12 @@ int main()
     
     HardwareInit();
     
+    
     __set_PRIMASK( 0 ); // 开启总中断
     __set_FAULTMASK( 0 ); // 没关异常
 
+    USB_init();//USB初始化
+    
     while (1)
     {
         UINT32 LoopStartTime = ReadTimeStampTimer();         
