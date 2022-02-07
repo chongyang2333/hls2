@@ -426,6 +426,7 @@ PUBLIC void USB2CAN_RecvDispatch(UINT8 *data,UINT16 datalen)
 
         default:
             break;
+        }
     }
 }
 
