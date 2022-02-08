@@ -243,7 +243,7 @@ void usb_intr_config(void)
 */
 void usb_timer_init (void)
 {
-    //用于使用延时的定时器，使用工程里面现成的定时器延时
+    //浣跨敤寤舵椂鐨勫畾鏃跺櫒锛屼娇鐢ㄥ伐绋嬮噷闈㈢幇鎴愮殑瀹氭椂寤舵椂
 //    TimeStampTimerInit();
 }
 
@@ -388,7 +388,7 @@ void USB_init(void)
 
     while (USBD_CONFIGURED != cdc_acm.dev.cur_status) {};
 
-    cdc_acm_data_receive(&cdc_acm); //上电第一次开启usb接收
+    cdc_acm_data_receive(&cdc_acm); //涓婄數绗竴娆″紑鍚痷sb鎺ユ敹
 
 }
 
