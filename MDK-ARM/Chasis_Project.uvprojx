@@ -17,7 +17,7 @@
           <Device>GD32F450VG</Device>
           <Vendor>GigaDevice</Vendor>
           <PackID>GigaDevice.GD32F4xx_DFP.2.0.0</PackID>
-          <PackURL>http://gd32mcu.com/data/documents/pack/</PackURL>
+          <PackURL>http://gd32mcu.21ic.com/data/documents/yingyongruanjian/</PackURL>
           <Cpu>IRAM(0x20000000,0x030000) IRAM2(0x10000000,0x010000) IROM(0x08000000,0x0100000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
@@ -80,10 +80,10 @@
             <nStopB2X>0</nStopB2X>
           </BeforeMake>
           <AfterMake>
-            <RunUserProg1>0</RunUserProg1>
-            <RunUserProg2>1</RunUserProg2>
-            <UserProg1Name></UserProg1Name>
-            <UserProg2Name>"Post Universe Chassis.bat"</UserProg2Name>
+            <RunUserProg1>1</RunUserProg1>
+            <RunUserProg2>0</RunUserProg2>
+            <UserProg1Name>Post Universe Chassis.bat</UserProg1Name>
+            <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -334,9 +334,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,GD32F450</Define>
+              <Define>USE_STDPERIPH_DRIVER,GD32F450,USE_USB_FS,USE_IRC48M</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Comm\Inc;..\Drivers\CMSIS\GD;..\Drivers\CMSIS\GD\GD32F4xx\Include;..\Drivers\GD32F4xx_standard_peripheral\Include;..\Function\Inc;..\HardWare\Inc;..\MotorControl\Inc;..\SystemCommon;..\User\Inc;..\Drivers\CMSIS</IncludePath>
+              <IncludePath>..\Comm\Inc;..\Drivers\CMSIS\GD;..\Drivers\CMSIS\GD\GD32F4xx\Include;..\Drivers\GD32F4xx_standard_peripheral\Include;..\Function\Inc;..\HardWare\Inc;..\MotorControl\Inc;..\SystemCommon;..\User\Inc;..\Drivers\CMSIS;..\Drivers\GD32F4xx_usb_library\device\class\cdc\Include;..\Drivers\GD32F4xx_usb_library\device\core\Include;..\Drivers\GD32F4xx_usb_library\driver\Include;..\Drivers\GD32F4xx_usb_library\ustd\common;..\Drivers\GD32F4xx_usb_library\ustd\class\cdc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -620,6 +620,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\Src\system_gd32f4xx.c</FilePath>
             </File>
+            <File>
+              <FileName>logger.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\logger.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -634,6 +639,16 @@
               <FileName>UartApp.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Comm\Src\UartApp.c</FilePath>
+            </File>
+            <File>
+              <FileName>USBApp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Comm\Src\USBApp.c</FilePath>
+            </File>
+            <File>
+              <FileName>Uart_AutoChargeApp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Comm\Src\Uart_AutoChargeApp.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -704,6 +719,11 @@
               <FileName>IST8310I2C.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Function\Src\IST8310I2C.c</FilePath>
+            </File>
+            <File>
+              <FileName>LeadAcidBMS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Function\Src\LeadAcidBMS.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -779,6 +799,56 @@
               <FileName>system_common.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SystemCommon\system_common.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USB_Drivers</GroupName>
+          <Files>
+            <File>
+              <FileName>drv_usb_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\GD32F4xx_usb_library\driver\Source\drv_usb_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_usb_dev.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\GD32F4xx_usb_library\driver\Source\drv_usb_dev.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_usbd_int.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\GD32F4xx_usb_library\driver\Source\drv_usbd_int.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USB_Device</GroupName>
+          <Files>
+            <File>
+              <FileName>usbd_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\GD32F4xx_usb_library\device\core\Source\usbd_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_enum.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\GD32F4xx_usb_library\device\core\Source\usbd_enum.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_transc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\GD32F4xx_usb_library\device\core\Source\usbd_transc.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USB_Class</GroupName>
+          <Files>
+            <File>
+              <FileName>cdc_acm_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\GD32F4xx_usb_library\device\class\cdc\Source\cdc_acm_core.c</FilePath>
             </File>
           </Files>
         </Group>

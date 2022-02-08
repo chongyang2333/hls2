@@ -33,11 +33,14 @@
 #define AXIS_Left_PARAM_EEPROM_ADDR   0
 #define AXIS_Right_PARAM_EEPROM_ADDR  256
 #define MACHINE_INFO_EEPROM_ADDR      512
+#define BATTERY_INFO_EEPROM_ARRD      416      //电池信息存储位置
 
 struct ParameterStruct    gParam[2];
 struct MachineInfoStruct  gMachineInfo;
 struct SoftwareVersionStruct gSoftVersion = {21,0,2};
 struct SensorDataStruct gSensorData = {0};
+
+BatterySaveInfo_t g_tBatterySaveInfo;
 
 //RTC_HandleTypeDef 				hrtc1;
 
@@ -53,6 +56,9 @@ PRIVATE UINT8 LoadMachineInfo(void);
 PRIVATE UINT8 MachineInfoFactoryCheck(void);
 PRIVATE UINT8 RestoreMachineInfo(void);
 PRIVATE UINT8 EraseMachineInfo(void);
+PRIVATE void SaveBatteryInfo(void);
+PRIVATE UINT8 LoadBatteryInfo(void);
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -71,6 +77,7 @@ PUBLIC void ParamInit(void)
     gMachineInfo.CumulativeTime = MachineAddInfo.CumulativeTime.Value;         
     gMachineInfo.MachineInfoSaveState = MACHINE_INFO_NO_CMD;
     
+    LoadBatteryInfo();
     ErrorLogInit();
     
     gParam[0].ControlWord0x6040 = 6;
@@ -196,6 +203,13 @@ PUBLIC void ParamLoop(void)
         }        
     }
     
+    if(g_tBatterySaveInfo.hSaveInfo)
+    {
+        SaveBatteryInfo();
+        LoadBatteryInfo();
+        g_tBatterySaveInfo.hSaveInfo = 0;
+    }
+
     if(gParam[0].ClearErrorLog0x2402)
     {
         ClearErrorLog();
@@ -335,6 +349,47 @@ PRIVATE UINT8 LoadMachineInfo(void)
     
 }
 
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void SaveBatteryInfo(void)
+{
+    UINT32 len= (UINT32)&g_tBatterySaveInfo.hEepromCRC - (UINT32)&g_tBatterySaveInfo;
+    
+    g_tBatterySaveInfo.hEepromCRC = GetCRC16((unsigned char*)&g_tBatterySaveInfo, len);
+    EEPROM_Serial_Write(BATTERY_INFO_EEPROM_ARRD, (UINT8*)&g_tBatterySaveInfo, len+2);
+}
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE UINT8 LoadBatteryInfo(void)
+{
+    BatterySaveInfo_t tBatterySaveInfo;
+    
+    UINT32 len= (UINT32)&tBatterySaveInfo.hEepromCRC - (UINT32)&tBatterySaveInfo;
+    
+    EEPROM_Serial_Read(BATTERY_INFO_EEPROM_ARRD, (UINT8*)&tBatterySaveInfo, len+2);
+    
+    if(GetCRC16((UINT8*)&tBatterySaveInfo, len) == tBatterySaveInfo.hEepromCRC )
+    {
+        memcpy(&g_tBatterySaveInfo, &tBatterySaveInfo, len+2);
+        return TRUE;
+    }
+    else
+    {
+        g_tBatterySaveInfo.CrcState = 2;
+        EepromErrorFlag |= 0x04;
+        return FALSE;
+    }
+    
+}
 
 /***********************************************************************
  * DESCRIPTION:

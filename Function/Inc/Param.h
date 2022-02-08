@@ -332,11 +332,28 @@ typedef struct ObjectEntryStruct
 }
 OBJ_ENTRY;
 
+typedef struct
+{
+    UINT16 hSoc;                //剩余电量,mA.h
+    UINT16 hCapacity;           //电池实际容量,mA.h
+    UINT32 lDischargeSum;       //放电总量,mA.h
+    UINT32 lNonFullChg;         //非满充电次数
+    UINT32 lChgSum;            //总充电次数
+    UINT16 hCycle;              //实际深度循环次数
+    UINT16 isCharge:1;          //Bit0:0放电，1充电;
+    UINT16 reserve:15;            //预留
+    UINT16 hEepromCRC;          //校验码
+    UINT16 CrcState;
+    UINT16 hSaveInfo;
+    UINT16 hCycleCount;         //电池标称深度循环次数
+}BatterySaveInfo_t;
+
 
 extern struct ParameterStruct        gParam[2];
 extern struct MachineInfoStruct      gMachineInfo;
 extern struct SoftwareVersionStruct  gSoftVersion;
 extern struct SensorDataStruct       gSensorData;
+extern BatterySaveInfo_t             g_tBatterySaveInfo;
 extern UINT8 	SysResetType;
 
 //#define _OBJD_  // todo :should be delete

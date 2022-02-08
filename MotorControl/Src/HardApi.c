@@ -27,6 +27,7 @@ PRIVATE INT16 ADC1_JDR0_Offset = 2090;
 PRIVATE INT16 ADC1_JDR1_Offset = 2155;
 
 PRIVATE INT16 ADC0_JDR3_Offset = 2048;
+PRIVATE INT16 ADC1_JDR2_Offset = 2038;
 
 #define ADC2_JDR0_GAIN  0.01696135f    // (+/-)30A/2048
 #define ADC2_JDR1_GAIN  0.01696135f    // (+/-)30A/2048
@@ -35,9 +36,10 @@ PRIVATE INT16 ADC0_JDR3_Offset = 2048;
 
 
 #define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
-#define ADC0_JDR1_GAIN  0.01859225f    // Dc Voltage coff MAIN_V/BATTERY_V
+#define ADC0_JDR1_GAIN  0.01853027f    // Dc Voltage coff MAIN_V/BATTERY_V
 #define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff CHARGE_V
-#define ADC0_JDR3_GAIN  0.01696135f    // (+/-)30A/2048   CHARGE_I
+#define ADC0_JDR3_GAIN  0.02061069f    // (+/-)30A/2048   CHARGE_I, 根据实际情况进行校准
+#define ADC1_JDR2_GAIN  0.01831055f    // battery current MAIN_I=samplevalue*3.3/4096/0.044
 
 
 extern PUBLIC UINT8 ApplicationMode;
@@ -348,7 +350,9 @@ PUBLIC float GetChargeCurrent(void)
 ***********************************************************************/
 PUBLIC float GetBatteryCurrent(void)
 { 
-    return 0.0f;
+    float Res = 0;
+    Res = ((INT16)ADC_IDATA2(ADC1) - ADC1_JDR2_Offset) * ADC1_JDR2_GAIN;
+    return Res;
 }
 
 /***********************************************************************
@@ -359,10 +363,9 @@ PUBLIC float GetBatteryCurrent(void)
 ***********************************************************************/
 PUBLIC float GetBatteryVoltage(void)
 { 
-    float Vbattery_tmp; 
-   
-     Vbattery_tmp = ADC_IDATA1(ADC0)*ADC0_JDR1_GAIN;
-    return Vbattery_tmp;
+    float Res = 0;
+    Res = ADC_IDATA1(ADC0) * ADC0_JDR1_GAIN;
+    return Res;
 }
 
 /***********************************************************************

@@ -31,6 +31,7 @@
 #include "LedDriver.h"
 #include "gpio.h"
 #include "MachineAdditionalInfo.h"
+#include "LeadAcidBMS.h"
 
 #include "ISTMagic.h"
 #include "math.h"
@@ -287,6 +288,8 @@ PUBLIC void ControlRunExec(void)
     DataCollectingLoop(sScheduler.TickCnt);
     
 	/* Data collect module  */
+    LeadAcidBatteryDischargeListen();
+    LeadAcidBatteryChargeListen();
 //	data_collect_loop();
 
     sScheduler.SchNum++;

@@ -30,6 +30,9 @@
 #include "LedDriver.h"
 #include "gd_hal.h"
 #include "ISTMagic.h"
+#include "logger.h"
+
+#include "USBApp.h"
 
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 
@@ -57,9 +60,12 @@ int main()
     
     HardwareInit();
     
+    
     __set_PRIMASK( 0 ); // 开启总中断
     __set_FAULTMASK( 0 ); // 没关异常
 
+    USB_init();//USB初始化
+    
     while (1)
     {
         UINT32 LoopStartTime = ReadTimeStampTimer();         
@@ -68,6 +74,9 @@ int main()
         ParamLoop();
         TemperatureExec();
         BatteryInfoReadLoop();
+#ifdef USER_LOGGER
+        log_flush();
+#endif
         LoopElapsedTime = ReadTimeStampTimer() - LoopStartTime;
         if(MaxLoopTime < LoopElapsedTime)
         {
@@ -113,8 +122,8 @@ void HardwareInit()
 		ParamInit();
 		CanAppInit();
     
-        /* Initialize can module*/
-        MX_CAN1_Init();
+    /* Initialize can module*/
+    MX_CAN1_Init();
         
 		AdcInit();		
     
@@ -135,10 +144,16 @@ void HardwareInit()
 		/* Initialize general timer interrupt  40Hz*/
 		MX_TIM11_Init();
         
-        MX_TIM4_Init();
-        MX_TIM8_Init();
+    MX_TIM4_Init();
+    MX_TIM8_Init();
 		/* Initialize usart3 module: for pc comm*/
 		MX_USART2_UART_Init();
+
+#ifdef USER_LOGGER
+    LogInfertace_t tLogInterface;
+    tLogInterface.send = UartSendData;
+    init_log(&tLogInterface);
+#endif
          
 		/* Initialize Gyro module.(MPU6050) */
 		GyroInit();
@@ -164,6 +179,8 @@ PUTCHAR_PROTOTYPE
   /* Place your implementation of fputc here */
   /* e.g. write a character to the USART1 and Loop until the end of transmission */
 //  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1,100);
+  usart_data_transmit(USART1, (uint8_t)ch);
+  while(RESET == usart_flag_get(USART1, USART_FLAG_TBE));
 
   return ch;
 }
