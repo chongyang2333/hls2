@@ -25,7 +25,7 @@ PRIVATE void SVPWMCal(struct CurrentLoopStruct *P);
 //PRIVATE REAL32 RampCtrl (REAL32 in, REAL32 out, REAL32 rampDelta);
 
 extern PUBLIC void ClearEncoderPulses(struct EncoderStruct *P, UINT16 AxisID);
-
+extern PUBLIC void CurrentSampleTimeCal(struct CurrentLoopStruct *P,UINT16 AxisID);
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -199,7 +199,8 @@ PUBLIC void CurrentLoopExec(struct AxisCtrlStruct *P)
       
 	// svpwm
 	SVPWMCal(pCur);
-
+	// Cal ADC Sample Time
+	CurrentSampleTimeCal(pCur,P->AxisID);
 }
 
 /***********************************************************************
@@ -548,6 +549,7 @@ PRIVATE void SVPWMCal(struct CurrentLoopStruct *P)
 	if ( Vb > 0 )  { Sector += 2 ;}
 	if ( Vc > 0 )  { Sector += 4 ;}
 
+	P->Sector = Sector;
 	X = (INT16)(2 * P->Vbeta * P->VDCinvTSQRT);
 	Y = (INT16)(P->Vbeta * P->VDCinvTSQRT + P->Valfa * P->VDCinvTCon0);
 	Z = (INT16)(P->Vbeta * P->VDCinvTSQRT - P->Valfa * P->VDCinvTCon0);

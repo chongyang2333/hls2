@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "Param.h"
 #include "ISTMagic.h"
+#include "gpio.h"
 
 UINT8 alarm_level=0;
 UINT8 alarm_levelBak=0; 
@@ -64,39 +65,44 @@ PUBLIC void MagXYZ_Exec(void)
 		 if(sMyCan.Magic_Enable == 0)
 		 {
 			  alarm_level = 0;
+        ExtVDisable();//modify by hyr 1??ид?3.3V
 				return;
 		 }
-		 
-		 IST8310I2C_WADDR = 0x18;
-		 IST8310I2C_Serial_Read(IST8310_REG_DATAX,DataBuffer,6);
-		 
-		 IST8310I2C_WADDR = 0x1C;
-		 IST8310I2C_Serial_Read(IST8310_REG_DATAX,&DataBuffer[6],6);
-		 
-		 MagXYZ_L[0] = (short)((DataBuffer[1]<<8)+DataBuffer[0]);
-		 
-		 MagXYZ_L[1] = (short)((DataBuffer[3]<<8)+DataBuffer[2]);
-		 
-		 MagXYZ_L[2] = (short)((DataBuffer[5]<<8)+DataBuffer[4]);
-		 
-		 MagXYZ_R[0] = (short)((DataBuffer[7]<<8)+DataBuffer[6]);
-		 
-		 MagXYZ_R[1] = (short)((DataBuffer[9]<<8)+DataBuffer[8]);
-		 
-		 MagXYZ_R[2] = (short)((DataBuffer[11]<<8)+DataBuffer[10]);	
-		 
-		 for(i=0;i<3;i++)
-		 {
-				tempL = abs(MagXYZ_L[i]);
-				tempR = abs(MagXYZ_R[i]);
-				if((tempL>sMyCan.MagicThreshold_left)||(tempR>sMyCan.MagicThreshold_Right))
-				{
-						temp_level = 1;
-						break;
-				}
-		 }
-		 
-		 alarm_level = temp_level;
+    else if(sMyCan.Magic_Enable == 1)
+    {
+        ExtVEnable();//modify by hyr ??бзбу?a3.3V
+    }
+
+    IST8310I2C_WADDR = 0x18;
+    IST8310I2C_Serial_Read(IST8310_REG_DATAX,DataBuffer,6);
+
+    IST8310I2C_WADDR = 0x1C;
+    IST8310I2C_Serial_Read(IST8310_REG_DATAX,&DataBuffer[6],6);
+
+    MagXYZ_L[0] = (short)((DataBuffer[1]<<8)+DataBuffer[0]);
+
+    MagXYZ_L[1] = (short)((DataBuffer[3]<<8)+DataBuffer[2]);
+
+    MagXYZ_L[2] = (short)((DataBuffer[5]<<8)+DataBuffer[4]);
+
+    MagXYZ_R[0] = (short)((DataBuffer[7]<<8)+DataBuffer[6]);
+
+    MagXYZ_R[1] = (short)((DataBuffer[9]<<8)+DataBuffer[8]);
+
+    MagXYZ_R[2] = (short)((DataBuffer[11]<<8)+DataBuffer[10]);
+
+    for(i=0;i<3;i++)
+    {
+        tempL = abs(MagXYZ_L[i]);
+        tempR = abs(MagXYZ_R[i]);
+        if((tempL>sMyCan.MagicThreshold_left)||(tempR>sMyCan.MagicThreshold_Right))
+        {
+            temp_level = 1;
+            break;
+        }
+    }
+
+    alarm_level = temp_level;
 		 #if 0
 		 if(sMyCan.Magic_Enable == 1)
 		 {

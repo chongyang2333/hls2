@@ -31,6 +31,7 @@
 #include "LedDriver.h"
 #include "gpio.h"
 #include "MachineAdditionalInfo.h"
+#include "CurrentSample.h"
 #include "LeadAcidBMS.h"
 
 #include "ISTMagic.h"
@@ -58,6 +59,7 @@ extern PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P);
 extern PUBLIC void ClearCanBreakAlarm(void);
 
 extern PUBLIC void InnerCtrlExec(struct AxisCtrlStruct *P);
+extern PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X);
 
 extern PUBLIC void VeneerAgingTest(void);
 
@@ -195,7 +197,10 @@ PUBLIC void ControlRunExec(void)
     static UINT16 Cnt_1ms = 0;
     
 	/* Start phase current,DC current,DC voltage sample */
-	AdcSampleStart();
+	//AdcSampleStart();
+	  AdcSample0Start();
+    GetPhaseCurrentRe(&sAxis[0]);
+    GetPhaseCurrentRe(&sAxis[1]);
     
 	/* Get encoder counter*/
 	GetEncoderPulse(&sAxis[0].sEncoder, AXIS_LEFT);
@@ -264,12 +269,12 @@ PUBLIC void ControlRunExec(void)
 	}
 
     /* wait for ADC to complete, then acknowledge flag	*/ 
-    AdcSampleClearFlag();
+    //AdcSampleClearFlag();
 
-	/* Calculate phase current */
-	GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib );
-    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
-    
+	  /* Calculate phase current */
+	  //GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
+    //GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
+    AdcSample0ClearFlag();
     GetDcVoltage(&sAxis[0].sCurLoop.Vdc);
     sAxis[1].sCurLoop.Vdc = sAxis[0].sCurLoop.Vdc;
     
@@ -278,8 +283,8 @@ PUBLIC void ControlRunExec(void)
     CurrentLoopExec(&sAxis[1]);
     
 	/* Update PWM compare value */
-    PwmUpdate(AXIS_LEFT, sAxis[0].PowerFlag, sAxis[0].sCurLoop.TaNumber, sAxis[0].sCurLoop.TbNumber, sAxis[0].sCurLoop.TcNumber);
-    PwmUpdate(AXIS_RIGHT, sAxis[1].PowerFlag, sAxis[1].sCurLoop.TaNumber, sAxis[1].sCurLoop.TbNumber, sAxis[1].sCurLoop.TcNumber);    
+    PwmUpdate(AXIS_LEFT, sAxis[0].PowerFlag, sAxis[0].sCurLoop.TaNumber, sAxis[0].sCurLoop.TbNumber, sAxis[0].sCurLoop.TcNumber,sAxis[0].sCurLoop.TdNumber);
+    PwmUpdate(AXIS_RIGHT, sAxis[1].PowerFlag, sAxis[1].sCurLoop.TaNumber, sAxis[1].sCurLoop.TbNumber, sAxis[1].sCurLoop.TcNumber, sAxis[1].sCurLoop.TdNumber);
 	
     /* PWM on/off judgment */
     PowerOnOffExec(&sAxis[0], sScheduler.TickCnt);
@@ -601,7 +606,7 @@ PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime)
         else
         {
             /*Boot Strap Cap Charge*/
-            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0);
+            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0,9999);
             if (0 == P->BootStrapCapChargeFlag)
             {
                 PwmEnable(P->AxisID);
@@ -629,7 +634,7 @@ PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime)
         else
         {
             /*Star Sealing Protection*/
-            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0);
+            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0,9999);
             if (0 == P->StarSealProtectFlag)
             {
                 P->StarSealProtectFlag = 1;

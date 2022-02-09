@@ -22,25 +22,16 @@
 #include "delay.h"
 #include "systick.h"
 
-PRIVATE INT16 ADC2_JDR0_Offset = 2160;
-PRIVATE INT16 ADC2_JDR1_Offset = 2070;
-PRIVATE INT16 ADC1_JDR0_Offset = 2090;
-PRIVATE INT16 ADC1_JDR1_Offset = 2155;
+PUBLIC INT16 ADC2_JDR0_Offset = 2160;
+PUBLIC INT16 ADC2_JDR1_Offset = 2070;
+PUBLIC INT16 ADC2_JDR2_Offset = 2070;
+PUBLIC INT16 ADC1_JDR0_Offset = 2090;
+PUBLIC INT16 ADC1_JDR1_Offset = 2155;
+PUBLIC INT16 ADC1_JDR2_Offset = 2155;
 
 PRIVATE INT16 ADC0_JDR3_Offset = 2048;
-PRIVATE INT16 ADC1_JDR2_Offset = 2038;
-
-#define ADC2_JDR0_GAIN  0.01696135f    // (+/-)30A/2048
-#define ADC2_JDR1_GAIN  0.01696135f    // (+/-)30A/2048
-#define ADC1_JDR0_GAIN  0.01696135f    // (+/-)30A/2048
-#define ADC1_JDR1_GAIN  0.01696135f    // (+/-)30A/2048
 
 
-#define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
-#define ADC0_JDR1_GAIN  0.01853027f    // Dc Voltage coff MAIN_V/BATTERY_V
-#define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff CHARGE_V
-#define ADC0_JDR3_GAIN  0.02061069f    // (+/-)30A/2048   CHARGE_I, 根据实际情况进行校准
-#define ADC1_JDR2_GAIN  0.01831055f    // battery current MAIN_I=samplevalue*3.3/4096/0.044
 
 
 extern PUBLIC UINT8 ApplicationMode;
@@ -82,8 +73,8 @@ PUBLIC void PwmInit(void)
     MX_TIM0_Init(); // Axis_Left PWM Init
     MX_TIM7_Init(); // Axis_Right PWM Init
     
-    PwmDisable(AXIS_LEFT);
-    PwmDisable(AXIS_RIGHT);
+    //PwmDisable(AXIS_LEFT);
+    //PwmDisable(AXIS_RIGHT);
 }
 
 /***********************************************************************
@@ -96,11 +87,11 @@ PUBLIC void PwmEnable(UINT16 AxisID)
 {
     if(AXIS_LEFT == AxisID)
      {
-        TIMER_CHCTL2(TIMER0) = 0x555;
+        TIMER_CHCTL2(TIMER0) |= 0x555;
      }
      else if(AXIS_RIGHT == AxisID)
      {
-        TIMER_CHCTL2(TIMER7) = 0x555;
+        TIMER_CHCTL2(TIMER7) |= 0x555;
      }
 }
 
@@ -114,11 +105,11 @@ PUBLIC void PwmDisable(UINT16 AxisID)
 {
      if(AXIS_LEFT == AxisID)
      {
-        TIMER_CHCTL2(TIMER0) = 0;
+        TIMER_CHCTL2(TIMER0) &= 0x1000;
     }
     else if(AXIS_RIGHT == AxisID)
     {
-         TIMER_CHCTL2(TIMER7) = 0;
+        TIMER_CHCTL2(TIMER7) &= 0x1000;
     }
 }
 
@@ -128,24 +119,27 @@ PUBLIC void PwmDisable(UINT16 AxisID)
  * RETURNS:
  *
 ***********************************************************************/
-PUBLIC void PwmUpdate(UINT16 AxisID, UINT16 PowerFlag, UINT16 Ta, UINT16 Tb, UINT16 Tc)
+PUBLIC void PwmUpdate(UINT16 AxisID, UINT16 PowerFlag, UINT16 Ta, UINT16 Tb, UINT16 Tc, UINT16 Td)
 {
-    if(POWER_OFF == PowerFlag)
-    {
+     if(POWER_OFF == PowerFlag)
+     {
         Ta = Tb = Tc = 0;
-    }
+        Td = 9999;
+     }
     
      if(AXIS_LEFT == AxisID)
      {
-				TIMER_CH0CV(TIMER0) = Ta;
-				TIMER_CH1CV(TIMER0) = Tb;
-				TIMER_CH2CV(TIMER0) = Tc;
+        TIMER_CH0CV(TIMER0) = Ta;
+        TIMER_CH1CV(TIMER0) = Tb;
+        TIMER_CH2CV(TIMER0) = Tc;
+        TIMER_CH3CV(TIMER0) = Td;
      }
      else if(AXIS_RIGHT == AxisID)
      {
-                TIMER_CH0CV(TIMER7) = Ta;
-                TIMER_CH1CV(TIMER7) = Tb;
-                TIMER_CH2CV(TIMER7) = Tc;
+        TIMER_CH0CV(TIMER7) = Ta;
+        TIMER_CH1CV(TIMER7) = Tb;
+        TIMER_CH2CV(TIMER7) = Tc;
+        TIMER_CH3CV(TIMER7) = Td;
     }
 }
 
@@ -158,9 +152,10 @@ PUBLIC void PwmUpdate(UINT16 AxisID, UINT16 PowerFlag, UINT16 Ta, UINT16 Tb, UIN
 PUBLIC void AdcInit(void)
 {
     gpio_adc_config();
-	adc_config();
+	  adc_config();
     delay_ms(50);
     AdcOffsetCal();  // todo
+	  adc_reconfig();
 }
 
 /***********************************************************************
@@ -171,11 +166,15 @@ PUBLIC void AdcInit(void)
 ***********************************************************************/
 PUBLIC void AdcSampleStart(void)
 { 
-	adc_software_trigger_enable(ADC0,ADC_INSERTED_CHANNEL);
+	//adc_software_trigger_enable(ADC0,ADC_INSERTED_CHANNEL);
 	adc_software_trigger_enable(ADC1,ADC_INSERTED_CHANNEL);
 	adc_software_trigger_enable(ADC2,ADC_INSERTED_CHANNEL);
 }
 
+PUBLIC void AdcSample0Start(void)
+{ 
+	adc_software_trigger_enable(ADC0,ADC_INSERTED_CHANNEL);
+}
 /***********************************************************************
  * DESCRIPTION: wait for ADC to complete, then acknowledge flag
  *
@@ -194,14 +193,20 @@ PUBLIC void AdcSampleClearFlag(void)
 //    LeftMotorAdc = ADC3->JDR3;
 //    RightMotorAdc = ADC2->JDR3;
 	
-	if((ADC_STAT(ADC0) & ADC_STAT_STIC))
-			ADC_STAT(ADC0)&=(~ADC_STAT_STIC);
+//	if((ADC_STAT(ADC0) & ADC_STAT_STIC))
+//		ADC_STAT(ADC0)&=(~ADC_STAT_STIC);
+
 	if((ADC_STAT(ADC1) & ADC_STAT_STIC))
 		ADC_STAT(ADC1)&=(~ADC_STAT_STIC);
 	if((ADC_STAT(ADC2) & ADC_STAT_STIC))
 		ADC_STAT(ADC2)&=(~ADC_STAT_STIC);
 }
 
+PUBLIC void AdcSample0ClearFlag(void)
+{
+	if((ADC_STAT(ADC0) & ADC_STAT_STIC))
+		ADC_STAT(ADC0)&=(~ADC_STAT_STIC);
+}
 /***********************************************************************
  * DESCRIPTION:  get motor temprature
  *
@@ -239,8 +244,10 @@ PRIVATE void AdcSumPort(uint16_t * sum)
 {
         sum[0] += ADC_IDATA0(ADC2);
         sum[1] += ADC_IDATA1(ADC2);
-        sum[2] += ADC_IDATA0(ADC1);
-        sum[3] += ADC_IDATA1(ADC1);
+        sum[2] += ADC_IDATA2(ADC2);
+        sum[3] += ADC_IDATA0(ADC1);
+	      sum[4] += ADC_IDATA1(ADC1);
+        sum[5] += ADC_IDATA2(ADC1);
 }
 /***********************************************************************
  * DESCRIPTION: 
@@ -250,34 +257,57 @@ PRIVATE void AdcSumPort(uint16_t * sum)
 ***********************************************************************/
 PRIVATE INT16 Left_AdcInitState = 0;
 PRIVATE INT16 Right_AdcInitState = 0;
+UINT16 sum[6]={0};
 PUBLIC void AdcOffsetCal(void)
 {
-    UINT16 sum[6]={0};
     
-    for(int i=0;i<16;i++)
-    {
-        AdcSampleStart();
-        AdcSampleClearFlag();
-        
-        AdcSumPort(sum);
-        
-        delay_ms(2);
-    }
-    
-    ADC2_JDR0_Offset = sum[0]/16;
-    ADC2_JDR1_Offset = sum[1]/16;
-    
+		static UINT16 CapChargTime = 0;
+		
+		PwmUpdate(AXIS_LEFT, 1, 0, 0, 0,9999);
+		PwmUpdate(AXIS_RIGHT, 1, 0, 0, 0,9999);
+
+		PwmEnable(AXIS_LEFT);
+		PwmEnable(AXIS_RIGHT);
+		
+		while(CapChargTime < 100)
+		{
+			 CapChargTime++;
+		}
+
+		{
+		    CapChargTime = 100;
+			  PwmUpdate(AXIS_LEFT, 1, 5000, 5000, 5000,9999);
+			  PwmUpdate(AXIS_RIGHT, 1, 5000, 5000, 5000,9999);
+
+        for(int i = 0;i < 16;i++)
+        {
+						AdcSampleStart();
+					  delay_ms(1);
+					  AdcSumPort(sum);
+						AdcSampleClearFlag();						      						
+        }
+				AdcSampleClearFlag();
+				ADC1_JDR0_Offset = sum[3] / 16;
+				ADC1_JDR1_Offset = sum[4] / 16;
+				ADC1_JDR2_Offset = sum[5] / 16;
+				ADC2_JDR0_Offset = sum[0] / 16;
+				ADC2_JDR1_Offset = sum[1] / 16;
+				ADC2_JDR2_Offset = sum[2] / 16;	
+
+        PwmDisable(AXIS_LEFT);
+			  PwmDisable(AXIS_RIGHT);				
+		}
+           
     if((ADC2_JDR0_Offset > 2248) || (ADC2_JDR0_Offset <1848)
-        || (ADC2_JDR1_Offset > 2248) || (ADC2_JDR1_Offset <1848))
+        || (ADC2_JDR1_Offset > 2248) || (ADC2_JDR1_Offset <1848)
+		    || (ADC2_JDR2_Offset > 2248) || (ADC2_JDR2_Offset <1848))
     {
         Left_AdcInitState = 1;
     }
-    
-    ADC1_JDR0_Offset = sum[2]/16;
-    ADC1_JDR1_Offset = sum[3]/16;
      
     if((ADC1_JDR0_Offset > 2248) || (ADC1_JDR0_Offset <1848)
-        || (ADC1_JDR1_Offset > 2248) || (ADC1_JDR1_Offset <1848))
+        || (ADC1_JDR1_Offset > 2248) || (ADC1_JDR1_Offset <1848)
+		    || (ADC1_JDR2_Offset > 2248) || (ADC1_JDR2_Offset <1848))
     {
         Right_AdcInitState = 1;
     }
@@ -350,7 +380,7 @@ PUBLIC float GetChargeCurrent(void)
 PUBLIC float GetBatteryCurrent(void)
 { 
     float Res = 0;
-    Res = ((INT16)ADC_IDATA2(ADC1) - ADC1_JDR2_Offset) * ADC1_JDR2_GAIN;
+     Res = ((INT16)ADC_IDATA3(ADC0) - ADC0_JDR3_Offset)*ADC0_JDR3_GAIN;
     return Res;
 }
 
@@ -545,9 +575,9 @@ PUBLIC UINT16 GetIbusOverCurState(UINT16 AxisID)
 ***********************************************************************/
 PUBLIC void ResetACS711(void)
 {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
     delay_us(1000);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
 }
 
 /***********************************************************************

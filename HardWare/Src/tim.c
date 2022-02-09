@@ -61,9 +61,9 @@ void gpio_timer0_config(void)
     rcu_periph_clock_enable(RCU_GPIOE);
 
     /*configure PE8(TIMER0 CH0) as alternate function*/
-    gpio_mode_set(GPIOE, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_8);
-    gpio_output_options_set(GPIOE, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_8);
-    gpio_af_set(GPIOE, GPIO_AF_1, GPIO_PIN_8);
+    gpio_mode_set(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_13);
+    gpio_output_options_set(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_13);
+    gpio_af_set(GPIOB, GPIO_AF_1, GPIO_PIN_13);
 
     /*configure PE9(TIMER0 CH0N) as alternate function*/
     gpio_mode_set(GPIOE, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_9);
@@ -116,6 +116,11 @@ void MX_TIM0_Init(void)
     timer_init(TIMER0,&timer_initpara);
 
     /* CH0/CH0N configuration in PWM mode0 */
+		
+		timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
+    timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
+    timer_channel_output_config(TIMER0,TIMER_CH_3,&timer_ocintpara);
+		
     timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
     timer_ocintpara.outputnstate = TIMER_CCXN_DISABLE;
     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
@@ -130,13 +135,16 @@ void MX_TIM0_Init(void)
     timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_0,4999); //设定比较值
     timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_1,4999);
     timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_2,4999);
+    timer_channel_output_pulse_value_config(TIMER0,TIMER_CH_3,9999);
 
     timer_channel_output_mode_config(TIMER0,TIMER_CH_0,TIMER_OC_MODE_PWM0);
     timer_channel_output_mode_config(TIMER0,TIMER_CH_1,TIMER_OC_MODE_PWM0);
     timer_channel_output_mode_config(TIMER0,TIMER_CH_2,TIMER_OC_MODE_PWM0);
+    timer_channel_output_mode_config(TIMER0,TIMER_CH_3,TIMER_OC_MODE_PWM1);
     timer_channel_output_shadow_config(TIMER0,TIMER_CH_0,TIMER_OC_SHADOW_ENABLE);
     timer_channel_output_shadow_config(TIMER0,TIMER_CH_1,TIMER_OC_SHADOW_ENABLE);
     timer_channel_output_shadow_config(TIMER0,TIMER_CH_2,TIMER_OC_SHADOW_ENABLE);
+    timer_channel_output_shadow_config(TIMER0,TIMER_CH_3,TIMER_OC_SHADOW_ENABLE);
 
     /* automatic output enable, break, dead time and lock configuration*/
     timer_breakpara.runoffstate      = TIMER_ROS_STATE_ENABLE;
@@ -322,6 +330,11 @@ void MX_TIM7_Init(void)
     timer_init(TIMER7,&timer_initpara);
 
     /* CH0/CH0N configuration in PWM mode0 */
+		
+		timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
+    timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
+    timer_channel_output_config(TIMER7,TIMER_CH_3,&timer_ocintpara);
+		
     timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
     timer_ocintpara.outputnstate = TIMER_CCXN_DISABLE;
     timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
@@ -336,13 +349,16 @@ void MX_TIM7_Init(void)
     timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_0,4999); //设定比较值
     timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_1,4999);
     timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_2,4999);
+		timer_channel_output_pulse_value_config(TIMER7,TIMER_CH_3,9999);
+		
     timer_channel_output_mode_config(TIMER7,TIMER_CH_0,TIMER_OC_MODE_PWM0);
     timer_channel_output_mode_config(TIMER7,TIMER_CH_1,TIMER_OC_MODE_PWM0);
     timer_channel_output_mode_config(TIMER7,TIMER_CH_2,TIMER_OC_MODE_PWM0);
+		timer_channel_output_mode_config(TIMER7,TIMER_CH_3,TIMER_OC_MODE_PWM1);
     timer_channel_output_shadow_config(TIMER7,TIMER_CH_0,TIMER_OC_SHADOW_ENABLE);
     timer_channel_output_shadow_config(TIMER7,TIMER_CH_1,TIMER_OC_SHADOW_ENABLE);
     timer_channel_output_shadow_config(TIMER7,TIMER_CH_2,TIMER_OC_SHADOW_ENABLE);
-
+    timer_channel_output_shadow_config(TIMER7,TIMER_CH_3,TIMER_OC_SHADOW_ENABLE);
     /* automatic output enable, break, dead time and lock configuration*/
     timer_breakpara.runoffstate      = TIMER_ROS_STATE_ENABLE;
     timer_breakpara.ideloffstate     = TIMER_IOS_STATE_ENABLE ;
@@ -452,7 +468,7 @@ void MX_TIM1_Init(void)
 {
 	timer_parameter_struct timer_initpara;
     timer_oc_parameter_struct timer_ocintpara;
-    
+    gpio_timer1_config();
     rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
     rcu_periph_clock_enable(RCU_TIMER1);
     

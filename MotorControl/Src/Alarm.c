@@ -169,6 +169,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 {
     struct AlarmStruct *pAlarm = &P->sAlarm;
 	REAL32 Imax,Imin;
+	UINT16 Safe_IO = 0;
 
     // Inner Alarm : sheduler error  
     if(GetIsrElapsedTime() > MAX_PWM_ISR_TIME)
@@ -255,74 +256,36 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 	        pAlarm->HallErrCnt = HALL_ALARM_MAX_CNT;
 	    }
 	}
-    if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10)) && (pAlarm->ErrReg.bit.StutterStop))
+
+    Safe_IO = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14)|HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
+    if((Safe_IO == 0) && (pAlarm->ErrReg.bit.StutterStop))
     {
     	pAlarm->EmergencyStopRstCnt++;
         
-//        if (!ApplicationMode)
-//        {
-//            pAlarm->EmergencyStopSetCnt = 0;
-//            if(pAlarm->EmergencyStopRstCnt > 300)
-//            {
-//                pAlarm->ErrReg.bit.StutterStop = 0;
-//                pAlarm->EmergencyStopRstCnt = 300;
-//                ClearScramStatus(P->AxisID);
-//            }
-//            else if(pAlarm->EmergencyStopRstCnt > 200)
-//            {
-//                HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);// 12V
-//            }
-//            else if(pAlarm->EmergencyStopRstCnt > 3)
-//            {
-//                VbusEnable();
-//            }        
-//        }
-//        else
-//        {
-            #define WAIT_SOFT_START_FINISH (3000)
-            #define SOFT_START_BEGIN (3)          
-   
-            if (pAlarm->EmergencyStopRstCnt > WAIT_SOFT_START_FINISH)
+        #define WAIT_SOFT_START_FINISH (3000)
+        #define SOFT_START_BEGIN (3)
+
+        if (pAlarm->EmergencyStopRstCnt > WAIT_SOFT_START_FINISH)
+        {
+            pAlarm->ErrReg.bit.StutterStop = 0;
+            ClearScramStatus(P->AxisID);
+        }
+        else if(pAlarm->EmergencyStopRstCnt > SOFT_START_BEGIN)
+        {
+            if ((!sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) && (!sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
             {
-                pAlarm->ErrReg.bit.StutterStop = 0;
-                ClearScramStatus(P->AxisID);
+                sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 1;
             }
-            else if (pAlarm->EmergencyStopRstCnt > SOFT_START_BEGIN)
-            {
-                if ((!sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) && (!sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
-                {
-                    sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 1;
-                }        
-            }            
-//        }
+        }
 	}
-	else if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == 0))// && (pAlarm->ErrReg.bit.StutterStop == 0))
+	else if(Safe_IO == 1)// && (pAlarm->ErrReg.bit.StutterStop == 0))
 	{  
 		pAlarm->ErrReg.bit.StutterStop = 1;
 		pAlarm->EmergencyStopRstCnt = 0;
-        
-//        if (!ApplicationMode)
-//        {      
-//            if (pAlarm->EmergencyStopSetCnt < 2000)
-//            {
-//                VbusDisable();//关24V
-//            }
-//            //Drv Power Disable after 200ms
-//            else
-//            {
-//                pAlarm->EmergencyStopSetCnt = 2000;
-//                DrvPwDisable();// 关12V
-//            }
-//            pAlarm->EmergencyStopSetCnt++;
-//        }
-//        else
-//        {
-            sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 0;
-            sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 0;
-            VbusDisable();
-            SetVbusPower(0);        
-//        }
-		
+        sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 0;
+        sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 0;
+        VbusDisable();
+        SetVbusPower(0);
 	}
     
 //    if (ApplicationMode)
@@ -345,12 +308,13 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
             }
         }
 //    }
-    
-    if(GetHardOverCurState(P->AxisID))
-    {
-        pAlarm->ErrReg.bit.HardCurOver = 1;
-    }
-		if(GetIbusOverCurState(P->AxisID))
+//    modify by hyr 去掉相电流硬件保护
+//    if(GetHardOverCurState(P->AxisID))
+//    {
+//        pAlarm->ErrReg.bit.HardCurOver = 1;
+//    }
+
+	if(GetIbusOverCurState(P->AxisID))
     {
         pAlarm->ErrReg.bit.BusCurOver = 1;
     }
@@ -417,7 +381,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
         CiA402_LocalError(P->AxisID, pAlarm->ErrReg.all);		
 	}
     
-    if ((pAlarm->ErrReg.bit.HardCurOver) || (pAlarm->ErrReg.bit.SpdOver) || (pAlarm->ErrReg.bit.StutterStop))
+    if ((pAlarm->ErrReg.bit.BusCurOver) || (pAlarm->ErrReg.bit.SpdOver) || (pAlarm->ErrReg.bit.StutterStop))
     {
         P->PowerEn = 0;
     }
@@ -454,45 +418,35 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     // Vdc judgement
     if(P->sCurLoop.Vdc > pAlarm->VdcMax)
     {
-        pAlarm->VdcOverCnt = BEMF_DISCHATGE_TIME+1;
+			  pAlarm->VdcOverCnt++;
     }
     else if(P->sCurLoop.Vdc > pAlarm->VdcWarn && !pAlarm->ErrReg.bit.VdcOver)
     {
         pAlarm->VdcOverCnt++;
-        BEMF_DischargeOn();  
-        pAlarm->VdcDischargeFlag = 1;
     }
     else if(P->sCurLoop.Vdc > pAlarm->VdcMin)
-    {
-       
+    {       
         if(pAlarm->VdcUnderCnt)
         {
             pAlarm->VdcUnderCnt--;
         }
-		if(P->sCurLoop.Vdc < pAlarm->VdcWarn -2)
-		{
-			BEMF_DischargeOff();
-            pAlarm->VdcDischargeFlag = 0;
-			 if(pAlarm->VdcOverCnt)
-	        {
-	            pAlarm->VdcOverCnt--;
-	        }
-		}
+				
+				if(P->sCurLoop.Vdc < pAlarm->VdcWarn -2)
+				{
+					if(pAlarm->VdcOverCnt)
+					{
+							pAlarm->VdcOverCnt--;
+					}
+				}
         else
         {
-            if(pAlarm->VdcDischargeFlag == 1)
-			{
-                pAlarm->VdcOverCnt++;
-            }
-
+              pAlarm->VdcOverCnt++;
         }
     }
     else
     {
-        BEMF_DischargeOff();
-        pAlarm->VdcDischargeFlag = 0;
         pAlarm->VdcOverCnt = 0;
-		if (sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) // 防止按急停松开上电中报欠压
+		    if(sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) // 防止按急停松开上电中报欠压
         {
             pAlarm->VdcUnderCnt++;
         }
@@ -501,8 +455,6 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     // Vdc Over Alarm
     if(pAlarm->VdcOverCnt >= BEMF_DISCHATGE_TIME)
     {
-        pAlarm->VdcDischargeFlag = 0;
-        BEMF_DischargeOff();
         pAlarm->ErrReg.bit.VdcOver = 1;
         pAlarm->VdcOverCnt = BEMF_DISCHATGE_TIME;
     }
@@ -516,7 +468,6 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 	//Pwmout Break Alarm
     if (P->sEncoder.HallEnable == 2)
     {
-
         pAlarm->PwmoutDisconnectCnt++;
        
         #define MAX_PWMOUT_DISCONNECT   (1000)

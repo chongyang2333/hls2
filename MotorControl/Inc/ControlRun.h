@@ -21,7 +21,7 @@
 #include "Encoder.h"
 #include "Alarm.h"
 #include "gd32f4xx_exti.h"
-
+#include "CurrentSample.h"
 /*------------------------- Public Constants ----------------------*/
 #define MAX_AXIS_NUM        2
 
@@ -50,7 +50,11 @@
 #define SPEED_FRQ           CURRENT_FRQ/2
 #define POSITION_FRQ        CURRENT_FRQ/5
 
-
+//????????
+#define TW_AFTER            600
+#define TW_BFTER            800
+#define TW_BEFORE           201
+#define TW_AEFORE           550
 
 #define CURRENT_PRD         (1.0f/(float)CURRENT_FRQ)
 //#define SPEED_PRD           (5.0f*CURRENT_PRD)
@@ -85,6 +89,9 @@ struct CurrentLoopStruct
 	REAL32	Ia;                  // phase a actual current
 	REAL32	Ib;                  // phase b actual current
 	REAL32	Ic;                  // phase c actual current
+	INT16   CurPhaA_Data[3];
+	INT16   CurPhaB_Data[3];
+	INT16   CurPhaC_Data[3];
 	REAL32	Ialfa;               // Ialfa actual current
 	REAL32	Ibeta;               // Ibeta actual current
     
@@ -137,9 +144,12 @@ struct CurrentLoopStruct
 	REAL32	Vbeta;               // beta-axis voltage
 
 	/* SVPWM Module */
+	INT16   Sector;              // SectorNum
 	INT16	TaNumber;            // SVPWM output for timer compare value
 	INT16	TbNumber;            // SVPWM output for timer compare value
 	INT16	TcNumber;            // SVPWM output for timer compare value
+	INT16   TdNumber;            // ADC Sample Time
+	INT16   CurEffective;        // Current Effective flag
 	INT16	Tonmin;              // PWM on min value (timer counter)
 	INT16	Tonmax;              // PWM on max value (timer counter)
 	INT16	PWMPRD;              // PWM period value (timer counter)

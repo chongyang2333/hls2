@@ -123,11 +123,11 @@ void HardwareInit()
     /* Initialize can module*/
     MX_CAN1_Init();
 
-    AdcInit();
 
     /* Initialize pwm:for motor drive*/
     PwmInit();
 
+		AdcInit();		
     PowerManagerInit(ApplicationMode);
 
     /* Initialize DMA for usart tx */
@@ -148,6 +148,7 @@ void HardwareInit()
     MX_TIM8_Init();
     /* Initialize usart3 module: for pc comm*/
     MX_USART2_UART_Init();
+		MX_USART3_UART_Init();
 
 #ifdef USER_LOGGER
     LogInfertace_t tLogInterface;
@@ -170,8 +171,10 @@ void HardwareInit()
     //		HAL_NVIC_EnableIRQ(TIM7_IRQn);
     timer_interrupt_enable(TIMER11, TIMER_INT_UP);
     timer_interrupt_enable(TIMER0, TIMER_INT_UP);
-    /* Enable EXTI4 interrupt */
-    //        HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+        TIMER_CHCTL2(TIMER0) |= 0x1000;
+				TIMER_CHCTL2(TIMER7) |= 0x1000;
+        /* Enable EXTI4 interrupt */
+//        HAL_NVIC_EnableIRQ(EXTI4_IRQn); 
 }
 
 PUTCHAR_PROTOTYPE
