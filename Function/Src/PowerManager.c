@@ -736,7 +736,7 @@ PRIVATE void PM_PowerOnOffExec(void)
 
 		case POWEROFF:
 			//执行关机操作
-            LedFsmEventHandle(&sLedFsm, LED_EVENT_MCU_POWEROFF, LED_STATE_CLOSE, NULL);
+//            LedFsmEventHandle(&sLedFsm, LED_EVENT_MCU_POWEROFF, LED_STATE_CLOSE, NULL);
             if( IsMachineAddInfoSaveOK() )
 			{
                 McuPowerOff();
@@ -870,18 +870,18 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 	if ((sPowerManager.sChargeInfo.ChargeAppState == CHARGING) || (sPowerManager.sChargeInfo.ChargeAppState == CHECK_BEFORE_CHARGING))
 	{
 		//插上充电后，即显示充电呼吸效果
-		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_ING, GetBatteryLevelForLed(sPowerManager.sBatteryInfo.BatteryLevelOptimized), NULL);
+//		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_ING, GetBatteryLevelForLed(sPowerManager.sBatteryInfo.BatteryLevelOptimized), NULL);
 	}
 	else if(sPowerManager.sChargeInfo.ChargeAppState == NOT_CHARGED)
 	{
 		//拔掉充电器后，进入正常的蓝色待机状态
-		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
+//		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
 	}
 	else if(sPowerManager.sChargeInfo.ChargeAppState == POWER_ALARM)
 	{
-        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
+//        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
 		//当出现故障时，接收上位机控制，提示红色闪烁故障灯
-		LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, LED_STATE_ERROR, NULL);
+//		LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, LED_STATE_ERROR, NULL);
 	}
 	
 }

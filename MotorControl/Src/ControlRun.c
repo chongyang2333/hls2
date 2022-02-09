@@ -330,8 +330,8 @@ PUBLIC void TimerIsrExec(void)
     //Gyro task 
     GyroExec();
     
-    LedDriverExec();
-    led_bar_driver();
+//    LedDriverExec();
+//    led_bar_driver();
     // StateMachine
     CiA402_StateMachine();
     
@@ -354,7 +354,7 @@ PUBLIC void TimerIsrExec(void)
     
     ClearCanBreakAlarm();
     
-		MagXYZ_Exec();
+	MagXYZ_Exec();
 		
     sScheduler.Tim7IsrTime = ReadTimeStampTimer() - StartTime;
     

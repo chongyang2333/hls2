@@ -37,6 +37,8 @@ OF SUCH DAMAGE.
 #include "gd32f4xx.h"
 #include "systick.h"
 
+#define SYSTICK_LOAD_VALUE 0XFFFFFF
+
 volatile static uint32_t delay;
 
 /*!
@@ -47,29 +49,109 @@ volatile static uint32_t delay;
 */
 void systick_config(void)
 {
-    /* setup systick timer for 1000Hz interrupts */
-    if (SysTick_Config(SystemCoreClock / 1000U)){
+    /* setup systick timer for  interrupts */
+    if (SysTick_Config(SYSTICK_LOAD_VALUE))
+    { //  max 0xFFFFFFUL
         /* capture error */
-        while (1){
+        while (1)
+        {
         }
     }
     /* configure the systick handler priority */
     NVIC_SetPriority(SysTick_IRQn, 0x00U);
 }
 
-/*!
-    \brief    delay a time in milliseconds
-    \param[in]  count: count in milliseconds
-    \param[out] none
-    \retval     none
-*/
-void delay_1ms(uint32_t count)
+/**
+ * @brief 
+ * 
+ */
+volatile static uint32_t TimeStampBase = 0;
+void SysTick_Handler(void)
 {
-    delay = count;
-
-    while(0U != delay){
+    if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))
+    {
+        TimeStampBase += SYSTICK_LOAD_VALUE;
     }
 }
+
+/**
+ * @brief 获取滴答定时器的时间戳,会关总中断，最好不要循环执行。
+ * 
+ * @return  
+ */
+uint32_t ReadSystickStampTimer(void)
+{
+    uint32_t systick_tmp;
+    uint32_t ret;
+
+    __set_PRIMASK(1); // 关闭所有中断
+
+    systick_tmp = SysTick->VAL; // 第一次获取
+
+    if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)) // 禁止中断这段时间产生了systick重装载初值的情况
+    {
+
+        // 再获取一次滴答值，此次一定是重装载后的值，第一次获取有可能是重装载前的值
+        systick_tmp = SysTick->VAL;
+        TimeStampBase += SYSTICK_LOAD_VALUE;
+        ret = TimeStampBase + SYSTICK_LOAD_VALUE - systick_tmp;
+    }
+    else
+    {
+        ret = TimeStampBase + SYSTICK_LOAD_VALUE - systick_tmp;
+    }
+    //return TIMER1->TIMER_CNT;
+    __set_PRIMASK(0);
+
+    return ret;
+}
+
+/**
+ * @brief 延迟1us
+ * 
+ * @param count 
+ */
+void delay_1us(uint32_t count)
+{
+    uint32_t delay_cnt = count;
+    uint32_t time_begin;
+    uint32_t time_tmp;
+    uint32_t systick_cnt = 0;
+
+    while (delay_cnt)
+    {
+        time_begin = SysTick->VAL;
+        while( systick_cnt <= (SystemCoreClock/1000000)  ) // 循环等待1us
+        {   
+            time_tmp = SysTick->VAL;
+
+            if (time_tmp > time_begin)
+            {
+                systick_cnt =  time_begin + SYSTICK_LOAD_VALUE - time_tmp;
+            }
+            else
+            {
+                systick_cnt = time_begin - time_tmp;
+            }
+        }
+        delay_cnt--;
+    }
+}
+
+// /*!
+//     \brief    delay a time in milliseconds
+//     \param[in]  count: count in milliseconds
+//     \param[out] none
+//     \retval     none
+// */
+// void delay_1ms(uint32_t count)
+// {
+//     delay = count;
+
+//     while (0U != delay)
+//     {
+//     }
+// }
 
 /*!
     \brief    delay decrement
@@ -79,7 +161,8 @@ void delay_1ms(uint32_t count)
 */
 void delay_decrement(void)
 {
-    if (0U != delay){
+    if (0U != delay)
+    {
         delay--;
     }
 }

@@ -244,15 +244,15 @@ PUBLIC void CanAppDispatch(void)
         break;
 
     case 0x75:
-        LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
-        CanSendLedStateFb(sLedFsm.curState);
+//        LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
+//        CanSendLedStateFb(sLedFsm.curState);
         break;
 
     case 0x90:
-        if( CanRxMessage.RxData[1] == 13 || CanRxMessage.RxData[1] == 14 )
-        {
-            chassis_led_ctrl( CanRxMessage.RxData );
-        }
+//        if( CanRxMessage.RxData[1] == 13 || CanRxMessage.RxData[1] == 14 )
+//        {
+//            chassis_led_ctrl( CanRxMessage.RxData );
+//        }
         break;
 
     case 0x77:
@@ -392,8 +392,8 @@ PUBLIC void USB2CAN_RecvDispatch(UINT8 *data,UINT16 datalen)
             break;
 
         case 0x75:
-            LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
-            CanSendLedStateFb(sLedFsm.curState);
+//            LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
+//            CanSendLedStateFb(sLedFsm.curState);
             break;
 
         case 0x90:

@@ -20,6 +20,7 @@
 #include "tim.h"
 #include "gd_hal.h"
 #include "delay.h"
+#include "systick.h"
 
 PRIVATE INT16 ADC2_JDR0_Offset = 2160;
 PRIVATE INT16 ADC2_JDR1_Offset = 2070;
@@ -54,7 +55,8 @@ PRIVATE void AdcSumPort(uint16_t * sum);
 ***********************************************************************/
 PUBLIC void TimeStampTimerInit(void)
 {
-    MX_TIM1_Init();
+    // MX_TIM1_Init();
+    systick_config();
 }
 
 /***********************************************************************
@@ -63,13 +65,10 @@ PUBLIC void TimeStampTimerInit(void)
  * RETURNS: Return current time stam value
  *
 ***********************************************************************/
-uint32_t TEST_V32 = 0;
+// uint32_t TEST_V32 = 0;
 PUBLIC UINT32 ReadTimeStampTimer(void)
 {
-    TEST_V32 = TIMER_CNT(TIMER1);
-    return TIMER_CNT(TIMER1);
-	
-	//return TIMER1->TIMER_CNT;
+    return ReadSystickStampTimer();
 }
 
 /***********************************************************************
@@ -567,4 +566,5 @@ PUBLIC UINT16 ReadPwmoutIOState(UINT16 AxisID)
     {
         return HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3);
     }
+    return 0;
 }

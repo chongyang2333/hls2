@@ -151,10 +151,10 @@ void PendSV_Handler(void)
     \param[out] none
     \retval     none
 */
-void SysTick_Handler(void)
-{
-//    delay_decrement();
-}
+//void SysTick_Handler(void)
+//{
+////    delay_decrement();
+//}
 
 void TIMER7_BRK_TIMER11_IRQHandler(void)
 {
@@ -449,3 +449,4 @@ static void resume_mcu_clk(void)
     while(RCU_SCSS_PLLP != rcu_system_clock_source_get()) {
     }
 }
+

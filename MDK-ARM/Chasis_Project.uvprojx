@@ -82,7 +82,7 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>Post Universe Chassis.bat</UserProg1Name>
+            <UserProg1Name>"F:\CODE\hardware\HLS2\UniverseChassisProjectGD32F450_HLS2\MDK-ARM\Post Universe Chassis.bat"</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -624,6 +624,11 @@
               <FileName>logger.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Src\logger.c</FilePath>
+            </File>
+            <File>
+              <FileName>systick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\systick.c</FilePath>
             </File>
           </Files>
         </Group>
