@@ -1783,7 +1783,8 @@ PUBLIC void BatteryInfoReadLoop(void)
         sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
         sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel = 99;
         sPowerManager.sBatteryInfo.BatteryFullChargeTopLevel = 100;  
-        sPowerManager.sAlarm.ChargeCurrentMax = 3500;
+        sPowerManager.sAlarm.ChargeCurrentMax = 4000;
+        sPowerManager.sChargeInfo.ChargerConnectedCurrentThreshold = leadAcidConnCurrentThrd();
         lead_acid_battery_info();
     }
     else
