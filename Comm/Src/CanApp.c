@@ -342,6 +342,8 @@ PUBLIC void USB2CAN_RecvDispatch(UINT8 *data,UINT16 datalen)
         if(!(sAxis[0].sAlarm.ErrReg.all || sAxis[1].sAlarm.ErrReg.all))
         {
             CanSetMotion(CanRxMessage.RxData);
+            USB_send(0x0d,CanRxMessage.RxData,8);
+            
         }
         else
         {
