@@ -141,7 +141,7 @@ UINT8 MX_GPIO_Init(void)
     gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_1);
     ExtVDisable();
     /*Configure GPIO pins : PE0 led1 */
-    gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_0);
+    gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_0);
     gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_0);
     /*Configure GPIO pins : PE4 : DC Voltage State */
     gpio_mode_set(GPIOE,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_4);
@@ -314,16 +314,16 @@ void VbusBufferDisable(void)
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);  
 }
 
-// Enable DC Voltage Buffer高电平使能
+// Enable DC Voltage Buffer使能
 void DrvPwEnable(void)
 {
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
 }
 
 // Disable DC Voltage Buffer
 void DrvPwDisable(void)
 {
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
 }
 
 // turn off lidar power 
@@ -469,24 +469,24 @@ void MusicPwDisable(void)
 
 void DiagnosticDisable(void)
 {
-    HAL_GPIO_WritePin(GPIOA, 10, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
 }
 
 void DiagnosticEnable(void)
 {
-    HAL_GPIO_WritePin(GPIOA, 10, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
 }
 
 // Enable EXT3.3V Power 低电平导通
 void ExtVEnable(void)
 {
-    HAL_GPIO_WritePin(GPIOE, 1,GPIO_PIN_RESET );
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1,GPIO_PIN_RESET );
 }
 
 // Disable EXT3.3 Power 高电平导通
 void ExtVDisable(void)
 {
-    HAL_GPIO_WritePin(GPIOE, 1, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
 }
 
 // Enable MUTE
@@ -505,13 +505,13 @@ void MuteDisable(void)
 // Enable LOGO
 void LOGOEnable(void)
 {
-    HAL_GPIO_WritePin(GPIOD, 15, GPIO_PIN_RESET );
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET );
 }
 
 // Disable LOGO
 void LOGODisable(void)
 {
-    HAL_GPIO_WritePin(GPIOD, 15, GPIO_PIN_SET );
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET );
 }
 // Read Application Mode
 PUBLIC UINT8 ReadApplicationMode(void)

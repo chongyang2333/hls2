@@ -199,8 +199,9 @@ PUBLIC void ControlRunExec(void)
 	/* Start phase current,DC current,DC voltage sample */
 	//AdcSampleStart();
 	  AdcSample0Start();
-    GetPhaseCurrentRe(&sAxis[0]);
-    GetPhaseCurrentRe(&sAxis[1]);
+	  AdcSampleStart();
+//    GetPhaseCurrentRe(&sAxis[0]);
+//    GetPhaseCurrentRe(&sAxis[1]);
     
 	/* Get encoder counter*/
 	GetEncoderPulse(&sAxis[0].sEncoder, AXIS_LEFT);
@@ -269,11 +270,11 @@ PUBLIC void ControlRunExec(void)
 	}
 
     /* wait for ADC to complete, then acknowledge flag	*/ 
-    //AdcSampleClearFlag();
+    AdcSampleClearFlag();
 
 	  /* Calculate phase current */
-	  //GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
-    //GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
+	  GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
+    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
     AdcSample0ClearFlag();
     GetDcVoltage(&sAxis[0].sCurLoop.Vdc);
     sAxis[1].sCurLoop.Vdc = sAxis[0].sCurLoop.Vdc;
@@ -363,7 +364,7 @@ PUBLIC void TimerIsrExec(void)
 		
     sScheduler.Tim7IsrTime = ReadTimeStampTimer() - StartTime;
     
-    if(sScheduler.Tim7IsrTime > MAX_TIMER_ISR_TIME) // 15ms
+    if(sScheduler.Tim7IsrTime > 2 * MAX_TIMER_ISR_TIME) // 15ms
     {
         sAxis[0].sAlarm.ErrReg.bit.InnerErr = 1;
         sAxis[1].sAlarm.ErrReg.bit.InnerErr = 1;

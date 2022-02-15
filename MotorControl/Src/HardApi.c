@@ -35,7 +35,7 @@ PRIVATE INT16 ADC0_JDR3_Offset = 2048;
 
 
 extern PUBLIC UINT8 ApplicationMode;
-PRIVATE void AdcSumPort(uint16_t * sum);
+PRIVATE void AdcSumPort(uint32_t * sum);
 
 /***********************************************************************
  * DESCRIPTION: Initialize time stamp timer.
@@ -155,7 +155,7 @@ PUBLIC void AdcInit(void)
 	  adc_config();
     delay_ms(50);
     AdcOffsetCal();  // todo
-	  adc_reconfig();
+	  //adc_reconfig();
 }
 
 /***********************************************************************
@@ -240,7 +240,7 @@ PUBLIC void GetMosAdc(UINT16 *leftMosAdc, UINT16 *rightMosAdc)
 * RETURNS: ADC通道和接口，服务AdcOffsetCal函数
  *
 ***********************************************************************/
-PRIVATE void AdcSumPort(uint16_t * sum)
+PRIVATE void AdcSumPort(uint32_t * sum)
 {
         sum[0] += ADC_IDATA0(ADC2);
         sum[1] += ADC_IDATA1(ADC2);
@@ -257,7 +257,7 @@ PRIVATE void AdcSumPort(uint16_t * sum)
 ***********************************************************************/
 PRIVATE INT16 Left_AdcInitState = 0;
 PRIVATE INT16 Right_AdcInitState = 0;
-UINT16 sum[6]={0};
+UINT32 sum[6]={0};
 PUBLIC void AdcOffsetCal(void)
 {
     
@@ -279,7 +279,7 @@ PUBLIC void AdcOffsetCal(void)
 			  PwmUpdate(AXIS_LEFT, 1, 5000, 5000, 5000,9999);
 			  PwmUpdate(AXIS_RIGHT, 1, 5000, 5000, 5000,9999);
 
-        for(int i = 0;i < 16;i++)
+        for(int i = 0;i < 64;i++)
         {
 						AdcSampleStart();
 					  delay_ms(1);
@@ -287,12 +287,12 @@ PUBLIC void AdcOffsetCal(void)
 						AdcSampleClearFlag();						      						
         }
 				AdcSampleClearFlag();
-				ADC1_JDR0_Offset = sum[3] / 16;
-				ADC1_JDR1_Offset = sum[4] / 16;
-				ADC1_JDR2_Offset = sum[5] / 16;
-				ADC2_JDR0_Offset = sum[0] / 16;
-				ADC2_JDR1_Offset = sum[1] / 16;
-				ADC2_JDR2_Offset = sum[2] / 16;	
+				ADC1_JDR0_Offset = sum[3] / 64;
+				ADC1_JDR1_Offset = sum[4] / 64;
+				ADC1_JDR2_Offset = sum[5] / 64;
+				ADC2_JDR0_Offset = sum[0] / 64;
+				ADC2_JDR1_Offset = sum[1] / 64;
+				ADC2_JDR2_Offset = sum[2] / 64;	
 
         PwmDisable(AXIS_LEFT);
 			  PwmDisable(AXIS_RIGHT);				
@@ -347,13 +347,13 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 { 
     if(AXIS_LEFT == AxisID) //ADC_IDATA3(ADC2);
     {
-         *Ia = -((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
-         *Ib = -((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
+         *Ia = -((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
+         *Ib = -((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
     }
     else if(AXIS_RIGHT == AxisID)
     { 
-         *Ia = -((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
-         *Ib = -((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
+         *Ia = -((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
+         *Ib = -((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
     }
     
 }

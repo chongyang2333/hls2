@@ -200,7 +200,7 @@ PUBLIC void CurrentLoopExec(struct AxisCtrlStruct *P)
 	// svpwm
 	SVPWMCal(pCur);
 	// Cal ADC Sample Time
-	CurrentSampleTimeCal(pCur,P->AxisID);
+	//CurrentSampleTimeCal(pCur,P->AxisID);
 }
 
 /***********************************************************************
@@ -549,6 +549,7 @@ PRIVATE void SVPWMCal(struct CurrentLoopStruct *P)
 	if ( Vb > 0 )  { Sector += 2 ;}
 	if ( Vc > 0 )  { Sector += 4 ;}
 
+	P->SectorLast = P->Sector;
 	P->Sector = Sector;
 	X = (INT16)(2 * P->Vbeta * P->VDCinvTSQRT);
 	Y = (INT16)(P->Vbeta * P->VDCinvTSQRT + P->Valfa * P->VDCinvTCon0);

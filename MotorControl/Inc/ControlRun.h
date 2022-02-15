@@ -145,6 +145,7 @@ struct CurrentLoopStruct
 
 	/* SVPWM Module */
 	INT16   Sector;              // SectorNum
+	INT16   SectorLast;
 	INT16	TaNumber;            // SVPWM output for timer compare value
 	INT16	TbNumber;            // SVPWM output for timer compare value
 	INT16	TcNumber;            // SVPWM output for timer compare value

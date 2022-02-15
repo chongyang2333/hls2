@@ -1810,7 +1810,8 @@ PUBLIC void BatteryInfoReadLoop(void)
         sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
         sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel = 99;
         sPowerManager.sBatteryInfo.BatteryFullChargeTopLevel = 100;  
-        sPowerManager.sAlarm.ChargeCurrentMax = 3500;
+        sPowerManager.sAlarm.ChargeCurrentMax = 4000;
+        sPowerManager.sChargeInfo.ChargerConnectedCurrentThreshold = leadAcidConnCurrentThrd();
         lead_acid_battery_info();
     }
     else
@@ -2791,8 +2792,8 @@ PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode)
             break;
         }
         
-        AdcSampleStart();
-        AdcSampleClearFlag();
+        AdcSample0Start();
+        AdcSample0ClearFlag();
         
         Vbus_tmp_last = Vbus_tmp;
         Vbus_tmp =   GetVbusVoltage(); 

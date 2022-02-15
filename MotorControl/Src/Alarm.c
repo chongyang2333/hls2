@@ -257,7 +257,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 	    }
 	}
 
-    Safe_IO = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14)|HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
+    //todo Safe_IO = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14)|HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
     if((Safe_IO == 0) && (pAlarm->ErrReg.bit.StutterStop))
     {
     	pAlarm->EmergencyStopRstCnt++;

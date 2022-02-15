@@ -20,12 +20,12 @@
 
 #define ADC2_JDR4_GAIN  0.01859225f    // Motor Bus Voltage coff
 
-#define ADC2_JDR0_GAIN  0.01696135f    // (+/-)30A/2048 todo
-#define ADC2_JDR1_GAIN  0.01696135f    // (+/-)30A/2048
-#define ADC2_JDR2_GAIN  0.01696135f    // (+/-)30A/2048
-#define ADC1_JDR0_GAIN  0.01696135f    // (+/-)30A/2048
-#define ADC1_JDR1_GAIN  0.01696135f    // (+/-)30A/2048
-#define ADC1_JDR2_GAIN  0.01696135f    // (+/-)30A/2048
+#define ADC2_JDR0_GAIN  0.013368f    // (+/-)30A/2048 todo
+#define ADC2_JDR1_GAIN  0.013368f    // (+/-)30A/2048
+#define ADC2_JDR2_GAIN  0.013368f    // (+/-)30A/2048
+#define ADC1_JDR0_GAIN  0.013368f    // (+/-)30A/2048
+#define ADC1_JDR1_GAIN  0.013368f    // (+/-)30A/2048
+#define ADC1_JDR2_GAIN  0.013368f    // (+/-)30A/2048
 
 #define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
 #define ADC0_JDR1_GAIN  0.01859225f    // Dc Voltage coff MAIN_V/BATTERY_V

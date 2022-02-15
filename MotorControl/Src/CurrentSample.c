@@ -42,98 +42,28 @@ PUBLIC void CurrentSampleTimeCal(struct CurrentLoopStruct *P,UINT16 AxisID)
         case 1:
             MaxDutyTemp = P->TaNumber;
             MidDutyTemp = P->TbNumber;
-            if(AxisID == AXIS_RIGHT)
-            {
-                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
-                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
-            }
-            else if(AxisID == AXIS_LEFT)
-            {
-                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_11,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
-                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_5,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
-            }
             break;
         case 2:
             MaxDutyTemp = P->TbNumber;
             MidDutyTemp = P->TaNumber;
-            if(AxisID == AXIS_RIGHT)
-            {
-                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
-                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
-            }
-            else if(AxisID == AXIS_LEFT)
-            {
-                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
-                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_5,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
-            }
             break;
         case 3:
             MaxDutyTemp = P->TbNumber;
             MidDutyTemp = P->TcNumber;
-            if(AxisID == AXIS_RIGHT)
-            {
-                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
-                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
-            }
-            else if(AxisID == AXIS_LEFT)
-            {
-                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
-                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_5,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
-            }
             break;
         case 4:
             MaxDutyTemp = P->TcNumber;
             MidDutyTemp = P->TbNumber;
-            if(AxisID == AXIS_RIGHT)
-            {
-                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
-                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
-            }
-            else if(AxisID == AXIS_LEFT)
-            {
-                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
-                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
-            }
             break;
         case 5:
             MaxDutyTemp = P->TcNumber;
             MidDutyTemp = P->TaNumber;
-            if(AxisID == AXIS_RIGHT)
-            {
-                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
-                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
-            }
-            else if(AxisID == AXIS_LEFT)
-            {
-                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
-                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
-            }
             break;
         case 6:
             MaxDutyTemp = P->TaNumber;
             MidDutyTemp = P->TcNumber;
-            if(AxisID == AXIS_RIGHT)
-            {
-                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
-                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
-            }
-            else if(AxisID == AXIS_LEFT)
-            {
-                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_11,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
-                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_5,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
-            }
             break;
         default :
-					  if(AxisID == AXIS_RIGHT)
-            {
-                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
-                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
-            }
-            else if(AxisID == AXIS_LEFT)
-            {
-                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
-                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
-            }
             break;
     }
 
@@ -234,6 +164,62 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
     switch(P->Sector)
     {
         case 1:
+        case 6:
+            if(X->AxisID == AXIS_RIGHT)
+            {
+                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
+                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
+            }
+            else if(X->AxisID == AXIS_LEFT)
+            {
+                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_11,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
+                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_5,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+            }
+            break;
+        case 2:
+        case 3:
+            if(X->AxisID == AXIS_RIGHT)
+            {
+                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_U_I_SAMPLE
+                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
+            }
+            else if(X->AxisID == AXIS_LEFT)
+            {
+                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);   //L_U_I_SAMPLE
+                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_5,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+            }
+            break;
+        case 4:
+        case 5:
+            if(X->AxisID == AXIS_RIGHT)
+            {
+                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_U_I_SAMPLE
+                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
+            }
+            else if(X->AxisID == AXIS_LEFT)
+            {
+                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);    //L_U_I_SAMPLE
+                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_V_I_SAMPLE
+            }
+            break;
+        default :
+            if(X->AxisID == AXIS_RIGHT)
+            {
+                adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_U_I_SAMPLE
+                adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
+            }
+            else if(X->AxisID == AXIS_LEFT)
+            {
+                adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);    //L_U_I_SAMPLE
+                adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_V_I_SAMPLE
+            }
+            break;
+    }
+	
+
+    switch(P->SectorLast)  //使用上一周期的扇区
+    {
+        case 1:
             if(X->AxisID == AXIS_RIGHT)
             {
                 CurCSample = adc_inserted_data_read(ADC2, ADC_INSERTED_CHANNEL_1) - ADC2_JDR2_Offset;
@@ -243,14 +229,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                 CurCSample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_1) - ADC1_JDR2_Offset;
             }
 
-            if(CurCSample - P->CurPhaC_Data[0] > CurErrDataC)
-            {
-                CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
-            }
-            else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
-            {
-                CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
-            }
+//            if(CurCSample - P->CurPhaC_Data[0] > CurErrDataC)
+//            {
+//                CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
+//            }
+//            else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
+//            {
+//                CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
+//            }
             ValueLimit(CurCSample,-2048,2048);
 
             if(P->CurEffective != 0)
@@ -264,14 +250,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurBSample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_0) - ADC1_JDR1_Offset;
                 }
 
-                if(CurBSample - P->CurPhaB_Data[0] > CurErrDataB)
-                {
-                    CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
-                }
-                else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
-                {
-                    CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
-                }
+//                if(CurBSample - P->CurPhaB_Data[0] > CurErrDataB)
+//                {
+//                    CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
+//                }
+//                else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
+//                {
+//                    CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
+//                }
                 ValueLimit(CurBSample,-2048,2048);
             }
             else
@@ -296,25 +282,25 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurBSample = (3 * P->CurPhaB_Data[0] - CurErrDataTemp  - P->CurPhaB_Data[1])>>1;
                 }
 
-                if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
-                {
-                    CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
-                }
-                else if (CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
-                {
-                    CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
-                }
+//                if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
+//                {
+//                    CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
+//                }
+//                else if (CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
+//                {
+//                    CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
+//                }
                 ValueLimit(CurBSample,-2048,2048);
             }
             CurASample = -CurBSample - CurCSample;
-            if(CurASample - P->CurPhaA_Data[0] > CurErrDataA)
-            {
-                CurASample = P->CurPhaA_Data[0] + CurErrDataA;
-            }
-            else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
-            {
-                CurASample = P->CurPhaA_Data[0] - CurErrDataA;
-            }
+//            if(CurASample - P->CurPhaA_Data[0] > CurErrDataA)
+//            {
+//                CurASample = P->CurPhaA_Data[0] + CurErrDataA;
+//            }
+//            else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
+//            {
+//                CurASample = P->CurPhaA_Data[0] - CurErrDataA;
+//            }
             ValueLimit(CurASample,-2048,2048);
             break;
 
@@ -328,14 +314,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                 CurCSample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_1) - ADC1_JDR2_Offset;
             }
 
-            if(CurCSample - P->CurPhaC_Data[0] > CurErrDataC)
-            {
-                CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
-            }
-            else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
-            {
-                CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
-            }
+//            if(CurCSample - P->CurPhaC_Data[0] > CurErrDataC)
+//            {
+//                CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
+//            }
+//            else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
+//            {
+//                CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
+//            }
             ValueLimit(CurCSample,-2048,2048);
 
             if(P->CurEffective != 0)
@@ -349,14 +335,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurASample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_0) - ADC1_JDR0_Offset;
                 }
 
-                if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
-                {
-                    CurASample = P->CurPhaA_Data[0] + CurErrDataA;
-                }
-                else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
-                {
-                    CurASample = P->CurPhaA_Data[0] - CurErrDataA;
-                }
+//                if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
+//                {
+//                    CurASample = P->CurPhaA_Data[0] + CurErrDataA;
+//                }
+//                else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
+//                {
+//                    CurASample = P->CurPhaA_Data[0] - CurErrDataA;
+//                }
                 ValueLimit(CurASample,-2048,2048);
             }
             else
@@ -380,26 +366,26 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurASample = (3 * P->CurPhaA_Data[0] - CurErrDataTemp  - P->CurPhaA_Data[1]) >> 1;
                 }
 
-                if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
-                {
-                    CurASample = P->CurPhaA_Data[0] + CurErrDataA;
-                }
-                else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
-                {
-                    CurASample = P->CurPhaA_Data[0] - CurErrDataA;
-                }
+//                if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
+//                {
+//                    CurASample = P->CurPhaA_Data[0] + CurErrDataA;
+//                }
+//                else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
+//                {
+//                    CurASample = P->CurPhaA_Data[0] - CurErrDataA;
+//                }
                 ValueLimit(CurASample,-2048,2048);
             }
             // Ib = -Ic-Ia;
             CurBSample = -CurASample - CurCSample;
-            if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
-            {
-                CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
-            }
-            else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
-            {
-                CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
-            }
+//            if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
+//            {
+//                CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
+//            }
+//            else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
+//            {
+//                CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
+//            }
             ValueLimit(CurBSample,-2048,2048);
             break;
 
@@ -413,14 +399,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                 CurASample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_0) - ADC1_JDR0_Offset;
             }
 
-            if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
-            {
-                CurASample = P->CurPhaA_Data[0] + CurErrDataA;
-            }
-            else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
-            {
-                CurASample = P->CurPhaA_Data[0] - CurErrDataA;
-            }
+//            if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
+//            {
+//                CurASample = P->CurPhaA_Data[0] + CurErrDataA;
+//            }
+//            else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
+//            {
+//                CurASample = P->CurPhaA_Data[0] - CurErrDataA;
+//            }
             ValueLimit(CurASample,-2048,2048);
 
             if(P->CurEffective != 0)
@@ -434,14 +420,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurCSample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_1) - ADC1_JDR2_Offset;
                 }
 
-                if(CurCSample - P->CurPhaC_Data[0] >  CurErrDataC)
-                {
-                    CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
-                }
-                else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
-                {
-                    CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
-                }
+//                if(CurCSample - P->CurPhaC_Data[0] >  CurErrDataC)
+//                {
+//                    CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
+//                }
+//                else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
+//                {
+//                    CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
+//                }
                 ValueLimit(CurCSample,-2048,2048);
             }
             else
@@ -464,27 +450,27 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                 {
                     CurCSample = (3 * P->CurPhaC_Data[0] - CurErrDataTemp  - P->CurPhaC_Data[1]) >> 1;
                 }
-                if(CurCSample - P->CurPhaC_Data[0] >  CurErrDataC)
-                {
-                    CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
-                }
-                else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
-                {
-                    CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
-                }
+//                if(CurCSample - P->CurPhaC_Data[0] >  CurErrDataC)
+//                {
+//                    CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
+//                }
+//                else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
+//                {
+//                    CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
+//                }
                 ValueLimit(CurCSample,-2048,2048);
             }
             // Ib = -Ic-Ia;
             CurBSample = -CurASample-CurCSample;
 
-            if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
-            {
-                CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
-            }
-            else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
-            {
-                CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
-            }
+//            if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
+//            {
+//                CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
+//            }
+//            else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
+//            {
+//                CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
+//            }
             ValueLimit(CurBSample,-2048,2048);
             break;
 
@@ -498,14 +484,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                 CurASample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_0) - ADC1_JDR0_Offset;
             }
 
-            if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
-            {
-                CurASample = P->CurPhaA_Data[0] + CurErrDataA;
-            }
-            else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
-            {
-                CurASample = P->CurPhaA_Data[0] - CurErrDataA;
-            }
+//            if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
+//            {
+//                CurASample = P->CurPhaA_Data[0] + CurErrDataA;
+//            }
+//            else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
+//            {
+//                CurASample = P->CurPhaA_Data[0] - CurErrDataA;
+//            }
             ValueLimit(CurASample,-2048,2048);
 
             if(P->CurEffective != 0)
@@ -519,14 +505,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurBSample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_1) - ADC1_JDR1_Offset;
                 }
 
-                if(CurBSample - P->CurPhaB_Data[0] > CurErrDataB)
-                {
-                    CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
-                }
-                else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
-                {
-                    CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
-                }
+//                if(CurBSample - P->CurPhaB_Data[0] > CurErrDataB)
+//                {
+//                    CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
+//                }
+//                else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
+//                {
+//                    CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
+//                }
                 ValueLimit(CurBSample,-2048,2048);
             }
             else
@@ -550,26 +536,26 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurBSample = (3 * P->CurPhaB_Data[0] - CurErrDataTemp  - P->CurPhaB_Data[1]) >> 1;
                 }
 
-                if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
-                {
-                    CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
-                }
-                else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
-                {
-                    CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
-                }
+//                if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
+//                {
+//                    CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
+//                }
+//                else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
+//                {
+//                    CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
+//                }
                 ValueLimit(CurBSample,-2048,2048);
             }
             // Ic = -Ia-Ib;
             CurCSample = -CurASample - CurBSample;
-            if(CurCSample - P->CurPhaC_Data[0] > CurErrDataC)
-            {
-                CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
-            }
-            else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
-            {
-                CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
-            }
+//            if(CurCSample - P->CurPhaC_Data[0] > CurErrDataC)
+//            {
+//                CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
+//            }
+//            else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
+//            {
+//                CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
+//            }
             ValueLimit(CurCSample,-2048,2048);
             break;
 
@@ -583,14 +569,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                 CurBSample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_1) - ADC1_JDR1_Offset;
             }
 
-            if(CurBSample - P->CurPhaB_Data[0] > CurErrDataB)
-            {
-                CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
-            }
-            else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
-            {
-                CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
-            }
+//            if(CurBSample - P->CurPhaB_Data[0] > CurErrDataB)
+//            {
+//                CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
+//            }
+//            else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
+//            {
+//                CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
+//            }
             ValueLimit(CurBSample,-2048,2048);
 
             if(P->CurEffective != 0)
@@ -603,14 +589,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                 {
                     CurASample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_0) - ADC1_JDR0_Offset;
                 }
-                if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
-                {
-                    CurASample = P->CurPhaA_Data[0] + CurErrDataA;
-                }
-                else if (CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
-                {
-                    CurASample = P->CurPhaA_Data[0] - CurErrDataA;
-                }
+//                if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
+//                {
+//                    CurASample = P->CurPhaA_Data[0] + CurErrDataA;
+//                }
+//                else if (CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
+//                {
+//                    CurASample = P->CurPhaA_Data[0] - CurErrDataA;
+//                }
                 ValueLimit(CurASample,-2048,2048);
             }
             else
@@ -634,26 +620,26 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurASample = (3 * P->CurPhaA_Data[0] - CurErrDataTemp  - P->CurPhaA_Data[1]) >> 1;
                 }
 
-                if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
-                {
-                    CurASample = P->CurPhaA_Data[0] + CurErrDataA;
-                }
-                else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
-                {
-                    CurASample = P->CurPhaA_Data[0] - CurErrDataA;
-                }
+//                if(CurASample - P->CurPhaA_Data[0] >  CurErrDataA)
+//                {
+//                    CurASample = P->CurPhaA_Data[0] + CurErrDataA;
+//                }
+//                else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
+//                {
+//                    CurASample = P->CurPhaA_Data[0] - CurErrDataA;
+//                }
                 ValueLimit(CurASample,-2048,2048);
             }
             // Ic = -Ia-Ib;
             CurCSample = -CurASample - CurBSample;
-            if(CurCSample - P->CurPhaC_Data[0] >  CurErrDataC)
-            {
-                CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
-            }
-            else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
-            {
-                CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
-            }
+//            if(CurCSample - P->CurPhaC_Data[0] >  CurErrDataC)
+//            {
+//                CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
+//            }
+//            else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
+//            {
+//                CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
+//            }
             ValueLimit(CurCSample,-2048,2048);
         break;
 
@@ -667,14 +653,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                 CurBSample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_0) - ADC1_JDR1_Offset;
             }
 
-            if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
-            {
-                CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
-            }
-            else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
-            {
-                CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
-            }
+//            if(CurBSample - P->CurPhaB_Data[0] >  CurErrDataB)
+//            {
+//                CurBSample = P->CurPhaB_Data[0] + CurErrDataB;
+//            }
+//            else if(CurBSample - P->CurPhaB_Data[0] < -CurErrDataB)
+//            {
+//                CurBSample = P->CurPhaB_Data[0] - CurErrDataB;
+//            }
             ValueLimit(CurBSample,-2048,2048);
 
             if(P->CurEffective != 0)
@@ -688,14 +674,14 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurCSample = adc_inserted_data_read(ADC1, ADC_INSERTED_CHANNEL_1) - ADC1_JDR2_Offset;
                 }
 
-                if(CurCSample - P->CurPhaC_Data[0] >  CurErrDataC)
-                {
-                    CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
-                }
-                else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
-                {
-                    CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
-                }
+//                if(CurCSample - P->CurPhaC_Data[0] >  CurErrDataC)
+//                {
+//                    CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
+//                }
+//                else if(CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
+//                {
+//                    CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
+//                }
                 ValueLimit(CurCSample,-2048,2048);
             }
             else
@@ -719,26 +705,26 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
                     CurCSample = (3 * P->CurPhaC_Data[0] - CurErrDataTemp  - P->CurPhaC_Data[1])>>1;
                 }
 
-                if(CurCSample - P->CurPhaC_Data[0] > CurErrDataC)
-                {
-                    CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
-                }
-                else if (CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
-                {
-                    CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
-                }
+//                if(CurCSample - P->CurPhaC_Data[0] > CurErrDataC)
+//                {
+//                    CurCSample = P->CurPhaC_Data[0] + CurErrDataC;
+//                }
+//                else if (CurCSample - P->CurPhaC_Data[0] < -CurErrDataC)
+//                {
+//                    CurCSample = P->CurPhaC_Data[0] - CurErrDataC;
+//                }
                 ValueLimit(CurCSample,-2048,2048);
             }
             // Ia = -Ic -Ib
             CurASample = -CurBSample-CurCSample;
-            if(CurASample - P->CurPhaA_Data[0] > CurErrDataA)
-            {
-                CurASample = P->CurPhaA_Data[0] + CurErrDataA;
-            }
-            else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
-            {
-                CurASample = P->CurPhaA_Data[0] - CurErrDataA;
-            }
+//            if(CurASample - P->CurPhaA_Data[0] > CurErrDataA)
+//            {
+//                CurASample = P->CurPhaA_Data[0] + CurErrDataA;
+//            }
+//            else if(CurASample - P->CurPhaA_Data[0] < -CurErrDataA)
+//            {
+//                CurASample = P->CurPhaA_Data[0] - CurErrDataA;
+//            }
 						ValueLimit(CurASample,-2048,2048);
             break;
         default:
@@ -788,18 +774,18 @@ PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X)
         P->CurPhaB_Data[0] = 0;
         P->CurPhaC_Data[0] = 0;
     }
-//ADC2_JDR0_GAIN 0.2685547  -
+//ADC2_JDR0_GAIN   -
     if(X->AxisID == AXIS_RIGHT)    
     {
-					P->Ia = CurASample * ADC2_JDR0_GAIN;
-					P->Ib = CurBSample * ADC2_JDR1_GAIN;
-					P->Ic = CurCSample * ADC2_JDR2_GAIN;
+					P->Ia = -CurASample * ADC2_JDR0_GAIN;
+					P->Ib = -CurBSample * ADC2_JDR1_GAIN;
+					P->Ic = -CurCSample * ADC2_JDR2_GAIN;
     }
     else if(X->AxisID == AXIS_LEFT)
     {
-					P->Ia = CurASample * ADC1_JDR0_GAIN;
-					P->Ib = CurBSample * ADC1_JDR1_GAIN;
-					P->Ic = CurCSample * ADC1_JDR2_GAIN;
+					P->Ia = -CurASample * ADC1_JDR0_GAIN;
+					P->Ib = -CurBSample * ADC1_JDR1_GAIN;
+					P->Ic = -CurCSample * ADC1_JDR2_GAIN;
     }
 
 		
