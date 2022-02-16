@@ -87,6 +87,7 @@ typedef struct
 
     float fSOC;          //电池剩余电量,mA.H
     float fRealSOC;     //真实剩余电量,mA.H
+    float fMapRatio;    //真实电量与显示电量的比值 ratio = Soc/RealSoc
     float fFC;                  //电池实际容量
     
     BatteryCharacteristic_t tChar;
@@ -316,12 +317,16 @@ PUBLIC void LeadAcidBatteryInit(void)
     gs_tBatListen.tChar.fCurve2Right = 26.06;
     gs_tBatListen.tChar.fCurve2Left = 22.6425;
     gs_tBatListen.fPoweroffVoltage = 10.0;
+    gs_tBatListen.fMapRatio = 1.0f;
 
     gs_tBatListen.fChargeFUllCurrentC = 0.03;          //铅酸电池充电电流小于0.03C后，认为电池充满
     gs_tBatListen.fChargeFullCurrent = gs_tBatListen.fChargeFUllCurrentC * sPowerManager.sBatteryInfo.BatteryFullCapacity / 1000;
     g_tBatterySaveInfo.hCapacity = BATTERY_FULL_CAPACITY;
-    
-    sPowerManager.sChargeInfo.ChargerConnectedCurrentThreshold = gs_tBatListen.fChargeFullCurrent * 1000 - 100;
+}
+
+PUBLIC INT16 leadAcidConnCurrentThrd(void)
+{
+    return (INT16)(gs_tBatListen.fChargeFullCurrent * 1000 - 100);
 }
 
 /**
@@ -357,7 +362,7 @@ float KalmanFilter(KalmanInfo_t* kalman, float lastMeasurement)
 	
 	//求协方差
 	kalman->P = kalman->A * kalman->A * kalman->P + kalman->Q;  //计算先验均方差 p(n|n-1)=A^2*p(n-1|n-1)+q
-	float preValue = kalman->filterValue;                   //记录上次实际坐标的值
+	// float preValue = kalman->filterValue;                   //记录上次实际坐标的值
  
 	//计算kalman增益
 	kalman->kalmanGain = kalman->P * kalman->H / (kalman->P * kalman->H * kalman->H + kalman->R);  //Kg(k)= P(k|k-1) H’ / (H P(k|k-1) H’ + R)
@@ -406,7 +411,7 @@ PRIVATE float BatterySOCCheck(BatteryCharacteristic_t *pChar, float voltage)
 
     if(voltage > pChar->fFullVoltage)
     {
-        tmp = gs_tBatListen.fFC;
+        tmp = 1.0f;
     }
     else if(voltage >= pChar->fCurve2Right)
     {
@@ -544,6 +549,7 @@ PRIVATE void BatteryDischargeHandle(void)
             {
                 gs_tBatListen.hPowerOning--;
                 gs_tBatListen.fRealSOC = KalmanFilter(&gs_tBatListen.tKalman, BatterySOCCheck(&gs_tBatListen.tChar, gs_tBatListen.fCurVoltage));
+                gs_tBatListen.fMapRatio = gs_tBatListen.fSOC / gs_tBatListen.fRealSOC;
             }
             else
             {
@@ -557,6 +563,7 @@ PRIVATE void BatteryDischargeHandle(void)
                     else if(gs_tBatListen.lKalmanCnt > 24000)
                     {
                         gs_tBatListen.fRealSOC = KalmanFilter(&gs_tBatListen.tKalman, BatterySOCCheck(&gs_tBatListen.tChar, gs_tBatListen.fCurVoltage));
+                        gs_tBatListen.fMapRatio = gs_tBatListen.fSOC / gs_tBatListen.fRealSOC;
                     }
                     else
                     {
@@ -571,8 +578,9 @@ PRIVATE void BatteryDischargeHandle(void)
             }
             
             fPreSoc = gs_tBatListen.fSOC;
-            gs_tBatListen.fSOC = gs_tBatListen.fSOC - gs_tBatListen.fCurCurrent * 25 / 3600;
-            fTmp = gs_tBatListen.fSOC * 0.99984f + gs_tBatListen.fRealSOC * 0.00016f;
+            fTmp = gs_tBatListen.fSOC - gs_tBatListen.fCurCurrent * 25 * gs_tBatListen.fMapRatio / 3600;   //全映射
+            // gs_tBatListen.fSOC = gs_tBatListen.fSOC - gs_tBatListen.fCurCurrent * 25 / 3600;
+            // fTmp = gs_tBatListen.fSOC * 0.99984f + gs_tBatListen.fRealSOC * 0.00016f;
             if(fTmp > fPreSoc)
             {
                 gs_tBatListen.fSOC = fPreSoc;
@@ -665,7 +673,9 @@ PRIVATE void BatteryChargeHandle(void)
         {
             if(gs_tBatListen.fChargeCurVoltage >= (gs_tBatListen.tChar.fCurve2Left + 1))     //先将过放的电能充回，再开始计算电量
             {
-                gs_tBatListen.fSOC = gs_tBatListen.fSOC + gs_tBatListen.fChargeCurCurrent * 25 / 3600;
+                gs_tBatListen.fSOC = gs_tBatListen.fSOC + gs_tBatListen.fChargeCurCurrent * 25 * gs_tBatListen.fMapRatio / 3600;
+                gs_tBatListen.fRealSOC = gs_tBatListen.fRealSOC + gs_tBatListen.fChargeCurCurrent * 25 / 3600;
+                gs_tBatListen.fRealSOC = (gs_tBatListen.fRealSOC >= gs_tBatListen.fFC) ? gs_tBatListen.fFC : gs_tBatListen.fRealSOC;
                 if(gs_tBatListen.fSOC >= (gs_tBatListen.fFC - gs_tBatListen.fFC / 100))
                 {
                     gs_tBatListen.fSOC = gs_tBatListen.fFC - gs_tBatListen.fFC / 100 - 5;

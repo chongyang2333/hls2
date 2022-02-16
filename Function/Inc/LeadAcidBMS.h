@@ -18,6 +18,7 @@ typedef enum
 
 
 PUBLIC void LeadAcidBatteryInit(void);
+PUBLIC INT16 leadAcidConnCurrentThrd(void);
 // PUBLIC float GetBatterySoc(void);
 PUBLIC void LeadAcidInfoUpdate(void);
 PUBLIC void LeadAcideEventTask(LeadAcidEvent_t event);
