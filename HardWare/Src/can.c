@@ -43,6 +43,7 @@
 #include "gpio.h"
 #include "CanApp.h"
 #include "delay.h"
+#include "USBApp.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -141,6 +142,8 @@ static void can_gpio_init(uint32_t can_periph)
 
 void MX_CAN1_Init(void)
 {
+    
+#if  USE_CAN_APP
     /* stm32 can1 <==> gd32 can0 */
 
     /* configure CAN gpio */
@@ -155,6 +158,10 @@ void MX_CAN1_Init(void)
     /* configure CAN0 NVIC */
     nvic_irq_enable(CAN0_RX1_IRQn, 1, 0);
 
+  
+#else
+//    USB_init(); //USB初始化
+#endif
     delay_ms(10);
     JumpAppFb(GetResetType());
     delay_ms(10);

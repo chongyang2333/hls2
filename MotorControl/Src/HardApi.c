@@ -367,7 +367,10 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 PUBLIC float GetChargeCurrent(void)
 { 
     float Res = 0;
-     Res = ((INT16)ADC_IDATA3(ADC0) - ADC0_JDR3_Offset)*ADC0_JDR3_GAIN;
+    Res = ((INT16)ADC_IDATA3(ADC0) - ADC0_JDR3_Offset)*ADC0_JDR3_GAIN;
+    
+    Res = Res<0.0f ?  -Res:0.0f;
+    
     return Res;
 }
 
@@ -379,8 +382,11 @@ PUBLIC float GetChargeCurrent(void)
 ***********************************************************************/
 PUBLIC float GetBatteryCurrent(void)
 { 
-    float Res = 0;
+    float Res = 0.0f;
      Res = ((INT16)ADC_IDATA3(ADC0) - ADC0_JDR3_Offset)*ADC0_JDR3_GAIN;
+    
+    Res = Res>0.0f ?  Res:0.0f;
+    
     return Res;
 }
 

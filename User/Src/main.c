@@ -63,8 +63,6 @@ int main()
     __set_PRIMASK(0);   // 开启总中断
     __set_FAULTMASK(0); // 没关异常
 
-    USB_init(); //USB初始化
-
     while (1)
     {
         UINT32 LoopStartTime = ReadTimeStampTimer();
@@ -104,12 +102,12 @@ void HardwareInit()
 {
     //        NVIC_SetPriorityGrouping(NVIC_PRIGROUP_PRE4_SUB0);   // 不能用这个，形参不同
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
+    
+    /* Initialize systick for timestamp*/
+    TimeStampTimerInit();
 
     /* Initialize all configured peripherals */
     ApplicationMode = MX_GPIO_Init();
-
-    /* Initialize systick for timestamp*/
-    TimeStampTimerInit();
 
     /* Initialize eeprom */
     EepromInit();
@@ -127,7 +125,7 @@ void HardwareInit()
     /* Initialize pwm:for motor drive*/
     PwmInit();
 
-		AdcInit();		
+	AdcInit();		
     PowerManagerInit(ApplicationMode);
 
     /* Initialize DMA for usart tx */
@@ -148,7 +146,7 @@ void HardwareInit()
     MX_TIM8_Init();
     /* Initialize usart3 module: for pc comm*/
     MX_USART2_UART_Init();
-		MX_USART3_UART_Init();
+	MX_USART3_UART_Init();
 
 #ifdef USER_LOGGER
     LogInfertace_t tLogInterface;
@@ -171,8 +169,8 @@ void HardwareInit()
     //		HAL_NVIC_EnableIRQ(TIM7_IRQn);
     timer_interrupt_enable(TIMER11, TIMER_INT_UP);
     timer_interrupt_enable(TIMER0, TIMER_INT_UP);
-        TIMER_CHCTL2(TIMER0) |= 0x1000;
-				TIMER_CHCTL2(TIMER7) |= 0x1000;
+    TIMER_CHCTL2(TIMER0) |= 0x1000;
+    TIMER_CHCTL2(TIMER7) |= 0x1000;
         /* Enable EXTI4 interrupt */
 //        HAL_NVIC_EnableIRQ(EXTI4_IRQn); 
 }

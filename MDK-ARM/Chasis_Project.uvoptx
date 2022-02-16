@@ -157,141 +157,80 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>2756</LineNumber>
+          <LineNumber>372</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134398708</Address>
+          <Address>134374950</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Function\Src\PowerManager.c</Filename>
+          <Filename>..\MotorControl\Src\HardApi.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Chasis_Project\../Function/Src/PowerManager.c\2756</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>2795</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134398824</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Function\Src\PowerManager.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Chasis_Project\../Function/Src/PowerManager.c\2795</Expression>
+          <Expression>\\Chasis_Project\../MotorControl/Src/HardApi.c\372</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)(0x40010000 + 0x20U))</ItemText>
+          <ItemText>SysTick,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)(0x40010000 + 0x4U))</ItemText>
+          <ItemText>SystemCoreClock,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0],0x0A</ItemText>
+          <ItemText>systick_cnt,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[1]</ItemText>
+          <ItemText>delay_cnt,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC2_JDR0_Offset,0x0A</ItemText>
+          <ItemText>time_begin,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC2_JDR1_Offset,0x0A</ItemText>
+          <ItemText>time_tmp,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC2_JDR2_Offset,0x0A</ItemText>
+          <ItemText>pst_BootLoaderInfo</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC1_JDR0_Offset,0x0A</ItemText>
+          <ItemText>MachineInfo_tmp</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC1_JDR1_Offset,0x0A</ItemText>
+          <ItemText>LoopElapsedTime,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC1_JDR2_Offset,0x0A</ItemText>
+          <ItemText>sScheduler,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x200U)) + 0x3CU)),0x0A</ItemText>
+          <ItemText>sPowerManager.uTick,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x200U)) + 0x40U)),0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>12</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x100U)) + 0x3CU)),0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>13</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x100U)) + 0x40U)),0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>14</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x000U)) + 0x3cU)),0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>15</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sPowerManager.sBoardPowerInfo.VbusSoftStartFlag</ItemText>
-        </Ww>
-        <Ww>
-          <count>16</count>
-          <WinNumber>1</WinNumber>
           <ItemText>sPowerManager,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>17</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>gyro,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>18</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>accel,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>19</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x000U)) + 0x40U)),0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>20</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x000U)) + 0x44U)),0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
@@ -300,7 +239,7 @@
       <DebugFlag>
         <trace>0</trace>
         <periodic>1</periodic>
-        <aLwin>0</aLwin>
+        <aLwin>1</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
         <aSer2>0</aSer2>
@@ -336,6 +275,12 @@
       <pszMrulep></pszMrulep>
       <pSingCmdsp></pSingCmdsp>
       <pMultCmdsp></pMultCmdsp>
+      <SystemViewers>
+        <Entry>
+          <Name>System Viewer\GPIOD</Name>
+          <WinId>35905</WinId>
+        </Entry>
+      </SystemViewers>
     </TargetOption>
   </Target>
 
@@ -717,7 +662,7 @@
 
   <Group>
     <GroupName>HardWare</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -869,7 +814,7 @@
 
   <Group>
     <GroupName>User</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1321,7 +1266,7 @@
 
   <Group>
     <GroupName>SysternCommon</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

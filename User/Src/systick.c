@@ -117,24 +117,28 @@ void delay_1us(uint32_t count)
     uint32_t time_begin;
     uint32_t time_tmp;
     uint32_t systick_cnt = 0;
-
-    while (delay_cnt)
+    uint32_t delt_cnt = 0;
+    
+    while ( systick_cnt < delay_cnt * (SystemCoreClock/1000000)) //执行时间大概0.12us
     {
         time_begin = SysTick->VAL;
-        while( systick_cnt <= (SystemCoreClock/1000000)  ) // 循环等待1us
+        systick_cnt += delt_cnt;
+        delt_cnt = 0;
+        
+        while( delt_cnt <= (SystemCoreClock/1000000)  ) // 循环等待1us
         {   
             time_tmp = SysTick->VAL;
 
             if (time_tmp > time_begin)
             {
-                systick_cnt =  time_begin + SYSTICK_LOAD_VALUE - time_tmp;
+                delt_cnt =  time_begin + SYSTICK_LOAD_VALUE - time_tmp;
             }
             else
             {
-                systick_cnt = time_begin - time_tmp;
+                delt_cnt = time_begin - time_tmp;
             }
         }
-        delay_cnt--;
+        
     }
 }
 
