@@ -655,6 +655,11 @@
               <FileType>1</FileType>
               <FilePath>..\Comm\Src\Uart_AutoChargeApp.c</FilePath>
             </File>
+            <File>
+              <FileName>ringbuffer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Comm\Src\ringbuffer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -603,4 +603,39 @@ void MX_TIM11_Init(void)
     
 }
 
+
+/***********************************************************************
+ * DESCRIPTION: 1000HZ timer中断  在GD中timer6  send usb buffer data per 1ms
+ * 
+ * RETURNS:
+ *
+***********************************************************************/
+void MX_TIM6_Init(void)
+{
+    timer_parameter_struct timer_initpara;
+    rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
+    rcu_periph_clock_enable(RCU_TIMER6);
+    
+    nvic_irq_enable(TIMER6_IRQn,4,0);
+    
+    timer_deinit(TIMER6);
+
+    timer_initpara.prescaler = (2000 - 1);    // 100khz
+    timer_initpara.period = (100 - 1);  //100khz/100 = 1khz
+    timer_initpara.counterdirection = TIMER_COUNTER_CENTER_UP;
+    timer_initpara.repetitioncounter = 0;
+    timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
+    
+    timer_init(TIMER6,&timer_initpara);
+    
+    timer_interrupt_disable(TIMER6,TIMER_INT_UP);
+
+    timer_enable(TIMER6);
+    
+}
+
+
+
+
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

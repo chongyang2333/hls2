@@ -109,7 +109,7 @@ struct CurrentLoopStruct
     REAL32	IqFdb;               //  Iq Feedback
     REAL32	IdErr;               //  Id following error
     REAL32	IqErr;               //  Iq following error
-    REAL32	IValidFdb;           //  I Valid value Feedback  // ÓÐÐ§Öµ
+    REAL32	IValidFdb;           //  I Valid value Feedback  // ï¿½ï¿½Ð§Öµ
 
     REAL32	Cp;                  //  current loop proportion gain
     REAL32	Ci;                  //  current loop intigration gain
@@ -215,17 +215,17 @@ struct SpeedLoopStruct
     REAL32  FilteredDisturComp;
     REAL32  DisturbanceComp;
     REAL32  SpdRefNoFilter;
-	REAL32  SpdRefActul;     // Êµ¼ÊsÇúÏß¿ØÖÆºóµÄËÙ¶È
+	REAL32  SpdRefActul;     // Êµï¿½ï¿½sï¿½ï¿½ï¿½ß¿ï¿½ï¿½Æºï¿½ï¿½ï¿½Ù¶ï¿½
 
-/*	REAL32 Acc;				// ¼ÓËÙ¶È
-	REAL32 SpdRefActul;     // Êµ¼ÊsÇúÏß¿ØÖÆºóµÄËÙ¶È
-	REAL32 CoeffA1;			// ¶àÏîÊ½ÏµÊý
+/*	REAL32 Acc;				// ï¿½ï¿½ï¿½Ù¶ï¿½
+	REAL32 SpdRefActul;     // Êµï¿½ï¿½sï¿½ï¿½ï¿½ß¿ï¿½ï¿½Æºï¿½ï¿½ï¿½Ù¶ï¿½
+	REAL32 CoeffA1;			// ï¿½ï¿½ï¿½ï¿½Ê½Ïµï¿½ï¿½
     REAL32 CoeffA2;
 	REAL32 CoeffA3;
 	REAL32 CoeffA4;
 	REAL32 CoeffA5;
 	REAL32 Counts;
-	REAL32 SpdRefInc;		// ¸ø¶¨ËÙ¶È±ä»¯Á¿
+	REAL32 SpdRefInc;		// ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È±ä»¯ï¿½ï¿½
 	REAL32 SpdRefActulOld;
 	REAL32 SpdRefActulBak;
 */	
@@ -236,14 +236,14 @@ struct SpeedLoopStruct
 };
 struct  CurveParaStruct
 {
-	REAL32 Acc;				// ¼ÓËÙ¶È
-	REAL32 CoeffA1;			// ¶àÏîÊ½ÏµÊý
+	REAL32 Acc;				// ï¿½ï¿½ï¿½Ù¶ï¿½
+	REAL32 CoeffA1;			// ï¿½ï¿½ï¿½ï¿½Ê½Ïµï¿½ï¿½
     REAL32 CoeffA2;
 	REAL32 CoeffA3;
 	REAL32 CoeffA4;
 	REAL32 CoeffA5;
 	REAL32 Counts;
-	REAL32 SpdRefInc;		// ¸ø¶¨ËÙ¶È±ä»¯Á¿
+	REAL32 SpdRefInc;		// ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È±ä»¯ï¿½ï¿½
 	REAL32 SpdRefActulOld;
 	REAL32 SpdRefActulBak;
 

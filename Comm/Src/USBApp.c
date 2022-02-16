@@ -38,7 +38,8 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-
+#include "HardApi.h"
+#include "ringbuffer.h"
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -194,7 +195,7 @@ void usb_intr_config(void)
     //nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 
 #ifdef USE_USB_FS
-    nvic_irq_enable((uint8_t)USBFS_IRQn, 2U, 0U);
+    nvic_irq_enable((uint8_t)USBFS_IRQn, 1U, 0U);
 #elif defined(USE_USB_HS)
     nvic_irq_enable((uint8_t)USBHS_IRQn, 2U, 0U);
 #endif /* USE_USBFS */
@@ -355,7 +356,26 @@ void ctc_config(void)
 
 
 
+
+
+
+#include "tim.h"
+
+void timer6_1ms_usb_send_init(void)
+{
+    MX_TIM6_Init();
+}
+
+
+
+
 usb_core_driver cdc_acm;
+
+static struct rt_ringbuffer Usb_Tx_Rb;
+static struct rt_ringbuffer Usb_Rx_Rb;
+
+static uint8_t Usb_Tx_Rb_buffer[USB_TX_BUFF_SIZE] = {0};
+static uint8_t Usb_Rx_Rb_buffer[USB_RX_BUFF_SIZE] = {0};
 
 void USB_init(void)
 {
@@ -381,15 +401,85 @@ void USB_init(void)
     /* CTC configure */
     ctc_config();
 
-    while (ctc_flag_get(CTC_FLAG_CKOK) == RESET) {
-    }
+   // while (ctc_flag_get(CTC_FLAG_CKOK) == RESET) {}
 #endif /* USE_IRC48M */
 
 
-    while (USBD_CONFIGURED != cdc_acm.dev.cur_status) {};
+   // while (USBD_CONFIGURED != cdc_acm.dev.cur_status) {};
+
+
+    rt_ringbuffer_init(&Usb_Tx_Rb,Usb_Tx_Rb_buffer,USB_TX_BUFF_SIZE);
+    rt_ringbuffer_init(&Usb_Rx_Rb,Usb_Rx_Rb_buffer,USB_RX_BUFF_SIZE);
 
     cdc_acm_data_receive(&cdc_acm); //上电第一次开启usb接收
 
+    timer6_1ms_usb_send_init();
+
+    timer_interrupt_enable(TIMER6,TIMER_INT_UP);
+
+}
+
+
+void wait_usb_ready(void)
+{
+    static uint8_t ready_flag = 0;
+      if (ctc_flag_get(CTC_FLAG_CKOK) != RESET  
+          && USBD_CONFIGURED == cdc_acm.dev.cur_status
+          && ready_flag ==0) {
+            cdc_acm_data_receive(&cdc_acm); //上电第一次开启usb接收
+              ready_flag =1;
+      }
+}
+
+
+
+
+
+
+uint8_t USB_send_Ready_status(void)
+{
+    usb_cdc_handler *cdc = (usb_cdc_handler *)cdc_acm.dev.class_data[CDC_COM_INTERFACE];
+
+    if(cdc->packet_sent ==0)
+        return ERROR;
+    else
+        return SUCCESS;
+}
+
+
+uint8_t USB_send_out_interface(uint8_t *data,uint16_t datalen)
+{
+    if(USBD_CONFIGURED != cdc_acm.dev.cur_status)
+    return 0;
+    uint32_t timeout;
+    timeout = ReadTimeStampTimer();
+
+     usb_cdc_handler *cdc = (usb_cdc_handler *)cdc_acm.dev.class_data[CDC_COM_INTERFACE];
+   
+    cdc->packet_sent = 0U;
+    usbd_ep_send (&cdc_acm, CDC_DATA_IN_EP, (uint8_t*)data, datalen);
+//     while(!cdc->packet_sent)
+//    {
+//        if(ReadTimeStampTimer() - timeout >3*1000*100) //overtime = 10ms, ReadTimeStampTimer() count up fre = 100mhz
+//        {
+//            return ERROR;
+//        }
+//    }
+    return SUCCESS;
+}
+
+
+
+static BOOL usb_send_lock = FALSE;
+
+uint8_t USB_send_in_interface(uint8_t *data,uint16_t datalen)
+{
+    if(USBD_CONFIGURED != cdc_acm.dev.cur_status)
+        return 0;
+    if(usb_send_lock) {return 0;}; //right or wrong?
+    usb_send_lock = TRUE;
+    rt_ringbuffer_put(&Usb_Tx_Rb,data,datalen);
+    usb_send_lock = FALSE;
 }
 
 
@@ -399,32 +489,88 @@ uint8_t USB_send(uint32_t id,uint8_t *data,uint16_t datalen)
     uint16_t index =0;
     uint8_t SendData[64];
     uint16_t size = MIN(datalen, 8);
-    
+
     SendData[index++] = 0x57;
     SendData[index++] = 0x58;
     SendData[index++] = (uint8_t)(id >> 8);
     SendData[index++] = (uint8_t)(id);
-    
+
     memcpy(&SendData[index], data,size);
     index += size;
     SendData[index++] = size;
     SendData[index++] = 0xa8;
     SendData[index++] = 0xa7;
 
-    usbd_ep_send (&cdc_acm, CDC_DATA_IN_EP, (uint8_t*)SendData, index);
+    USB_send_in_interface(SendData,index);
+
 }
 
 uint8_t USB_send_dirt(uint8_t *data,uint16_t datalen)
 {
-    usbd_ep_send (&cdc_acm, CDC_DATA_IN_EP, (uint8_t*)data, datalen);
+    USB_send_in_interface(data,datalen);
+}
+
+
+
+uint8_t USB_receive_out_interface(void);
+
+void UsbExec(void)
+{
+    if(USB_send_Ready_status() == SUCCESS)
+    {
+        uint8_t buffer[60] = {0};
+        uint16_t size = 0;
+        size= rt_ringbuffer_get(&Usb_Tx_Rb,buffer,60);
+        if(size)
+        {
+            USB_send_out_interface(buffer,size);
+        }
+    }
+    
+    USB_receive_out_interface();
+    wait_usb_ready();
+
 }
 
 
 
 
+uint8_t USB_receive_out_interface(void)
+{
+    uint8_t buffer[15] = {0};
+    uint16_t size = 0;
+    size= rt_ringbuffer_data_len(&Usb_Rx_Rb);
+    if(size >=15)
+    {
+        if(rt_ringbuffer_get(&Usb_Rx_Rb,buffer,2) ==2) //get 2 bytes head data
+        {
+            if(buffer[0] == 0x57 && buffer[1] == 0x58)
+            {
+                if(rt_ringbuffer_get(&Usb_Rx_Rb,&buffer[2],13) ==13) // get realse 13 bytes data
+                {
+                    USB2CAN_RecvDispatch(buffer,15);
+                }
+            }
+        }
+    }     
+}
+
+
+
+static BOOL usb_receive_lock = FALSE;
+uint8_t USB_receive_in_interface(uint8_t *data,uint16_t datalen)
+{
+    if(usb_receive_lock) {return 0;}; //right or wrong?
+    usb_receive_lock = TRUE;
+    rt_ringbuffer_put(&Usb_Rx_Rb,data,datalen);
+    usb_receive_lock = FALSE;
+}
+
+
 void USB_RecvDispatch(uint8_t *data,uint16_t datalen)
 {
-    USB2CAN_RecvDispatch(data,datalen);
+    USB_receive_in_interface(data,datalen);
+    //USB2CAN_RecvDispatch(data,datalen);
 }
 
 
