@@ -60,7 +60,7 @@
 
 	void gpio_adc_config(void);
   void adc_config(void);
-
+  void adc_reconfig(void);
 /* USER CODE BEGIN Prototypes */
 
 /* USER CODE END Prototypes */

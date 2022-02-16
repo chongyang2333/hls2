@@ -60,26 +60,26 @@ PUBLIC void RgbExec(void)
         PinState = GPIO_PIN_RESET;
     }
     
-
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, PinState); // STM32 HEART BEAT
-    
-    if(gParam[0].ErrorRegister0x230D)
-    {
-        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, PinState);
-    }
-    else
-    {
-        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_SET);
-    }
-    
-    if(gParam[1].ErrorRegister0x230D)
-    {
-        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, PinState);
-    }
-    else
-    {
-        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
-    }
+    //modify by hyr ÐÂÌøµÆÇÐ»»µ½LED1 PE0
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, PinState); // STM32 HEART BEAT
+    //modify by hyr È¥µô¹ÊÕÏµÆ
+//    if(gParam[0].ErrorRegister0x230D)
+//    {
+//        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, PinState);
+//    }
+//    else
+//    {
+//        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_SET);
+//    }
+//
+//    if(gParam[1].ErrorRegister0x230D)
+//    {
+//        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, PinState);
+//    }
+//    else
+//    {
+//        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
+//    }
     
    
     return;

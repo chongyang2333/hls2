@@ -2,6 +2,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "delay.h"
 #include "HardApi.h"
+#include "systick.h"
 
 #if 0
 void delay_us(uint32_t nus)
@@ -35,12 +36,10 @@ void delay_ms(uint32_t nms)
 
 void delay_us(uint32_t nus)
 {
-	uint32_t temp = ReadTimeStampTimer();
-    
-    while((ReadTimeStampTimer()-temp) < nus*100) ;
+	delay_1us(nus);
 }
 
 void delay_ms(uint32_t nms)
 {
-    delay_us(nms*1000);
+    delay_1us(nms*1000);
 }

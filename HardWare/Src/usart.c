@@ -106,11 +106,11 @@ static void usart_gpio_init(uint32_t usart_periph)
 {
     if (usart_periph == USART2)
     {
-        #define __USART2_Tx_PORT  GPIOD
+        #define __USART2_Tx_PORT  GPIOE
         #define __USART2_Tx_GPIO  GPIO_PIN_8
         #define __USART2_Tx_AF    GPIO_AF_7
-        #define __USART2_Rx_PORT  GPIOD
-        #define __USART2_Rx_GPIO  GPIO_PIN_9
+        #define __USART2_Rx_PORT  GPIOE
+        #define __USART2_Rx_GPIO  GPIO_PIN_7
         #define __USART2_Rx_AF    GPIO_AF_7
 
         /* enable can clock */
@@ -954,7 +954,73 @@ void USART1_IRQHandler(void)
             } // end if(sUartApp.RecvBufNum..
         }
         /*华大串口透传colson临时使用 start*/
-        else if ((0x57 == sUartApp.RecvBuf[0]) && (sUartApp.RecvBufNum > 0))
+//        else if ((0x57 == sUartApp.RecvBuf[0]) && (sUartApp.RecvBufNum > 0))
+//        {
+//            if (sUartApp.RecvBufNum >= 15)
+//            {
+//                void Uart_AutoChargeApp_RecvDispatch(UINT8 *data, UINT16 datalen);
+//                    Uart_AutoChargeApp_RecvDispatch(sUartApp.RecvBuf,sUartApp.RecvBufNum );
+
+//                    sUartApp.RecvBufNum = 0;
+//                    p = sUartApp.RecvBuf;
+//                    size = UART_RECV_MAX_NUM;
+
+//            }
+//            else {
+//                p = sUartApp.RecvBuf + sUartApp.RecvBufNum;
+//                size = UART_RECV_MAX_NUM - sUartApp.RecvBufNum;
+//            } // end if(sUartApp.RecvBufNum..
+//        }
+//        else {
+//            sUartApp.RecvBufNum = 0;
+//            p = sUartApp.RecvBuf;
+//            size = UART_RECV_MAX_NUM;
+//        } // end if((0xAA == sUartApp..
+        /*华大串口透传colson临时使用 end*/
+
+        usart_receive_dma(USART1, p, size);
+    }
+}
+
+/***********************************************************************
+ * DESCRIPTION:This function handles USART3 global interrupt.
+ *             NVIC_Priority : (5, 1)
+ * RETURNS:
+ *
+***********************************************************************/
+
+void USART2_IRQHandler(void)
+{
+    uint32_t temp = 0;
+    uint8_t *p = NULL;
+    uint16_t size = 0;
+
+//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_PERR)) {
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_PERR);
+//    }
+
+//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_FERR)) {
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_FERR);
+//    }
+
+//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_NERR)) {
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_NERR);
+//    }
+
+//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_ORERR)) {
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_ORERR);
+//    }
+
+    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE)) 
+		{
+//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_IDLE);
+        
+        usart_receive_dma_abort(USART2);
+        temp = USART_DATA(USART2);
+        temp = dma_transfer_number_get(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+        sUartApp.RecvBufNum += UART_RECV_MAX_NUM - temp;
+
+        if ((0x57 == sUartApp.RecvBuf[0]) && (sUartApp.RecvBufNum > 0))
         {
             if (sUartApp.RecvBufNum >= 15)
             {
@@ -971,85 +1037,16 @@ void USART1_IRQHandler(void)
                 size = UART_RECV_MAX_NUM - sUartApp.RecvBufNum;
             } // end if(sUartApp.RecvBufNum..
         }
-        else {
+        else 
+				{
             sUartApp.RecvBufNum = 0;
             p = sUartApp.RecvBuf;
             size = UART_RECV_MAX_NUM;
         } // end if((0xAA == sUartApp..
         /*华大串口透传colson临时使用 end*/
 
-        usart_receive_dma(USART1, p, size);
+        usart_receive_dma(USART2, p, size);
     }
-}
-
-/***********************************************************************
- * DESCRIPTION:This function handles USART3 global interrupt.
- *             NVIC_Priority : (5, 1)
- * RETURNS:
- *
-***********************************************************************/
-
-void USART2_IRQHandler(void)
-{
-//    uint32_t temp = 0;
-//    uint8_t *p = NULL;
-//    uint16_t size = 0;
-
-////    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_PERR)) {
-////        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_PERR);
-////    }
-
-////    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_FERR)) {
-////        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_FERR);
-////    }
-
-////    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_NERR)) {
-////        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_NERR);
-////    }
-
-////    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_ORERR)) {
-////        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_ORERR);
-////    }
-
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE)) {
-////        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_IDLE);
-//        
-//        usart_receive_dma_abort(USART2);
-//        temp = USART_DATA(USART2);
-//        temp = usart_receive_dma_number_get(USART2);
-//        sUartApp.RecvBufNum += UART_RECV_MAX_NUM - temp;
-
-//        if ((0xAA == sUartApp.RecvBuf[0]) && (sUartApp.RecvBufNum > 0))
-//        {
-//            if (sUartApp.RecvBufNum > 3)
-//            {
-//                uint16_t FrameLen = sUartApp.RecvBuf[1] | (sUartApp.RecvBuf[2] << 8);
-//                if ((FrameLen+1) <= sUartApp.RecvBufNum)
-//                {
-//                    UartRecvDispatch(sUartApp.RecvBuf);
-
-//                    sUartApp.RecvBufNum = 0;
-//                    p = sUartApp.RecvBuf;
-//                    size = UART_RECV_MAX_NUM;
-//                }
-//                else {
-//                    p = sUartApp.RecvBuf + sUartApp.RecvBufNum;
-//                    size = UART_RECV_MAX_NUM - sUartApp.RecvBufNum;
-//                } // end if((FrameLen+1)..
-//            }
-//            else {
-//                p = sUartApp.RecvBuf + sUartApp.RecvBufNum;
-//                size = UART_RECV_MAX_NUM - sUartApp.RecvBufNum;
-//            } // end if(sUartApp.RecvBufNum..
-//        }
-//        else {
-//            sUartApp.RecvBufNum = 0;
-//            p = sUartApp.RecvBuf;
-//            size = UART_RECV_MAX_NUM;
-//        } // end if((0xAA == sUartApp..
-
-//        usart_receive_dma(USART2, p, size);
-//    }
 }
 
 void USART3_IRQHandler_Weak(void)    
@@ -1130,7 +1127,7 @@ void UartSendData(uint8_t *buf, uint16_t size)
 
     while (SET != usart_transmit_dma_done_get(USART1))
     {
-        if ((ReadTimeStampTimer() - StartTime) > 100*5000000)  // 5s
+        if ((ReadTimeStampTimer() - StartTime) > 2*100*5000000)  // 5s
         {
             break;
         }
@@ -1140,7 +1137,35 @@ void UartSendData(uint8_t *buf, uint16_t size)
     StartTime = ReadTimeStampTimer();
     while (SET != usart_transmit_dma_done_get(USART1))
     {
-        if ((ReadTimeStampTimer() - StartTime) > 100*5000000)  // 5s
+        if ((ReadTimeStampTimer() - StartTime) > 2*100*5000000)  // 5s
+        {
+            break;
+        }
+    }
+}
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void UartSendData2(uint8_t *buf, uint16_t size)
+{
+    UINT32 StartTime = ReadTimeStampTimer();
+
+    while (SET != usart_transmit_dma_done_get(USART2))
+    {
+        if ((ReadTimeStampTimer() - StartTime) > 2*100*5000000)  // 5s
+        {
+            break;
+        }
+    }
+    usart_transmit_dma(USART2, buf, size);
+    
+    StartTime = ReadTimeStampTimer();
+    while (SET != usart_transmit_dma_done_get(USART2))
+    {
+        if ((ReadTimeStampTimer() - StartTime) > 2*100*5000000)  // 5s
         {
             break;
         }

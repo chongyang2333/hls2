@@ -67,6 +67,7 @@ void MX_USART3_UART_Init(void);
 void MX_USART6_UART_Init(void);
 
 void UartSendData(uint8_t * buf, uint16_t size);
+void UartSendData2(uint8_t * buf, uint16_t size);
 uint16_t UartRecvData(uint8_t * buf, uint16_t size);
 
 /* USER CODE BEGIN Prototypes */

@@ -299,27 +299,27 @@ PUBLIC void LeadAcidBatteryInit(void)
 
     g_tBatterySaveInfo.hCycleCount = 600;           //深度循环总次数，600次
 
-    gs_tBatListen.tChar.a1 = -0.89423077;
-    gs_tBatListen.tChar.b1 = 24.23365385;
-    gs_tBatListen.tChar.a2 = -2.3325062;
-    gs_tBatListen.tChar.b2 = 84.62729529;
-    gs_tBatListen.tChar.c2 = -620.33548624;
+    gs_tBatListen.tChar.a1 = -0.89423077f;
+    gs_tBatListen.tChar.b1 = 24.23365385f;
+    gs_tBatListen.tChar.a2 = -2.3325062f;
+    gs_tBatListen.tChar.b2 = 84.62729529f;
+    gs_tBatListen.tChar.c2 = -620.33548624f;
 
-    gs_tBatListen.tChar.ca2 = -0.0002067;
-    gs_tBatListen.tChar.cb2 = 0.04669856;
-    gs_tBatListen.tChar.cc2 = 106.392576;
-    gs_tBatListen.tChar.ca1 = -0.00064;
-    gs_tBatListen.tChar.cb1 = 0.152;
+    gs_tBatListen.tChar.ca2 = -0.0002067f;
+    gs_tBatListen.tChar.cb2 = 0.04669856f;
+    gs_tBatListen.tChar.cc2 = 106.392576f;
+    gs_tBatListen.tChar.ca1 = -0.00064f;
+    gs_tBatListen.tChar.cb1 = 0.152f;
     gs_tBatListen.tChar.cc1 = 100;
 
     gs_tBatListen.tChar.hCycleDivide = 125;
-    gs_tBatListen.tChar.fFullVoltage = 27.1;
-    gs_tBatListen.tChar.fCurve2Right = 26.06;
-    gs_tBatListen.tChar.fCurve2Left = 22.6425;
-    gs_tBatListen.fPoweroffVoltage = 10.0;
+    gs_tBatListen.tChar.fFullVoltage = 27.1f;
+    gs_tBatListen.tChar.fCurve2Right = 26.06f;
+    gs_tBatListen.tChar.fCurve2Left = 22.6425f;
+    gs_tBatListen.fPoweroffVoltage = 10.0f;
     gs_tBatListen.fMapRatio = 1.0f;
 
-    gs_tBatListen.fChargeFUllCurrentC = 0.03;          //铅酸电池充电电流小于0.03C后，认为电池充满
+    gs_tBatListen.fChargeFUllCurrentC = 0.03f;          //铅酸电池充电电流小于0.03C后，认为电池充满
     gs_tBatListen.fChargeFullCurrent = gs_tBatListen.fChargeFUllCurrentC * sPowerManager.sBatteryInfo.BatteryFullCapacity / 1000;
     g_tBatterySaveInfo.hCapacity = BATTERY_FULL_CAPACITY;
 }

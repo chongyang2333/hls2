@@ -80,10 +80,10 @@
             <nStopB2X>0</nStopB2X>
           </BeforeMake>
           <AfterMake>
-            <RunUserProg1>1</RunUserProg1>
+            <RunUserProg1>0</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>Post Universe Chassis.bat</UserProg1Name>
-            <UserProg2Name></UserProg2Name>
+            <UserProg1Name></UserProg1Name>
+            <UserProg2Name>"Post Universe Chassis.bat"</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -625,6 +625,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\Src\logger.c</FilePath>
             </File>
+            <File>
+              <FileName>systick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\systick.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -784,6 +789,11 @@
               <FileName>StateMachine.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\MotorControl\Src\StateMachine.c</FilePath>
+            </File>
+            <File>
+              <FileName>CurrentSample.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MotorControl\Src\CurrentSample.c</FilePath>
             </File>
           </Files>
         </Group>

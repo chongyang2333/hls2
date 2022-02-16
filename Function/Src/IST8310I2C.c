@@ -51,6 +51,7 @@ PUBLIC void IST8310I2C_Init(void)
 	
 	  IST8310_Cfg = 0;	  	 
 		IST8310I2C_WADDR = 0x18;
+	ExtVEnable();//modify by hyr ??бзбу?a3.3V
 		while(dataread != 0x10)
 		{
 			 IST8310I2C_Serial_Read(0x0,&dataread,1);
@@ -84,6 +85,7 @@ PUBLIC void IST8310I2C_Init(void)
 						break;
 				}
 		}
+    ExtVDisable();//modify by hyr 1??ид?3.3V
 }
 
 

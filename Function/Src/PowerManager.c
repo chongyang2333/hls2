@@ -736,7 +736,7 @@ PRIVATE void PM_PowerOnOffExec(void)
 
 		case POWEROFF:
 			//执行关机操作
-            LedFsmEventHandle(&sLedFsm, LED_EVENT_MCU_POWEROFF, LED_STATE_CLOSE, NULL);
+//            LedFsmEventHandle(&sLedFsm, LED_EVENT_MCU_POWEROFF, LED_STATE_CLOSE, NULL);
             if( IsMachineAddInfoSaveOK() )
 			{
                 McuPowerOff();
@@ -870,18 +870,18 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 	if ((sPowerManager.sChargeInfo.ChargeAppState == CHARGING) || (sPowerManager.sChargeInfo.ChargeAppState == CHECK_BEFORE_CHARGING))
 	{
 		//插上充电后，即显示充电呼吸效果
-		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_ING, GetBatteryLevelForLed(sPowerManager.sBatteryInfo.BatteryLevelOptimized), NULL);
+//		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_ING, GetBatteryLevelForLed(sPowerManager.sBatteryInfo.BatteryLevelOptimized), NULL);
 	}
 	else if(sPowerManager.sChargeInfo.ChargeAppState == NOT_CHARGED)
 	{
 		//拔掉充电器后，进入正常的蓝色待机状态
-		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
+//		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
 	}
 	else if(sPowerManager.sChargeInfo.ChargeAppState == POWER_ALARM)
 	{
-        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
+//        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
 		//当出现故障时，接收上位机控制，提示红色闪烁故障灯
-		LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, LED_STATE_ERROR, NULL);
+//		LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, LED_STATE_ERROR, NULL);
 	}
 	
 }
@@ -927,31 +927,46 @@ PUBLIC void lidarPowerOnOffExec(void)
 	{
 			if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower)
 			{
-							LidarPowerOn();
-							if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
-							{
-									if(leds_cnt++>20)
-									{
-										leds_cnt = 20;
-										A2M7_CtrlOn(sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed);
-										sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
-										sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
-									}
-							}
-							else
-							{
-									sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
-									sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
-							}
-							sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed;			
+			    if(gMachineInfo.ldsSensorVersion == 23)
+			    {
+			        EXOLidarPowerOn();
+			    }
+			    else
+			    {
+                    LidarPowerOn();
+			    }
+                if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
+                {
+                        if(leds_cnt++>20)
+                        {
+                            leds_cnt = 20;
+                            //A2M7_CtrlOn(sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed);
+                            sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
+                            sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
+                        }
+                }
+                else
+                {
+                        sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
+                        sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
+                }
+                sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed;
 			}
 			else
 			{
 					leds_cnt = 0;
-					LidarPowerOff();
+
+	                if(gMachineInfo.ldsSensorVersion == 23)
+	                {
+	                    EXOLidarPowerOff();
+	                }
+	                else
+	                {
+	                    LidarPowerOff();
+	                }
 					if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
 					{
-						A2M7_CtrlOff();
+						//A2M7_CtrlOff();
 					}
 					sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
 					sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = 0;
@@ -1035,26 +1050,38 @@ PUBLIC void DisinfectionModulePowerCtrl(UINT8 En)
 PRIVATE void SpeakerOnOffExec(void)
 {
 	//上电后3S钟才打开音推使能，避免音响开机爆音问题
-	if (sPowerManager.uTick < 3*40)
-		return;
-
-	if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower != sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower)
+	if (sPowerManager.uTick < 40)
 	{
-		sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower;
-		if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower)
-		{
-            MusicPwEnable();
-            MuteDisable();   // GPIO控制
-            
-			YDA138_MuteOff(); // 59108控制
-		}
-		else
-		{
-            MuteEnable();
-            MusicPwDisable();
-            
-			YDA138_MuteOn();
-		}
+	    return;
+	}
+	else if(sPowerManager.uTick < 2*40)
+	{
+	    MusicPwEnable();
+	}
+    else if(sPowerManager.uTick < 3*40)
+    {
+        MuteDisable();
+    }
+	else
+	{
+	    if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower != sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower)
+	    {
+	        sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower;
+	        if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower)
+	        {
+	            MusicPwEnable();
+	            MuteDisable();   // GPIO控制
+
+	            //YDA138_MuteOff(); // 59108控制
+	        }
+	        else
+	        {
+	            MuteEnable();
+	            MusicPwDisable();
+
+	            //YDA138_MuteOn();
+	        }
+	    }
 	}
 }
 
@@ -1770,11 +1797,11 @@ PUBLIC void BatteryInfoReadLoop(void)
 			return; 
         }
 
-        if(sPowerManager.sBatteryInfo.BMS_icType == NONE_RECOGNIZED) ///xxx 需要与machineinfo共同作用
-        {
-            sPowerManager.sBatteryInfo.BMS_icType = LEAD_ACID_BAT;      //如果前面没识别到BMS芯片，则该产品可能使用的是铅酸电池
-            return;
-        }
+//        if(sPowerManager.sBatteryInfo.BMS_icType == NONE_RECOGNIZED) ///xxx 需要与machineinfo共同作用
+//        {
+//            sPowerManager.sBatteryInfo.BMS_icType = LEAD_ACID_BAT;      //如果前面没识别到BMS芯片，则该产品可能使用的是铅酸电池
+//            return;
+//        }
     }
     
     if(sPowerManager.sBatteryInfo.BMS_icType == LEAD_ACID_BAT)
@@ -2765,8 +2792,8 @@ PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode)
             break;
         }
         
-        AdcSampleStart();
-        AdcSampleClearFlag();
+        AdcSample0Start();
+        AdcSample0ClearFlag();
         
         Vbus_tmp_last = Vbus_tmp;
         Vbus_tmp =   GetVbusVoltage(); 
