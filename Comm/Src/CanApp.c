@@ -22,7 +22,7 @@
 #include "BootloaderInfo.h"
 #include "gpio.h"
 #include "HardApi.h"
-
+#include "usart.h"
 #include "LedDriver.h"
 #include "MachineAdditionalInfo.h"
 #include "gd_hal.h"
@@ -244,14 +244,14 @@ PUBLIC void CanAppDispatch(void)
         break;
 
     case 0x75:
-        LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
-        CanSendLedStateFb(sLedFsm.curState);
+					//LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
+					//CanSendLedStateFb(sLedFsm.curState);
         break;
 
     case 0x90:
         if( CanRxMessage.RxData[1] == 13 || CanRxMessage.RxData[1] == 14 )
         {
-            chassis_led_ctrl( CanRxMessage.RxData );
+            //chassis_led_ctrl( CanRxMessage.RxData );
         }
         break;
 
@@ -314,7 +314,7 @@ PUBLIC void USB2CAN_RecvDispatch(UINT8 *data,UINT16 datalen)
         //colson
         if( CmdType ==EN_IAP_CMD && CanRxMessage.RxData[1] == AutoChage_MCU_ID)
         {
-            UartSendData(data,datalen);
+            UartSendData2(data,datalen);
             return;
         }
   
@@ -392,8 +392,8 @@ PUBLIC void USB2CAN_RecvDispatch(UINT8 *data,UINT16 datalen)
             break;
 
         case 0x75:
-            LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
-            CanSendLedStateFb(sLedFsm.curState);
+//            LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
+//            CanSendLedStateFb(sLedFsm.curState);
             break;
 
         case 0x90:

@@ -54,11 +54,11 @@ UINT8 GetSum(UINT8 *buf, UINT16 length)
 void Uart_AutoChargeApp_RecvDispatch(UINT8 *data, UINT16 datalen)
 {
     /*
-       Ö¡Í·£¨2bytes£© id£¨2bytes£© Êı¾İ£¨8bytes£© Êı¾İ³¤¶È£¨1byte£© Ö¡Î²£¨2bytes£©
+       å¸§å¤´ï¼ˆ2bytesï¼‰ idï¼ˆ2bytesï¼‰ æ•°æ®ï¼ˆ8bytesï¼‰ æ•°æ®é•¿åº¦ï¼ˆ1byteï¼‰ å¸§å°¾ï¼ˆ2bytesï¼‰
         0x57 0x58        id         data                cnt           0xA8 0xA7
     */
     /*
-       Ö¡Í·£¨2bytes£© id£¨2bytes£© Êı¾İ£¨8bytes£© Êı¾İ³¤¶È£¨1byte£© Ö¡Î²£¨2bytes£©
+       å¸§å¤´ï¼ˆ2bytesï¼‰ idï¼ˆ2bytesï¼‰ æ•°æ®ï¼ˆ8bytesï¼‰ æ•°æ®é•¿åº¦ï¼ˆ1byteï¼‰ å¸§å°¾ï¼ˆ2bytesï¼‰
         0x57 0x58        id         data                cnt           0xA8 0xA7
     */
 
@@ -69,13 +69,13 @@ void Uart_AutoChargeApp_RecvDispatch(UINT8 *data, UINT16 datalen)
     CAN_RX_Message CanRxMessage;
     UINT16 DataSize = datalen;
 
-    frame.header[0] = data[0]; //Ö¡Í·
+    frame.header[0] = data[0]; //å¸§å¤´
     frame.header[1] = data[1];
 
-    frame.tail[0] = data[DataSize-2];//Ö¡Î²
+    frame.tail[0] = data[DataSize-2];//å¸§å°¾
     frame.tail[1] = data[DataSize-1];
 
-    frame.can_dlc = data[DataSize-3];//Êı¾İ³¤¶È
+    frame.can_dlc = data[DataSize-3];//æ•°æ®é•¿åº¦
 
 
     if(frame.header[0] == 0x57 && frame.header[1] == 0x58 \

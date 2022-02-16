@@ -21,7 +21,7 @@
 #include "Encoder.h"
 #include "Alarm.h"
 #include "gd32f4xx_exti.h"
-
+#include "CurrentSample.h"
 /*------------------------- Public Constants ----------------------*/
 #define MAX_AXIS_NUM        2
 
@@ -50,7 +50,11 @@
 #define SPEED_FRQ           CURRENT_FRQ/2
 #define POSITION_FRQ        CURRENT_FRQ/5
 
-
+//????????
+#define TW_AFTER            600
+#define TW_BFTER            800
+#define TW_BEFORE           201
+#define TW_AEFORE           550
 
 #define CURRENT_PRD         (1.0f/(float)CURRENT_FRQ)
 //#define SPEED_PRD           (5.0f*CURRENT_PRD)
@@ -72,8 +76,8 @@
 #define C_SinUint1D2        (C_SinUint>>1)
 #define C_SinUint3D4        ((C_SinUint>>2)*3)
 
-#define MAX_TIMER_ISR_TIME   (15000*100)  // 15MS
-#define MAX_PWM_ISR_TIME     (80*100)     // Max is 100us
+#define MAX_TIMER_ISR_TIME   (15000*200)  // 15MS
+#define MAX_PWM_ISR_TIME     (80*200)     // Max is 100us
 
 #define VBUS_VOLTAGE_CLIMB_SLOPE_CONDITION  0.03f
 #define VBUS_VOLTAGE_CONDITION  18.0f
@@ -85,6 +89,9 @@ struct CurrentLoopStruct
 	REAL32	Ia;                  // phase a actual current
 	REAL32	Ib;                  // phase b actual current
 	REAL32	Ic;                  // phase c actual current
+	INT16   CurPhaA_Data[3];
+	INT16   CurPhaB_Data[3];
+	INT16   CurPhaC_Data[3];
 	REAL32	Ialfa;               // Ialfa actual current
 	REAL32	Ibeta;               // Ibeta actual current
     
@@ -137,9 +144,13 @@ struct CurrentLoopStruct
 	REAL32	Vbeta;               // beta-axis voltage
 
 	/* SVPWM Module */
+	INT16   Sector;              // SectorNum
+	INT16   SectorLast;
 	INT16	TaNumber;            // SVPWM output for timer compare value
 	INT16	TbNumber;            // SVPWM output for timer compare value
 	INT16	TcNumber;            // SVPWM output for timer compare value
+	INT16   TdNumber;            // ADC Sample Time
+	INT16   CurEffective;        // Current Effective flag
 	INT16	Tonmin;              // PWM on min value (timer counter)
 	INT16	Tonmax;              // PWM on max value (timer counter)
 	INT16	PWMPRD;              // PWM period value (timer counter)
