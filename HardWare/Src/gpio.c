@@ -493,13 +493,13 @@ void ExtVDisable(void)
 // Enable MUTE
 void MuteEnable(void)
 {
-    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_SET );  
+    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_RESET );  
 }
 
 // Disable MUTE
 void MuteDisable(void)
 {
-    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_RESET );  
+    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_SET );  
 }
 
 

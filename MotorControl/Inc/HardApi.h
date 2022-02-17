@@ -30,7 +30,7 @@
 #define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
 #define ADC0_JDR1_GAIN  0.01859225f    // Dc Voltage coff MAIN_V/BATTERY_V
 #define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff CHARGE_V
-#define ADC0_JDR3_GAIN  0.01696135f    // (+/-)30A/2048   CHARGE_I todo
+#define ADC0_JDR3_GAIN  0.01220703f    // (+/-)25A/2048   CHARGE_I todo
 
 /* Time stamp module */
 extern PUBLIC void TimeStampTimerInit(void);
