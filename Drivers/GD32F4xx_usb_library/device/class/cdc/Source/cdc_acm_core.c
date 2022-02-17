@@ -336,7 +336,7 @@ void cdc_acm_data_receive (usb_dev *udev)
 
     cdc->packet_receive = 0U;
     cdc->receive_length = 0U;
-    cdc->packet_sent = 0U;
+    cdc->packet_sent = 1U;
 
     usbd_ep_recev(udev, CDC_DATA_OUT_EP, (uint8_t*)(cdc->data), USB_CDC_DATA_PACKET_SIZE);
     

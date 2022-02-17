@@ -1,8 +1,8 @@
 /*!
     \file    main.c
     \brief   Demo--GPIO
-    
-    \version 
+
+    \version
 */
 
 #include "gd32f4xx.h"

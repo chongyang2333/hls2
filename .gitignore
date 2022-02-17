@@ -64,4 +64,4 @@ dkms.conf
 *.uvguix.*
 MDK-ARM/Listings/
 *.bin
-    
+*.orig    

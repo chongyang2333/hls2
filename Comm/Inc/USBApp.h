@@ -45,6 +45,8 @@ OF SUCH DAMAGE.
 extern usb_core_driver cdc_acm;
 
 
+#define USB_TX_BUFF_SIZE 15*100
+#define USB_RX_BUFF_SIZE 15*100
 
 typedef struct _usb2can_frame
 {
@@ -59,6 +61,10 @@ typedef struct _usb2can_frame
 
 
 void USB_init(void);
+
+
+void UsbExec(void);
+
 
 uint8_t USB_send(uint32_t id,uint8_t *data,uint16_t datalen);
 uint8_t USB_send_dirt(uint8_t *data,uint16_t datalen);
