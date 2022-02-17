@@ -35,7 +35,7 @@ PRIVATE INT16 ADC0_JDR3_Offset = 2048;
 
 
 extern PUBLIC UINT8 ApplicationMode;
-PRIVATE void AdcSumPort(uint32_t * sum);
+PRIVATE void AdcSumPort(UINT16 * sum);
 
 /***********************************************************************
  * DESCRIPTION: Initialize time stamp timer.
@@ -155,7 +155,7 @@ PUBLIC void AdcInit(void)
 	  adc_config();
     delay_ms(50);
     AdcOffsetCal();  // todo
-	  //adc_reconfig();
+	  adc_reconfig();
 }
 
 /***********************************************************************
@@ -240,7 +240,7 @@ PUBLIC void GetMosAdc(UINT16 *leftMosAdc, UINT16 *rightMosAdc)
 * RETURNS: ADC通道和接口，服务AdcOffsetCal函数
  *
 ***********************************************************************/
-PRIVATE void AdcSumPort(uint32_t * sum)
+PRIVATE void AdcSumPort(UINT16 * sum)
 {
         sum[0] += ADC_IDATA0(ADC2);
         sum[1] += ADC_IDATA1(ADC2);
@@ -257,7 +257,7 @@ PRIVATE void AdcSumPort(uint32_t * sum)
 ***********************************************************************/
 PRIVATE INT16 Left_AdcInitState = 0;
 PRIVATE INT16 Right_AdcInitState = 0;
-uint32_t sum[6]={0};
+UINT16 sum[6]={0};
 PUBLIC void AdcOffsetCal(void)
 {
     
@@ -279,7 +279,7 @@ PUBLIC void AdcOffsetCal(void)
 			  PwmUpdate(AXIS_LEFT, 1, 5000, 5000, 5000,9999);
 			  PwmUpdate(AXIS_RIGHT, 1, 5000, 5000, 5000,9999);
 
-        for(int i = 0;i < 64;i++)
+        for(int i = 0;i < 16;i++)
         {
 						AdcSampleStart();
 					  delay_ms(1);
@@ -287,12 +287,12 @@ PUBLIC void AdcOffsetCal(void)
 						AdcSampleClearFlag();						      						
         }
 				AdcSampleClearFlag();
-				ADC1_JDR0_Offset = sum[3] / 64;
-				ADC1_JDR1_Offset = sum[4] / 64;
-				ADC1_JDR2_Offset = sum[5] / 64;
-				ADC2_JDR0_Offset = sum[0] / 64;
-				ADC2_JDR1_Offset = sum[1] / 64;
-				ADC2_JDR2_Offset = sum[2] / 64;	
+				ADC1_JDR0_Offset = sum[3] >> 4;
+				ADC1_JDR1_Offset = sum[4] >> 4;
+				ADC1_JDR2_Offset = sum[5] >> 4;
+				ADC2_JDR0_Offset = sum[0] >> 4;
+				ADC2_JDR1_Offset = sum[1] >> 4;
+				ADC2_JDR2_Offset = sum[2] >> 4;	
 
         PwmDisable(AXIS_LEFT);
 			  PwmDisable(AXIS_RIGHT);				
@@ -347,17 +347,100 @@ PUBLIC void GetPhaseCurrent(UINT16 AxisID, float *Ia, float *Ib)
 { 
     if(AXIS_LEFT == AxisID) //ADC_IDATA3(ADC2);
     {
-         *Ia = -((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
-         *Ib = -((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
+         *Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
+         *Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;
+
+					ADC_STAT(ADC1)&=(~ADC_STAT_STIC);
+					ADC_STAT(ADC1)&=(~ADC_STAT_EOIC);
+					ADC_STAT(ADC1)&=(~ADC_STAT_EOC);
     }
     else if(AXIS_RIGHT == AxisID)
     { 
-         *Ia = -((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
-         *Ib = -((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
-    }
-    
+         *Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
+         *Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;
+						ADC_STAT(ADC2)&=(~ADC_STAT_STIC);
+					  ADC_STAT(ADC2)&=(~ADC_STAT_EOIC);
+					  ADC_STAT(ADC2)&=(~ADC_STAT_EOC);
+    }    
 }
 
+
+PUBLIC void GetPhaseCurrentReal(struct AxisCtrlStruct *P)
+{ 
+    if(AXIS_LEFT == P->AxisID) //ADC_IDATA3(ADC2);
+    {
+			switch(P->sCurLoop.SectorLast)  //使用上一周期的扇区
+     {
+        case 1:
+				case 6:
+            P->sCurLoop.Ic = ((INT16)ADC_IDATA2(ADC1) - ADC1_JDR2_Offset)*ADC1_JDR2_GAIN;
+            P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;            
+            P->sCurLoop.Ia = (-P->sCurLoop.Ic - P->sCurLoop.Ib)*ADC1_JDR0_GAIN;
+            break;
+
+        case 2:
+				case 3:
+            P->sCurLoop.Ic = ((INT16)ADC_IDATA2(ADC1) - ADC1_JDR2_Offset)*ADC1_JDR2_GAIN;
+            P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;            
+            // Ib = -Ic-Ia;
+            P->sCurLoop.Ib = (-P->sCurLoop.Ia - P->sCurLoop.Ic)*ADC1_JDR1_GAIN;
+            break;
+
+        case 4:
+				case 5:
+            P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
+            P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;        
+            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib)*ADC1_JDR2_GAIN;
+            break;
+    
+        default:
+					  P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
+            P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;        
+            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib)*ADC1_JDR2_GAIN;
+            break;
+    }
+
+					ADC_STAT(ADC1)&=(~ADC_STAT_STIC);
+					ADC_STAT(ADC1)&=(~ADC_STAT_EOIC);
+					ADC_STAT(ADC1)&=(~ADC_STAT_EOC);
+    }
+    else if(AXIS_RIGHT == P->AxisID)
+    { 
+			switch(P->sCurLoop.SectorLast)  //使用上一周期的扇区
+     {
+        case 1:
+				case 6:
+            P->sCurLoop.Ic = ((INT16)ADC_IDATA2(ADC2) - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
+            P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;            
+            P->sCurLoop.Ia = (-P->sCurLoop.Ic - P->sCurLoop.Ib)*ADC2_JDR0_GAIN;
+            break;
+
+        case 2:
+				case 3:
+            P->sCurLoop.Ic = ((INT16)ADC_IDATA2(ADC2) - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
+            P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;            
+            // Ib = -Ic-Ia;
+            P->sCurLoop.Ib = (-P->sCurLoop.Ia - P->sCurLoop.Ic)*ADC2_JDR1_GAIN;
+            break;
+
+        case 4:
+				case 5:
+            P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
+            P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;        
+            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib)*ADC2_JDR2_GAIN;
+            break;
+    
+        default:
+					  P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
+            P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;        
+            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib)*ADC2_JDR2_GAIN;
+            break;
+    }
+						ADC_STAT(ADC2)&=(~ADC_STAT_STIC);
+					  ADC_STAT(ADC2)&=(~ADC_STAT_EOIC);
+					  ADC_STAT(ADC2)&=(~ADC_STAT_EOC);
+    }    
+}
 /***********************************************************************
  * DESCRIPTION: Get Charge current
  *	     
