@@ -47,7 +47,7 @@ UINT32 MaxLoopTime = 0;
 void HardwareInit(void);
 BootLoaderInfo bootloaderInfo = {0};
 
-ST_VersionStruct NowSoftWareVersion = {21, 0, 22};
+ST_VersionStruct NowSoftWareVersion = {0, 1, 0};
 
 void CAN_MesIAPResetTreatment(BootLoaderInfo *pstbootloaderInfo);
 
@@ -120,7 +120,6 @@ void HardwareInit()
 
     /* Initialize can module*/
     MX_CAN1_Init();
-
 
     /* Initialize pwm:for motor drive*/
     PwmInit();

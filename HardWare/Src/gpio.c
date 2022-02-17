@@ -95,7 +95,7 @@ UINT8 MX_GPIO_Init(void)
 //    gpio_output_options_set(GPIOB,GPIO_OTYPE_OD,GPIO_OSPEED_2MHZ,GPIO_PIN_12);
 //    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
     
-		/*Configure GPIO pins : PE3 :RGBD_PW_EN(12V)*/
+    /*Configure GPIO pins : PE3 :RGBD_PW_EN(12V)*/
     gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_3);
     gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_3);
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
