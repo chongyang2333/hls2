@@ -22,37 +22,16 @@
 #include "delay.h"
 #include "systick.h"
 
-#define ACID_SAMPLE_CC6903      0
-#define ACID_SAMPLE_ACS711      1
-
-#define ACID_SAMPLE_IC      ACID_SAMPLE_ACS711
-
-PRIVATE INT16 ADC2_JDR0_Offset = 2160;
-PRIVATE INT16 ADC2_JDR1_Offset = 2070;
-PRIVATE INT16 ADC1_JDR0_Offset = 2090;
-PRIVATE INT16 ADC1_JDR1_Offset = 2155;
+PUBLIC INT16 ADC2_JDR0_Offset = 2160;
+PUBLIC INT16 ADC2_JDR1_Offset = 2070;
+PUBLIC INT16 ADC2_JDR2_Offset = 2070;
+PUBLIC INT16 ADC1_JDR0_Offset = 2090;
+PUBLIC INT16 ADC1_JDR1_Offset = 2155;
+PUBLIC INT16 ADC1_JDR2_Offset = 2155;
 
 PRIVATE INT16 ADC0_JDR3_Offset = 2048;
 
 
-
-#define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
-#define ADC0_JDR1_GAIN  0.01853027f    // Dc Voltage coff MAIN_V/BATTERY_V
-#define ADC0_JDR2_GAIN  0.01859225f    // Dc Voltage coff CHARGE_V
-
-#if (ACID_SAMPLE_IC == ACID_SAMPLE_CC6903)
-// #define ADC0_JDR3_GAIN  0.02061069f    // (+/-)30A/2048   CHARGE_I, 根据实际情况进行校准
-#define ADC0_JDR3_GAIN  0.01831055f    // (+/-)30A/2048   CHARGE_I, 根据实际情况进行校准
-#define ADC1_JDR2_GAIN  0.01831055f    // battery current MAIN_I=samplevalue*3.3/4096/0.044
-
-PRIVATE INT16 ADC1_JDR2_Offset = 2038;
-
-#elif (ACID_SAMPLE_IC == ACID_SAMPLE_ACS711)
-#define ADC0_JDR3_GAIN  0.01464844f    // (+/-)30A/2048   CHARGE_I, 根据实际情况进行校准
-#define ADC1_JDR2_GAIN  0.01464844f    // battery current MAIN_I=samplevalue*3.3/4096/0.044
-
-PRIVATE INT16 ADC1_JDR2_Offset = 2046;
-#endif
 
 
 extern PUBLIC UINT8 ApplicationMode;
@@ -278,7 +257,7 @@ PRIVATE void AdcSumPort(uint32_t * sum)
 ***********************************************************************/
 PRIVATE INT16 Left_AdcInitState = 0;
 PRIVATE INT16 Right_AdcInitState = 0;
-UINT32 sum[6]={0};
+uint32_t sum[6]={0};
 PUBLIC void AdcOffsetCal(void)
 {
     

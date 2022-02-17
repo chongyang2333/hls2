@@ -46,12 +46,24 @@ PUBLIC void RgbInit(void)
 PUBLIC void RgbExec(void)
 {
     static UINT16 Cnt = 0;
+    
+    uint16_t max_cnt = 0;
+    
     GPIO_PinState PinState = GPIO_PIN_SET;
     
-    Cnt++;
-    Cnt = Cnt%100;
+    if (gParam[0].ErrorRegister0x230D || gParam[1].ErrorRegister0x230D)
+    {
+        max_cnt = 10; // æ•…éšœæ—¶å¿«é€Ÿé—ªçƒ
+    }
+    else
+    {
+        max_cnt = 50; // æ­£å¸¸å‘¼å¸ 
+    }
     
-    if(Cnt < 50)
+    Cnt++;
+    Cnt = Cnt%(max_cnt*2);
+    
+    if(Cnt < max_cnt)
     {
         PinState = GPIO_PIN_SET;
     }
@@ -60,9 +72,9 @@ PUBLIC void RgbExec(void)
         PinState = GPIO_PIN_RESET;
     }
     
-    //modify by hyr ĞÂÌøµÆÇĞ»»µ½LED1 PE0
+    //modify by hyr LED1 PE0
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, PinState); // STM32 HEART BEAT
-    //modify by hyr È¥µô¹ÊÕÏµÆ
+    //modify by hyr 
 //    if(gParam[0].ErrorRegister0x230D)
 //    {
 //        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, PinState);
