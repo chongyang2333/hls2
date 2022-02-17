@@ -495,12 +495,12 @@ void MX_TIM1_Init(void)
     timer_channel_output_config(TIMER1,TIMER_CH_3,&timer_ocintpara);
 
     /* CH1 configuration in PWM mode1,duty cycle 100% */
-    timer_channel_output_pulse_value_config(TIMER1,TIMER_CH_1,999);
+    timer_channel_output_pulse_value_config(TIMER1,TIMER_CH_1,400);
     timer_channel_output_mode_config(TIMER1,TIMER_CH_1,TIMER_OC_MODE_PWM0);
     timer_channel_output_shadow_config(TIMER1,TIMER_CH_1,TIMER_OC_SHADOW_DISABLE);
 
     /* CH3 configuration in PWM mode1,duty cycle 100% */
-    timer_channel_output_pulse_value_config(TIMER1,TIMER_CH_3,999);
+    timer_channel_output_pulse_value_config(TIMER1,TIMER_CH_3,600);
     timer_channel_output_mode_config(TIMER1,TIMER_CH_3,TIMER_OC_MODE_PWM0);
     timer_channel_output_shadow_config(TIMER1,TIMER_CH_3,TIMER_OC_SHADOW_DISABLE);
 

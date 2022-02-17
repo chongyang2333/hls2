@@ -41,5 +41,5 @@ void delay_us(uint32_t nus)
 
 void delay_ms(uint32_t nms)
 {
-    delay_us(nms*1000);
+    delay_1us(nms*1000);
 }

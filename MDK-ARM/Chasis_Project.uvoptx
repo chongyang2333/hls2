@@ -157,141 +157,90 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>2756</LineNumber>
+          <LineNumber>286</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134398708</Address>
+          <Address>134353736</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Function\Src\PowerManager.c</Filename>
+          <Filename>..\MotorControl\Src\Alarm.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Chasis_Project\../Function/Src/PowerManager.c\2756</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>2795</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134398824</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Function\Src\PowerManager.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Chasis_Project\../Function/Src/PowerManager.c\2795</Expression>
+          <Expression>\\Chasis_Project\../MotorControl/Src/Alarm.c\286</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)(0x40010000 + 0x20U))</ItemText>
+          <ItemText>sAxis[0],0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)(0x40010000 + 0x4U))</ItemText>
+          <ItemText>sAxis[1]</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0],0x0A</ItemText>
+          <ItemText>ADC2_JDR0_Offset,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[1]</ItemText>
+          <ItemText>ADC2_JDR1_Offset,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC2_JDR0_Offset,0x0A</ItemText>
+          <ItemText>ADC2_JDR2_Offset,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC2_JDR1_Offset,0x0A</ItemText>
+          <ItemText>ADC1_JDR0_Offset,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC2_JDR2_Offset,0x0A</ItemText>
+          <ItemText>ADC1_JDR1_Offset,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC1_JDR0_Offset,0x0A</ItemText>
+          <ItemText>ADC1_JDR2_Offset,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC1_JDR1_Offset,0x0A</ItemText>
+          <ItemText>sPowerManager.sBoardPowerInfo.VbusSoftStartFlag</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC1_JDR2_Offset,0x0A</ItemText>
+          <ItemText>sPowerManager,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x200U)) + 0x3CU)),0x0A</ItemText>
+          <ItemText>gyro,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x200U)) + 0x40U)),0x0A</ItemText>
+          <ItemText>accel,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x100U)) + 0x3CU)),0x0A</ItemText>
+          <ItemText>debug1</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x100U)) + 0x40U)),0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>14</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x000U)) + 0x3cU)),0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>15</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sPowerManager.sBoardPowerInfo.VbusSoftStartFlag</ItemText>
-        </Ww>
-        <Ww>
-          <count>16</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sPowerManager,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>17</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>gyro,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>18</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>accel,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>19</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x000U)) + 0x40U)),0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>20</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x000U)) + 0x44U)),0x0A</ItemText>
+          <ItemText>(*(volatile uint32_t *)(uint32_t)((((((uint32_t)0x40010000U) + 0x00002000U) + 0x000U)) + 0x3CU)),0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
@@ -869,7 +818,7 @@
 
   <Group>
     <GroupName>User</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

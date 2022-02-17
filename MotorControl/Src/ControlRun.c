@@ -62,7 +62,7 @@ extern PUBLIC void InnerCtrlExec(struct AxisCtrlStruct *P);
 extern PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X);
 
 extern PUBLIC void VeneerAgingTest(void);
-
+extern PUBLIC void GetPhaseCurrentReal(struct AxisCtrlStruct *P);
 
 struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 struct SchedulerStruct sScheduler;
@@ -193,13 +193,15 @@ PUBLIC void ControlRunExec(void)
 	/* Read time stamp at the entrance of interrupt:
             for calculate the elapsed time of interrupt*/
 	UINT32 IsrStartTime = ReadTimeStampTimer();
-    
-    static UINT16 Cnt_1ms = 0;
-    
+	static UINT16 Cnt_1ms = 0;
+//	GetPhaseCurrentReal(&sAxis[0]);
+//	GetPhaseCurrentReal(&sAxis[0]);
+  	GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
+    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
+
 	/* Start phase current,DC current,DC voltage sample */
-	//AdcSampleStart();
 	  AdcSample0Start();
-	  AdcSampleStart();
+	  //AdcSampleStart();
 //    GetPhaseCurrentRe(&sAxis[0]);
 //    GetPhaseCurrentRe(&sAxis[1]);
     
@@ -270,17 +272,17 @@ PUBLIC void ControlRunExec(void)
 	}
 
     /* wait for ADC to complete, then acknowledge flag	*/ 
-    AdcSampleClearFlag();
+    //AdcSampleClearFlag();
 
 	  /* Calculate phase current */
-	  GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
-    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
+//	  GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
+//    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
     AdcSample0ClearFlag();
     GetDcVoltage(&sAxis[0].sCurLoop.Vdc);
     sAxis[1].sCurLoop.Vdc = sAxis[0].sCurLoop.Vdc;
     
 	/* Current loop calculation */
-	CurrentLoopExec(&sAxis[0]);
+	  CurrentLoopExec(&sAxis[0]);
     CurrentLoopExec(&sAxis[1]);
     
 	/* Update PWM compare value */
@@ -299,7 +301,7 @@ PUBLIC void ControlRunExec(void)
 //	data_collect_loop();
 
     sScheduler.SchNum++;
-	sScheduler.SchNum = sScheduler.SchNum%MAX_SCH_NUM;
+	  sScheduler.SchNum = sScheduler.SchNum%MAX_SCH_NUM;
     
     if(sScheduler.SchNum == 0)  // 1s
     {
@@ -308,7 +310,7 @@ PUBLIC void ControlRunExec(void)
     }
 
 	/* Main interrupt tick: add 1 at each cycle */
-	sScheduler.TickCnt++;
+	 sScheduler.TickCnt++;
     
 	/* Calculate the elapsed time of interrupt */
     sScheduler.IsrElapsedTime = ReadTimeStampTimer() - IsrStartTime;

@@ -1050,19 +1050,19 @@ PUBLIC void DisinfectionModulePowerCtrl(UINT8 En)
 PRIVATE void SpeakerOnOffExec(void)
 {
 	//上电后3S钟才打开音推使能，避免音响开机爆音问题
-	if (sPowerManager.uTick < 8)
+	if (sPowerManager.uTick < 40)
 	{
 	    return;
 	}
-	else if(sPowerManager.uTick < 16)
+	else if(sPowerManager.uTick < 2*40)
 	{
 	    MusicPwEnable();
 	}
-    else if(sPowerManager.uTick < 24)
+    else if(sPowerManager.uTick < 3*40)
     {
         MuteDisable();
     }
-	else if(sPowerManager.uTick > 3*40)
+	else
 	{
 	    if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower != sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower)
 	    {
@@ -1797,11 +1797,11 @@ PUBLIC void BatteryInfoReadLoop(void)
 			return; 
         }
 
-        if(sPowerManager.sBatteryInfo.BMS_icType == NONE_RECOGNIZED) ///xxx 需要与machineinfo共同作用
-        {
-            sPowerManager.sBatteryInfo.BMS_icType = LEAD_ACID_BAT;      //如果前面没识别到BMS芯片，则该产品可能使用的是铅酸电池
-            return;
-        }
+//        if(sPowerManager.sBatteryInfo.BMS_icType == NONE_RECOGNIZED) ///xxx 需要与machineinfo共同作用
+//        {
+//            sPowerManager.sBatteryInfo.BMS_icType = LEAD_ACID_BAT;      //如果前面没识别到BMS芯片，则该产品可能使用的是铅酸电池
+//            return;
+//        }
     }
     
     if(sPowerManager.sBatteryInfo.BMS_icType == LEAD_ACID_BAT)

@@ -39,6 +39,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
+#include "delay.h"
 #include "gd_hal.h"
 /* USER CODE BEGIN 0 */
 
@@ -317,37 +318,37 @@ void VbusBufferDisable(void)
 // Enable DC Voltage Buffer使能
 void DrvPwEnable(void)
 {
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET );
 }
 
 // Disable DC Voltage Buffer
 void DrvPwDisable(void)
 {
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET );
 }
 
 // turn off lidar power 
 void LidarPowerOff(void)
 {
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_RESET);
 }
 
 // turn on lidar power
 void LidarPowerOn(void)
 {
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
 }
 
 // turn off EXO lidar power
 void EXOLidarPowerOff(void)
 {
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_RESET);
 }
 
 // turn on lidar power 
 void EXOLidarPowerOn(void)
 {
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET);
 }
 
 // Read Lidar power State
@@ -492,13 +493,13 @@ void ExtVDisable(void)
 // Enable MUTE
 void MuteEnable(void)
 {
-    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_SET );  
+    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_RESET );  
 }
 
 // Disable MUTE
 void MuteDisable(void)
 {
-    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_RESET );  
+    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_SET );  
 }
 
 

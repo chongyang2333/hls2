@@ -64,6 +64,8 @@ PUBLIC void CurrentSampleTimeCal(struct CurrentLoopStruct *P,UINT16 AxisID)
             MidDutyTemp = P->TcNumber;
             break;
         default :
+					  MaxDutyTemp = P->TbNumber;
+            MidDutyTemp = P->TcNumber;
             break;
     }
 
