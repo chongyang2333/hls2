@@ -194,10 +194,10 @@ PUBLIC void ControlRunExec(void)
             for calculate the elapsed time of interrupt*/
 	UINT32 IsrStartTime = ReadTimeStampTimer();
 	static UINT16 Cnt_1ms = 0;
-//	GetPhaseCurrentReal(&sAxis[0]);
-//	GetPhaseCurrentReal(&sAxis[0]);
-  	GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
-    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
+	GetPhaseCurrentReal(&sAxis[0]);
+	GetPhaseCurrentReal(&sAxis[1]);
+//  	GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
+//    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
 
 	/* Start phase current,DC current,DC voltage sample */
 	  AdcSample0Start();
@@ -285,6 +285,8 @@ PUBLIC void ControlRunExec(void)
 	  CurrentLoopExec(&sAxis[0]);
     CurrentLoopExec(&sAxis[1]);
     
+	sAxis[0].sCurLoop.TdNumber = 9960;
+	sAxis[1].sCurLoop.TdNumber = 9960;
 	/* Update PWM compare value */
     PwmUpdate(AXIS_LEFT, sAxis[0].PowerFlag, sAxis[0].sCurLoop.TaNumber, sAxis[0].sCurLoop.TbNumber, sAxis[0].sCurLoop.TcNumber,sAxis[0].sCurLoop.TdNumber);
     PwmUpdate(AXIS_RIGHT, sAxis[1].PowerFlag, sAxis[1].sCurLoop.TaNumber, sAxis[1].sCurLoop.TbNumber, sAxis[1].sCurLoop.TcNumber, sAxis[1].sCurLoop.TdNumber);

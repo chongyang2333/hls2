@@ -200,7 +200,7 @@ PUBLIC void CurrentLoopExec(struct AxisCtrlStruct *P)
 	// svpwm
 	SVPWMCal(pCur);
 	// Cal ADC Sample Time
-	CurrentSampleTimeCal(pCur,P->AxisID);
+	//CurrentSampleTimeCal(pCur,P->AxisID);
 }
 
 /***********************************************************************
@@ -527,6 +527,8 @@ PRIVATE void SinCosCal(struct CurrentLoopStruct *P)
 	}
 }
 
+
+#define DUTYLIMIT 9750
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -606,6 +608,55 @@ PRIVATE void SVPWMCal(struct CurrentLoopStruct *P)
 	Tb= Ta + T1;
 	Tc= Tb + T2;
 
+    switch(Sector)
+    {
+        case 1:
+            if(Ta >= DUTYLIMIT)
+						  Ta = DUTYLIMIT;
+						if(Tc >= DUTYLIMIT)
+						  Tc = DUTYLIMIT;
+            break;
+        case 2:
+            if(Ta >= DUTYLIMIT)
+							Ta = DUTYLIMIT;
+						if(Tb >= DUTYLIMIT)
+							Tb = DUTYLIMIT;
+            break;
+        case 3:
+            if(Tc >= DUTYLIMIT)
+							Tc = DUTYLIMIT;
+						if(Ta >= DUTYLIMIT)
+							Ta = DUTYLIMIT;
+            break;
+        case 4:
+            if(Tb >= DUTYLIMIT)
+							Tb = DUTYLIMIT;
+						if(Tc >= DUTYLIMIT)
+							Tc = DUTYLIMIT;
+            break;
+        case 5:
+            if(Tc >= DUTYLIMIT)
+							Tc = DUTYLIMIT;
+						if(Ta >= DUTYLIMIT)
+							Ta = DUTYLIMIT;;
+            break;
+        case 6:
+            if(Ta >= DUTYLIMIT)
+							Ta = DUTYLIMIT;
+					  if(Tc >= DUTYLIMIT)
+							Tc = DUTYLIMIT;
+            break;
+        default :
+					  if(Ta >= DUTYLIMIT)
+							Ta = DUTYLIMIT;
+						if(Tb >= DUTYLIMIT)
+							Tb = DUTYLIMIT;
+						if(Tc >= DUTYLIMIT)
+							Tc = DUTYLIMIT;
+            break;
+    }
+		
+	
 	switch( Sector )
 	{
 
