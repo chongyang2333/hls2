@@ -312,11 +312,11 @@ PUBLIC void USB2CAN_RecvDispatch(UINT8 *data,UINT16 datalen)
 
         CmdType = CanRxMessage.RxData[0];
         //colson
-        if( CmdType ==EN_IAP_CMD && CanRxMessage.RxData[1] == AutoChage_MCU_ID)
-        {
+//        if( CmdType ==EN_IAP_CMD && CanRxMessage.RxData[1] == AutoChage_MCU_ID)
+//        {
             UartSendData2(data,datalen);
-            return;
-        }
+//            return;
+//        }
   
         switch(CmdType)
         {

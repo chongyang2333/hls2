@@ -510,7 +510,7 @@ PUBLIC float GetChargeCurrent(void)
     float Res = 0;
     Res = ((INT16)ADC_IDATA3(ADC0) - ADC0_JDR3_Offset)*ADC0_JDR3_GAIN;
     
-    Res = Res<0.0f ?  -Res:0.0f;
+    Res = Res<0.000001f ?  -Res:0.0f;
     
     return Res;
 }
@@ -526,7 +526,7 @@ PUBLIC float GetBatteryCurrent(void)
     float Res = 0.0f;
      Res = ((INT16)ADC_IDATA3(ADC0) - ADC0_JDR3_Offset)*ADC0_JDR3_GAIN;
     
-    Res = Res>0.0f ?  Res:0.0f;
+    Res = Res>0.000001f ?  Res:0.0f;
     
     return Res;
 }
