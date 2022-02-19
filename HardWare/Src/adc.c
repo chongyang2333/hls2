@@ -100,6 +100,7 @@ void adc_config(void)
     adc_inserted_channel_config(ADC0,1,ADC_CHANNEL_15,ADC_SAMPLETIME_3);//MAIN_V_SAMPLE
     adc_inserted_channel_config(ADC0,2,ADC_CHANNEL_4,ADC_SAMPLETIME_3); //CHARGE_V_DET
     adc_inserted_channel_config(ADC0,3,ADC_CHANNEL_12,ADC_SAMPLETIME_3);   //BATTERY_I_SAMPLE
+		
     adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //R_U_I_SAMPLE
     adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //R_V_I_SAMPLE
     adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //R_W_I_SAMPLE
@@ -147,8 +148,8 @@ void adc_reconfig(void)
 //    adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);   //L_U_I_SAMPLE
 //    adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
     //??????CH4????????
-    adc_external_trigger_config(ADC1,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_RISING);
-    adc_external_trigger_config(ADC2,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_RISING);
+    adc_external_trigger_config(ADC1,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_FALLING);
+    adc_external_trigger_config(ADC2,ADC_INSERTED_CHANNEL,EXTERNAL_TRIGGER_FALLING);
     adc_external_trigger_source_config(ADC2,ADC_INSERTED_CHANNEL,ADC_EXTTRIG_INSERTED_T7_CH3);
     adc_external_trigger_source_config(ADC1,ADC_INSERTED_CHANNEL,ADC_EXTTRIG_INSERTED_T0_CH3);
 

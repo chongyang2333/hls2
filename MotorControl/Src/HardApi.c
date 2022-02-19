@@ -370,35 +370,35 @@ PUBLIC void GetPhaseCurrentReal(struct AxisCtrlStruct *P)
     if(AXIS_LEFT == P->AxisID) //ADC_IDATA3(ADC2);
     {
 			switch(P->sCurLoop.SectorLast)  //使用上一周期的扇区
-     {
+      {
         case 1:
 				case 6:
-            P->sCurLoop.Ic = ((INT16)ADC_IDATA2(ADC1) - ADC1_JDR2_Offset)*ADC1_JDR2_GAIN;
+            P->sCurLoop.Ic = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR2_Offset)*ADC1_JDR2_GAIN;
             P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;            
-            P->sCurLoop.Ia = (-P->sCurLoop.Ic - P->sCurLoop.Ib)*ADC1_JDR0_GAIN;
+            P->sCurLoop.Ia = (-P->sCurLoop.Ic - P->sCurLoop.Ib);
             break;
 
         case 2:
 				case 3:
-            P->sCurLoop.Ic = ((INT16)ADC_IDATA2(ADC1) - ADC1_JDR2_Offset)*ADC1_JDR2_GAIN;
-            P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;            
+            P->sCurLoop.Ic = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR2_Offset)*ADC1_JDR2_GAIN;
+            P->sCurLoop.Ia = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;            
             // Ib = -Ic-Ia;
-            P->sCurLoop.Ib = (-P->sCurLoop.Ia - P->sCurLoop.Ic)*ADC1_JDR1_GAIN;
+            P->sCurLoop.Ib = (-P->sCurLoop.Ia - P->sCurLoop.Ic);
             break;
 
         case 4:
 				case 5:
             P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
             P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;        
-            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib)*ADC1_JDR2_GAIN;
+            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib);
             break;
     
         default:
 					  P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC1) - ADC1_JDR0_Offset)*ADC1_JDR0_GAIN;
             P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC1) - ADC1_JDR1_Offset)*ADC1_JDR1_GAIN;        
-            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib)*ADC1_JDR2_GAIN;
+            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib);
             break;
-    }
+       }
 
 					ADC_STAT(ADC1)&=(~ADC_STAT_STIC);
 					ADC_STAT(ADC1)&=(~ADC_STAT_EOIC);
@@ -410,37 +410,95 @@ PUBLIC void GetPhaseCurrentReal(struct AxisCtrlStruct *P)
      {
         case 1:
 				case 6:
-            P->sCurLoop.Ic = ((INT16)ADC_IDATA2(ADC2) - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
+            P->sCurLoop.Ic = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
             P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;            
-            P->sCurLoop.Ia = (-P->sCurLoop.Ic - P->sCurLoop.Ib)*ADC2_JDR0_GAIN;
+            P->sCurLoop.Ia = (-P->sCurLoop.Ic - P->sCurLoop.Ib);
             break;
 
         case 2:
 				case 3:
-            P->sCurLoop.Ic = ((INT16)ADC_IDATA2(ADC2) - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
-            P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;            
-            // Ib = -Ic-Ia;
-            P->sCurLoop.Ib = (-P->sCurLoop.Ia - P->sCurLoop.Ic)*ADC2_JDR1_GAIN;
+            P->sCurLoop.Ic = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR2_Offset)*ADC2_JDR2_GAIN;
+            P->sCurLoop.Ia = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;            
+            P->sCurLoop.Ib = (-P->sCurLoop.Ia - P->sCurLoop.Ic);
             break;
 
         case 4:
 				case 5:
             P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
             P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;        
-            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib)*ADC2_JDR2_GAIN;
+            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib);
             break;
     
         default:
 					  P->sCurLoop.Ia = ((INT16)ADC_IDATA0(ADC2) - ADC2_JDR0_Offset)*ADC2_JDR0_GAIN;
             P->sCurLoop.Ib = ((INT16)ADC_IDATA1(ADC2) - ADC2_JDR1_Offset)*ADC2_JDR1_GAIN;        
-            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib)*ADC2_JDR2_GAIN;
+            P->sCurLoop.Ic = (-P->sCurLoop.Ia - P->sCurLoop.Ib);
             break;
     }
 						ADC_STAT(ADC2)&=(~ADC_STAT_STIC);
 					  ADC_STAT(ADC2)&=(~ADC_STAT_EOIC);
 					  ADC_STAT(ADC2)&=(~ADC_STAT_EOC);
     }    
-}
+		
+		if(AXIS_LEFT == P->AxisID)
+		{
+				switch(P->sCurLoop.Sector)
+				{
+						case 1:
+						case 6:
+									adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_5,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
+									adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+						      adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_10,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+								break;
+						case 2:
+						case 3:
+									adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_5,ADC_SAMPLETIME_3);   //L_U_I_SAMPLE
+									adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_10,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+						      adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+								break;
+						case 4:
+						case 5:
+									adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);    //L_U_I_SAMPLE
+									adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_V_I_SAMPLE
+						      adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_5,ADC_SAMPLETIME_3);    //L_V_I_SAMPLE
+								break;
+						default :
+									adc_inserted_channel_config(ADC1,0,ADC_CHANNEL_10,ADC_SAMPLETIME_3);    //L_U_I_SAMPLE
+									adc_inserted_channel_config(ADC1,1,ADC_CHANNEL_11,ADC_SAMPLETIME_3);    //L_V_I_SAMPLE
+						      adc_inserted_channel_config(ADC1,2,ADC_CHANNEL_5,ADC_SAMPLETIME_3);    //L_V_I_SAMPLE
+								break;
+				}
+		}
+		else if(AXIS_RIGHT == P->AxisID)
+		{
+				switch(P->sCurLoop.Sector)
+				{
+						case 1:
+						case 6:
+									adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //L_V_I_SAMPLE
+									adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+						      adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+								break;
+						case 2:
+						case 3:
+									adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_13,ADC_SAMPLETIME_3);   //L_U_I_SAMPLE
+									adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+						      adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //L_W_I_SAMPLE
+								break;
+						case 4:
+						case 5:
+									adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);     //L_U_I_SAMPLE
+									adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);     //L_V_I_SAMPLE
+						      adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_13,ADC_SAMPLETIME_3);    //L_V_I_SAMPLE
+								break;
+						default :
+									adc_inserted_channel_config(ADC2,0,ADC_CHANNEL_1,ADC_SAMPLETIME_3);    //L_U_I_SAMPLE
+									adc_inserted_channel_config(ADC2,1,ADC_CHANNEL_2,ADC_SAMPLETIME_3);    //L_V_I_SAMPLE
+						      adc_inserted_channel_config(ADC2,2,ADC_CHANNEL_13,ADC_SAMPLETIME_3);     //L_V_I_SAMPLE
+								break;
+				}
+		}
+	}
 /***********************************************************************
  * DESCRIPTION: Get Charge current
  *	     
