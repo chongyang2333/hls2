@@ -162,9 +162,8 @@ void MX_CAN1_Init(void)
 #else
     USB_init(); //USB初始化
 #endif
-    delay_ms(10);
-    JumpAppFb(GetResetType());
-    delay_ms(10);
+
+
 }
 
 

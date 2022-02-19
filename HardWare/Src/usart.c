@@ -104,27 +104,27 @@ static void usart_struct_para_init(void *p_struct)
 */
 static void usart_gpio_init(uint32_t usart_periph)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        #define __USART2_Tx_PORT  GPIOE
-        #define __USART2_Tx_GPIO  GPIO_PIN_8
-        #define __USART2_Tx_AF    GPIO_AF_7
-        #define __USART2_Rx_PORT  GPIOE
-        #define __USART2_Rx_GPIO  GPIO_PIN_7
-        #define __USART2_Rx_AF    GPIO_AF_7
+        #define __UART6_Tx_PORT  GPIOE
+        #define __UART6_Tx_GPIO  GPIO_PIN_8
+        #define __UART6_Tx_AF    GPIO_AF_8
+        #define __UART6_Rx_PORT  GPIOE
+        #define __UART6_Rx_GPIO  GPIO_PIN_7
+        #define __UART6_Rx_AF    GPIO_AF_8
 
         /* enable can clock */
-        rcu_periph_clock_enable(RCU_USART2);
-        rcu_periph_clock_enable(RCU_GPIOD);
+        rcu_periph_clock_enable(RCU_UART6);
+        rcu_periph_clock_enable(RCU_GPIOE);
 
         /* configure I2C GPIO */
-        gpio_output_options_set(__USART2_Tx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __USART2_Tx_GPIO);
-        gpio_mode_set(__USART2_Tx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __USART2_Tx_GPIO);
-        gpio_af_set(__USART2_Tx_PORT, __USART2_Tx_AF, __USART2_Tx_GPIO);
+        gpio_output_options_set(__UART6_Tx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __UART6_Tx_GPIO);
+        gpio_mode_set(__UART6_Tx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __UART6_Tx_GPIO);
+        gpio_af_set(__UART6_Tx_PORT, __UART6_Tx_AF, __UART6_Tx_GPIO);
         
-        gpio_output_options_set(__USART2_Rx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __USART2_Rx_GPIO);
-        gpio_mode_set(__USART2_Rx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __USART2_Rx_GPIO);
-        gpio_af_set(__USART2_Rx_PORT, __USART2_Rx_AF, __USART2_Rx_GPIO);
+        gpio_output_options_set(__UART6_Rx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __UART6_Rx_GPIO);
+        gpio_mode_set(__UART6_Rx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __UART6_Rx_GPIO);
+        gpio_af_set(__UART6_Rx_PORT, __UART6_Rx_AF, __UART6_Rx_GPIO);
     }
     else if (usart_periph == USART1)
     {
@@ -216,80 +216,80 @@ static void usart_dma_init(uint32_t usart_periph)
 {
     dma_single_data_parameter_struct dma_parameter;
 
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
         /* Look up <<GD32F4xx_User_Manual>> 'Table 10-5. Peripheral requests to DMA0'
         and 'Table 10-6. Peripheral requests to DMA1'.
           It is forbidden to simultaneously enable these two DMA channels with 
         selecting the same peripheral request.
         */
-        #define __USART2_TxDMA_PERIPH  DMA0
-        #define __USART2_TxDMA_CHANNEL DMA_CH3
-        #define __USART2_TxDMA_SUBPERI DMA_SUBPERI4
-        #define __USART2_TxDMA_IRQn    DMA0_Channel3_IRQn
+        #define __UART6_TxDMA_PERIPH  DMA0
+        #define __UART6_TxDMA_CHANNEL DMA_CH1
+        #define __UART6_TxDMA_SUBPERI DMA_SUBPERI5
+        #define __UART6_TxDMA_IRQn    DMA0_Channel1_IRQn
 
         
-        #define __USART2_RxDMA_PERIPH  DMA0
-        #define __USART2_RxDMA_CHANNEL DMA_CH1
-        #define __USART2_RxDMA_SUBPERI DMA_SUBPERI4
-        #define __USART2_RxDMA_IRQn    DMA0_Channel1_IRQn
+        #define __UART6_RxDMA_PERIPH  DMA0
+        #define __UART6_RxDMA_CHANNEL DMA_CH3
+        #define __UART6_RxDMA_SUBPERI DMA_SUBPERI5
+        #define __UART6_RxDMA_IRQn    DMA0_Channel3_IRQn
 
         /* enable DMA clock */
         rcu_periph_clock_enable(RCU_DMA0);
         
         /*configure DMA interrupt*/
-//        nvic_irq_enable(__USART2_TxDMA_IRQn, 0, 0);
-//        nvic_irq_enable(__USART2_RxDMA_IRQn, 0, 1);
+//        nvic_irq_enable(__UART6_TxDMA_IRQn, 0, 0);
+//        nvic_irq_enable(__UART6_RxDMA_IRQn, 0, 1);
         
         /* configure DMA channel(for USART tx) */
         dma_single_data_para_struct_init(&dma_parameter);
-        dma_deinit(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
+        dma_deinit(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
         dma_parameter.direction           = DMA_MEMORY_TO_PERIPH;
         dma_parameter.memory0_addr        = 0U;
         dma_parameter.memory_inc          = DMA_MEMORY_INCREASE_ENABLE;
-        dma_parameter.periph_addr         = ((uint32_t)&USART_DATA(USART2));
+        dma_parameter.periph_addr         = ((uint32_t)&USART_DATA(UART6));
         dma_parameter.periph_inc          = DMA_PERIPH_INCREASE_DISABLE;
         dma_parameter.periph_memory_width = DMA_PERIPH_WIDTH_8BIT;
         dma_parameter.number              = 0U;
         dma_parameter.priority            = DMA_PRIORITY_HIGH;
-        dma_single_data_mode_init(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, &dma_parameter);
+        dma_single_data_mode_init(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL, &dma_parameter);
         
         /* configure DMA mode */
-        dma_circulation_disable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
+        dma_circulation_disable(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
 
         /* configure DMA periph request */
-        dma_channel_subperipheral_select(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, __USART2_TxDMA_SUBPERI);
+        dma_channel_subperipheral_select(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL, __UART6_TxDMA_SUBPERI);
 
         /* enable DMA channel transfer complete interrupt */
-//        dma_interrupt_enable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, DMA_CHXCTL_FTFIE);
+//        dma_interrupt_enable(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL, DMA_CHXCTL_FTFIE);
 
         /* enable DMA channel */
-//        dma_channel_enable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
+//        dma_channel_enable(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
 
         /* configure DMA channel(for USART rx) */
         dma_single_data_para_struct_init(&dma_parameter);
-        dma_deinit(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+        dma_deinit(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
         dma_parameter.direction           = DMA_PERIPH_TO_MEMORY;
         dma_parameter.memory0_addr        = 0U;
         dma_parameter.memory_inc          = DMA_MEMORY_INCREASE_ENABLE;
-        dma_parameter.periph_addr         = (uint32_t)&USART_DATA(USART2);
+        dma_parameter.periph_addr         = (uint32_t)&USART_DATA(UART6);
         dma_parameter.periph_inc          = DMA_PERIPH_INCREASE_DISABLE;
         dma_parameter.periph_memory_width = DMA_PERIPH_WIDTH_8BIT;
         dma_parameter.number              = 0U;
         dma_parameter.priority            = DMA_PRIORITY_ULTRA_HIGH;
-        dma_single_data_mode_init(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL, &dma_parameter);
+        dma_single_data_mode_init(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL, &dma_parameter);
 
         /* configure DMA mode */
-        dma_circulation_disable(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+        dma_circulation_disable(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
 
         /* configure DMA periph request */
-        dma_channel_subperipheral_select(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL, __USART2_RxDMA_SUBPERI);
+        dma_channel_subperipheral_select(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL, __UART6_RxDMA_SUBPERI);
 
         /* enable DMA channel transfer complete interrupt */
-//        dma_interrupt_enable(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL, DMA_CHXCTL_FTFIE);
+//        dma_interrupt_enable(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL, DMA_CHXCTL_FTFIE);
 
         /* enable DMA1 channel2 */
-//        dma_channel_enable(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+//        dma_channel_enable(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
     }
     else if (usart_periph == USART1)
     {
@@ -313,8 +313,8 @@ static void usart_dma_init(uint32_t usart_periph)
         rcu_periph_clock_enable(RCU_DMA0);
         
         /*configure DMA interrupt*/
-//        nvic_irq_enable(__USART2_TxDMA_IRQn, 0, 0);
-//        nvic_irq_enable(__USART2_RxDMA_IRQn, 0, 1);
+//        nvic_irq_enable(__UART6_TxDMA_IRQn, 0, 0);
+//        nvic_irq_enable(__UART6_RxDMA_IRQn, 0, 1);
         
         /* configure DMA channel(for USART tx) */
         dma_single_data_para_struct_init(&dma_parameter);
@@ -336,10 +336,10 @@ static void usart_dma_init(uint32_t usart_periph)
         dma_channel_subperipheral_select(__USART1_TxDMA_PERIPH, __USART1_TxDMA_CHANNEL, __USART1_TxDMA_SUBPERI);
 
         /* enable DMA channel transfer complete interrupt */
-//        dma_interrupt_enable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, DMA_CHXCTL_FTFIE);
+//        dma_interrupt_enable(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL, DMA_CHXCTL_FTFIE);
 
         /* enable DMA channel */
-//        dma_channel_enable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
+//        dma_channel_enable(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
 
         /* configure DMA channel(for USART rx) */
         dma_single_data_para_struct_init(&dma_parameter);
@@ -361,10 +361,10 @@ static void usart_dma_init(uint32_t usart_periph)
         dma_channel_subperipheral_select(__USART1_RxDMA_PERIPH, __USART1_RxDMA_CHANNEL, __USART1_RxDMA_SUBPERI);
 
         /* enable DMA channel transfer complete interrupt */
-//        dma_interrupt_enable(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL, DMA_CHXCTL_FTFIE);
+//        dma_interrupt_enable(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL, DMA_CHXCTL_FTFIE);
 
         /* enable DMA1 channel2 */
-//        dma_channel_enable(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+//        dma_channel_enable(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
     }
 }
 
@@ -437,9 +437,9 @@ __STATIC_INLINE void usart_dma_flag_clear(uint32_t dma_periph, dma_channel_enum 
 */
 FlagStatus usart_transmit_dma_done_get(uint32_t usart_periph)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        return usart_dma_done_get(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
+        return usart_dma_done_get(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
     }
     else if (usart_periph == USART1)
     {
@@ -455,9 +455,9 @@ FlagStatus usart_transmit_dma_done_get(uint32_t usart_periph)
 */
 FlagStatus usart_receive_dma_done_get(uint32_t usart_periph)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        return usart_dma_done_get(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+        return usart_dma_done_get(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
     }
     else if (usart_periph == USART1)
     {
@@ -473,9 +473,9 @@ FlagStatus usart_receive_dma_done_get(uint32_t usart_periph)
 */
 void usart_transmit_dma_abort(uint32_t usart_periph)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        usart_dma_abort(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
+        usart_dma_abort(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
     }
     else if (usart_periph == USART1)
     {
@@ -491,9 +491,9 @@ void usart_transmit_dma_abort(uint32_t usart_periph)
 */
 void usart_receive_dma_abort(uint32_t usart_periph)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        usart_dma_abort(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+        usart_dma_abort(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
     }
     else if (usart_periph == USART1)
     {
@@ -511,13 +511,13 @@ void usart_receive_dma_abort(uint32_t usart_periph)
 */
 void usart_transmit_dma(uint32_t usart_periph, uint8_t *pdata, uint16_t size)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        usart_dma_flag_clear(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
-        dma_channel_disable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
-        dma_memory_address_config(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, DMA_MEMORY_0, (uint32_t)pdata);
-        dma_transfer_number_config(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, size);
-        dma_channel_enable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
+        usart_dma_flag_clear(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
+        dma_channel_disable(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
+        dma_memory_address_config(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL, DMA_MEMORY_0, (uint32_t)pdata);
+        dma_transfer_number_config(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL, size);
+        dma_channel_enable(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
     }
     else if (usart_periph == USART1)
     {
@@ -539,13 +539,13 @@ void usart_transmit_dma(uint32_t usart_periph, uint8_t *pdata, uint16_t size)
 */
 void usart_receive_dma(uint32_t usart_periph, uint8_t *pdata, uint16_t size)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        usart_dma_flag_clear(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
-        dma_channel_disable(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
-        dma_memory_address_config(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL, DMA_MEMORY_0, (uint32_t)pdata);
-        dma_transfer_number_config(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL, size);
-        dma_channel_enable(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+        usart_dma_flag_clear(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
+        dma_channel_disable(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
+        dma_memory_address_config(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL, DMA_MEMORY_0, (uint32_t)pdata);
+        dma_transfer_number_config(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL, size);
+        dma_channel_enable(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
     }
     else  if (usart_periph == USART1)
     {
@@ -565,9 +565,9 @@ void usart_receive_dma(uint32_t usart_periph, uint8_t *pdata, uint16_t size)
 */
 __INLINE uint32_t usart_transmit_dma_number_get(uint32_t usart_periph)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        return dma_transfer_number_get(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
+        return dma_transfer_number_get(__UART6_TxDMA_PERIPH, __UART6_TxDMA_CHANNEL);
     }
     else if (usart_periph == USART1)
     {
@@ -585,9 +585,9 @@ __INLINE uint32_t usart_transmit_dma_number_get(uint32_t usart_periph)
 */
 __INLINE uint32_t usart_receive_dma_number_get(uint32_t usart_periph)
 {
-    if (usart_periph == USART2)
+    if (usart_periph == UART6)
     {
-        return dma_transfer_number_get(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+        return dma_transfer_number_get(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
     }
     else if (usart_periph == USART1)
     {
@@ -597,30 +597,8 @@ __INLINE uint32_t usart_receive_dma_number_get(uint32_t usart_periph)
     return 0;
 }
 
-/**
- * \brief      this function handles DMA channel interrupt
- * \prarm[in]  none
- * \param[out] none
- * \retval     none
-*/
-//void DMA0_Channel3_IRQHandler(void)
-//{
-//    if (dma_interrupt_flag_get(DMA0, DMA_CH3, DMA_INT_FLAG_FTF))
-//    {
-//        dma_interrupt_flag_clear(DMA0, DMA_CH3, DMA_INT_FLAG_FTF);
-//    }
-//}
-
-//void DMA0_Channel1_IRQHandler(void)
-//{
-//    if (dma_interrupt_flag_get(DMA0, DMA_CH1, DMA_INT_FLAG_FTF))
-//    {
-//        dma_interrupt_flag_clear(DMA0, DMA_CH1, DMA_INT_FLAG_FTF);
-//    }
-//}
-
 /* USART3 init function */
-void MX_USART2_UART_Init(void)
+void MX_USART1_UART_Init(void)
 {
     usart_parameter_struct usart1_parameter;
     /* stm32 i2c3 <==> gd32 i2c2 */
@@ -658,239 +636,44 @@ void MX_USART2_UART_Init(void)
     usart_receive_dma(USART1, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
 }
 
-void MX_USART1_UART_Init(void)
-{
-    // huart1.Instance = USART1;
-    // huart1.Init.BaudRate = 115200;
-    // huart1.Init.WordLength = UART_WORDLENGTH_8B;
-    // huart1.Init.StopBits = UART_STOPBITS_1;
-    // huart1.Init.Parity = UART_PARITY_NONE;
-    // huart1.Init.Mode = UART_MODE_TX_RX;
-    // huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    // huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-    // huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    // huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
-    // huart1.AdvancedInit.OverrunDisable = (1<<12);
-    
-    // if (HAL_UART_Init(&huart1) != HAL_OK)
-    // {
-    //     _Error_Handler(__FILE__, __LINE__);
-    // }
-  
-    // /* USART1 interrupt Init */
-    // __HAL_UART_ENABLE_IT(&huart1,UART_IT_RXNE);  
-    // HAL_NVIC_SetPriority(USART1_IRQn, 4, 0);
-    // HAL_NVIC_EnableIRQ(USART1_IRQn);
-
-    // __HAL_UART_DISABLE_IT(&huart1,UART_IT_ERR | UART_IT_ORE); 
-
-}
-
 /* USART3 init function */
-void MX_USART3_UART_Init(void)
+void MX_USART6_UART_Init(void)
 {
-    usart_parameter_struct usart2_parameter;
+    usart_parameter_struct UART6_parameter;
     /* stm32 i2c3 <==> gd32 i2c2 */
 
     /* configure USART gpio */
-    usart_gpio_init(USART2);
+    usart_gpio_init(UART6);
     
     /* configure USART interface */
-    usart_struct_para_init(&usart2_parameter);
-    usart2_parameter.baudval         = 115200;
-    usart2_parameter.paritycfg       = USART_PM_NONE;
-    usart2_parameter.wlen            = USART_WL_8BIT;
-    usart2_parameter.stblen          = USART_STB_1BIT;
-    usart2_parameter.msbf            = USART_MSBF_LSB;
-    usart2_parameter.invertpara      = USART_DINV_DISABLE;
-    usart2_parameter.oversamp        = USART_OVSMOD_16;
-    usart2_parameter.obsm            = USART_OSB_3bit;
-    usart2_parameter.rtimeout_enable = DISABLE;
-    usart2_parameter.tx_enable       = USART_TRANSMIT_ENABLE;
-    usart2_parameter.rx_enable       = USART_RECEIVE_ENABLE;
-    usart_interface_init(USART2, &usart2_parameter);
+    usart_struct_para_init(&UART6_parameter);
+    UART6_parameter.baudval         = 115200;
+    UART6_parameter.paritycfg       = USART_PM_NONE;
+    UART6_parameter.wlen            = USART_WL_8BIT;
+    UART6_parameter.stblen          = USART_STB_1BIT;
+    UART6_parameter.msbf            = USART_MSBF_LSB;
+    UART6_parameter.invertpara      = USART_DINV_DISABLE;
+    UART6_parameter.oversamp        = USART_OVSMOD_16;
+    UART6_parameter.obsm            = USART_OSB_3bit;
+    UART6_parameter.rtimeout_enable = DISABLE;
+    UART6_parameter.tx_enable       = USART_TRANSMIT_ENABLE;
+    UART6_parameter.rx_enable       = USART_RECEIVE_ENABLE;
+    usart_interface_init(UART6, &UART6_parameter);
 
     /* USART DMA enable*/
-    usart_dma_receive_config(USART2, USART_DENR_ENABLE);
-    usart_dma_transmit_config(USART2, USART_DENT_ENABLE);
+    usart_dma_receive_config(UART6, USART_DENR_ENABLE);
+    usart_dma_transmit_config(UART6, USART_DENT_ENABLE);
 
     /* configure DMA */
-    usart_dma_init(USART2);
+    usart_dma_init(UART6);
 
     /* configure USART interrupt */
-    usart_interrupt_enable(USART2, USART_INT_IDLE);
-    nvic_irq_enable(USART2_IRQn, 2, 0);
+    usart_interrupt_enable(UART6, USART_INT_IDLE);
+    nvic_irq_enable(UART6_IRQn, 2, 0);
     
     /* start receive with dma methods */
-    usart_receive_dma(USART2, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
+    usart_receive_dma(UART6, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
 }
-
-void MX_USART3_UART_Init_Weak(void)
-{
-//     huart3.Instance = USART3;
-//     huart3.Init.BaudRate = 115200;
-//     huart3.Init.WordLength = UART_WORDLENGTH_8B;
-//     huart3.Init.StopBits = UART_STOPBITS_1;
-//     huart3.Init.Parity = UART_PARITY_NONE;
-//     huart3.Init.Mode = UART_MODE_TX_RX;
-//     huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-//     huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-//     huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-// //    huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-//     huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
-//     huart3.AdvancedInit.OverrunDisable = (1<<12);
-
-//     if (HAL_UART_Init(&huart3) != HAL_OK)
-//     {
-//         _Error_Handler(__FILE__, __LINE__);
-//     }
-
-//     /* USART3 interrupt Init */ 
-//     HAL_NVIC_SetPriority(USART3_IRQn, 5, 1);
-//     HAL_NVIC_EnableIRQ(USART3_IRQn);
-
-//     __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE); 
-	 
-// //	__HAL_UART_DISABLE_IT(&huart3,UART_IT_ERR | UART_IT_ORE); 
-	        
-//     HAL_UART_Receive_DMA(&huart3, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
-    
-  
-}
-
-// void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
-// {
-
-//   GPIO_InitTypeDef GPIO_InitStruct;
-//   if(uartHandle->Instance==USART1)
-//   {
-//   /* USER CODE BEGIN USART1_MspInit 0 */
-
-//   /* USER CODE END USART1_MspInit 0 */
-//     /* USART1 clock enable */
-//     __HAL_RCC_USART1_CLK_ENABLE();
-  
-//     /**USART1 GPIO Configuration    
-//     PA9     ------> USART1_TX
-//     PA10     ------> USART1_RX 
-//     */
-//     GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
-//     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-//     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-//   /* USER CODE BEGIN USART1_MspInit 1 */
-
-//   /* USER CODE END USART1_MspInit 1 */
-//   }
-//   else if(uartHandle->Instance==USART3)
-//   {
-//   /* USER CODE BEGIN USART3_MspInit 0 */
-
-//   /* USER CODE END USART3_MspInit 0 */
-//     /* USART3 clock enable */
-//     __HAL_RCC_USART3_CLK_ENABLE();
-  
-//     /**USART3 GPIO Configuration    
-//     PD8     ------> USART3_TX
-//     PD9     ------> USART3_RX 
-//     */
-//     GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
-//     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//     GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-//     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-      
-//     /* USART3 DMA Init */
-//     /* USART3_RX Init */
-//     hdma_usart3_rx.Instance = DMA1_Stream1;
-//     hdma_usart3_rx.Init.Channel = DMA_CHANNEL_4;
-//     hdma_usart3_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-//     hdma_usart3_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-//     hdma_usart3_rx.Init.MemInc = DMA_MINC_ENABLE;
-//     hdma_usart3_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-//     hdma_usart3_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-//     hdma_usart3_rx.Init.Mode = DMA_NORMAL;
-//     hdma_usart3_rx.Init.Priority = DMA_PRIORITY_LOW;
-//     hdma_usart3_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-//     if (HAL_DMA_Init(&hdma_usart3_rx) != HAL_OK)
-//     {
-//       _Error_Handler(__FILE__, __LINE__);
-//     }
-
-//     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart3_rx);
-
-//     /* USART3_TX Init */
-//     hdma_usart3_tx.Instance = DMA1_Stream3;
-//     hdma_usart3_tx.Init.Channel = DMA_CHANNEL_4;
-//     hdma_usart3_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-//     hdma_usart3_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-//     hdma_usart3_tx.Init.MemInc = DMA_MINC_ENABLE;
-//     hdma_usart3_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-//     hdma_usart3_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-//     hdma_usart3_tx.Init.Mode = DMA_NORMAL;
-//     hdma_usart3_tx.Init.Priority = DMA_PRIORITY_LOW;
-//     hdma_usart3_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-//     if (HAL_DMA_Init(&hdma_usart3_tx) != HAL_OK)
-//     {
-//       _Error_Handler(__FILE__, __LINE__);
-//     }
-
-//     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart3_tx);
-
-//   }
-
-// }
-
-// void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
-// {
-
-//   if(uartHandle->Instance==USART1)
-//   {
-//   /* USER CODE BEGIN USART1_MspDeInit 0 */
-
-//   /* USER CODE END USART1_MspDeInit 0 */
-//     /* Peripheral clock disable */
-//     __HAL_RCC_USART1_CLK_DISABLE();
-  
-//     /**USART1 GPIO Configuration    
-//     PA9     ------> USART1_TX
-//     PA10     ------> USART1_RX 
-//     */
-//     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
-
-//   /* USER CODE BEGIN USART1_MspDeInit 1 */
-
-//   /* USER CODE END USART1_MspDeInit 1 */
-//   }
-//   else if(uartHandle->Instance==USART3)
-//   {
-//   /* USER CODE BEGIN USART3_MspDeInit 0 */
-
-//   /* USER CODE END USART3_MspDeInit 0 */
-//     /* Peripheral clock disable */
-//     __HAL_RCC_USART3_CLK_DISABLE();
-  
-//     /**USART3 GPIO Configuration    
-//     PD8     ------> USART3_TX
-//     PD9     ------> USART3_RX 
-//     */
-//     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_8|GPIO_PIN_9);
-
-//   /* USART3 DMA DeInit */
-//     HAL_DMA_DeInit(uartHandle->hdmatx);
-
-//     /* USART3 interrupt Deinit */
-//     HAL_NVIC_DisableIRQ(USART3_IRQn);
-//   /* USER CODE BEGIN USART3_MspDeInit 1 */
-
-//   /* USER CODE END USART3_MspDeInit 1 */
-//   }
-
-// } 
 
 
 /***********************************************************************
@@ -906,24 +689,24 @@ void USART1_IRQHandler(void)
     uint8_t *p = NULL;
     uint16_t size = 0;
 
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_PERR)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_PERR);
+//    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_PERR)) {
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_PERR);
 //    }
 
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_FERR)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_FERR);
+//    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_ERR_FERR)) {
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_ERR_FERR);
 //    }
 
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_NERR)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_NERR);
+//    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_ERR_NERR)) {
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_ERR_NERR);
 //    }
 
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_ORERR)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_ORERR);
+//    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_ERR_ORERR)) {
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_ERR_ORERR);
 //    }
 
     if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_IDLE)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_IDLE);
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_IDLE);
         
         usart_receive_dma_abort(USART1);
         temp = USART_DATA(USART1);
@@ -989,35 +772,35 @@ void USART1_IRQHandler(void)
  *
 ***********************************************************************/
 
-void USART2_IRQHandler(void)
+void UART6_IRQHandler(void)
 {
     uint32_t temp = 0;
     uint8_t *p = NULL;
     uint16_t size = 0;
 
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_PERR)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_PERR);
+//    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_PERR)) {
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_PERR);
 //    }
 
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_FERR)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_FERR);
+//    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_ERR_FERR)) {
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_ERR_FERR);
 //    }
 
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_NERR)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_NERR);
+//    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_ERR_NERR)) {
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_ERR_NERR);
 //    }
 
-//    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_ERR_ORERR)) {
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_ERR_ORERR);
+//    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_ERR_ORERR)) {
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_ERR_ORERR);
 //    }
 
-    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE)) 
+    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE)) 
 		{
-//        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_IDLE);
+//        usart_interrupt_flag_clear(UART6, USART_INT_FLAG_IDLE);
         
-        usart_receive_dma_abort(USART2);
-        temp = USART_DATA(USART2);
-        temp = dma_transfer_number_get(__USART2_RxDMA_PERIPH, __USART2_RxDMA_CHANNEL);
+        usart_receive_dma_abort(UART6);
+        temp = USART_DATA(UART6);
+        temp = dma_transfer_number_get(__UART6_RxDMA_PERIPH, __UART6_RxDMA_CHANNEL);
         sUartApp.RecvBufNum += UART_RECV_MAX_NUM - temp;
 
         if ((0x57 == sUartApp.RecvBuf[0]) && (sUartApp.RecvBufNum > 0))
@@ -1045,7 +828,7 @@ void USART2_IRQHandler(void)
         } // end if((0xAA == sUartApp..
         /*华大串口透传colson临时使用 end*/
 
-        usart_receive_dma(USART2, p, size);
+        usart_receive_dma(UART6, p, size);
     }
 }
 
@@ -1153,17 +936,17 @@ void UartSendData2(uint8_t *buf, uint16_t size)
 {
     UINT32 StartTime = ReadTimeStampTimer();
 
-    while (SET != usart_transmit_dma_done_get(USART2))
+    while (SET != usart_transmit_dma_done_get(UART6))
     {
         if ((ReadTimeStampTimer() - StartTime) > 2*100*5000000)  // 5s
         {
             break;
         }
     }
-    usart_transmit_dma(USART2, buf, size);
+    usart_transmit_dma(UART6, buf, size);
     
     StartTime = ReadTimeStampTimer();
-    while (SET != usart_transmit_dma_done_get(USART2))
+    while (SET != usart_transmit_dma_done_get(UART6))
     {
         if ((ReadTimeStampTimer() - StartTime) > 2*100*5000000)  // 5s
         {

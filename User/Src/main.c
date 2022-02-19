@@ -47,7 +47,7 @@ UINT32 MaxLoopTime = 0;
 void HardwareInit(void);
 BootLoaderInfo bootloaderInfo = {0};
 
-ST_VersionStruct NowSoftWareVersion = {0, 1, 0};
+ST_VersionStruct NowSoftWareVersion = {0, 1, 1};
 
 void CAN_MesIAPResetTreatment(BootLoaderInfo *pstbootloaderInfo);
 
@@ -65,6 +65,14 @@ int main()
 
     while (1)
     {
+        static uint8_t jump_app = 0;
+        if (ctc_flag_get(CTC_FLAG_CKOK) != RESET  && USBD_CONFIGURED == cdc_acm.dev.cur_status && !jump_app)
+        {
+            jump_app = 1;
+            JumpAppFb(GetResetType()); 
+            UartSendData2(aTxBuffer,10);
+        }
+        
         UINT32 LoopStartTime = ReadTimeStampTimer();
         DataCollectSendLoop();                                                // uart send data collect data
         ErrorLogExec(sAxis[0].sAlarm.ErrReg.all, sAxis[1].sAlarm.ErrReg.all); // Error log task
@@ -144,8 +152,8 @@ void HardwareInit()
     MX_TIM4_Init();
     MX_TIM8_Init();
     /* Initialize usart3 module: for pc comm*/
-    MX_USART2_UART_Init();
-	MX_USART3_UART_Init();
+    MX_USART1_UART_Init();
+	MX_USART6_UART_Init();
 
 #ifdef USER_LOGGER
     LogInfertace_t tLogInterface;
