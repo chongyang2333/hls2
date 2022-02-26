@@ -143,7 +143,7 @@ static void can_gpio_init(uint32_t can_periph)
 void MX_CAN1_Init(void)
 {
     
-#if  USE_CAN_APP
+#ifdef  USE_CAN_APP
     /* stm32 can1 <==> gd32 can0 */
 
     /* configure CAN gpio */

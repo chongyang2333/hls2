@@ -113,7 +113,7 @@
         <tDllPa></tDllPa>
         <tDlgDll></tDlgDll>
         <tDlgPa></tDlgPa>
-        <tIfile></tIfile>
+        <tIfile>.\FixedFlash.ini</tIfile>
         <pMon>BIN\CMSIS_AGDI.dll</pMon>
       </DebugOpt>
       <TargetDriverDllRegistry>
@@ -156,44 +156,24 @@
           <ItemText>gParam</ItemText>
         </Ww>
         <Ww>
-          <count>12</count>
+          <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[1],0x0A</ItemText>
+          <ItemText>sPowerManager,0x0A</ItemText>
         </Ww>
         <Ww>
-          <count>13</count>
+          <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0],0x0A</ItemText>
+          <ItemText>gyro,0x0A</ItemText>
         </Ww>
         <Ww>
-          <count>14</count>
+          <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0].sSpdLoop.SpdRef,0x0A</ItemText>
+          <ItemText>accel,0x0A</ItemText>
         </Ww>
         <Ww>
-          <count>15</count>
+          <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0].sSpdLoop.SpdFdb,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>16</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0].sCurLoop.TaNumber,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>17</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0].sCurLoop.TbNumber,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>18</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0].sCurLoop.TcNumber,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>19</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0].sCurLoop.TdNumber,0x0A</ItemText>
+          <ItemText>sScheduler,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
@@ -202,7 +182,7 @@
       <DebugFlag>
         <trace>0</trace>
         <periodic>1</periodic>
-        <aLwin>0</aLwin>
+        <aLwin>1</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
         <aSer2>0</aSer2>
@@ -240,8 +220,12 @@
       <pMultCmdsp></pMultCmdsp>
       <SystemViewers>
         <Entry>
-          <Name>System Viewer\GPIOA</Name>
+          <Name>System Viewer\GPIOC</Name>
           <WinId>35905</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\GPIOE</Name>
+          <WinId>35904</WinId>
         </Entry>
       </SystemViewers>
     </TargetOption>

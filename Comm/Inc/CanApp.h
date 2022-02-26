@@ -18,7 +18,11 @@
 
 #include "UserDataTypes.h"
 #include "BootloaderInfo.h"
+
+#define USE_CAN_APP
+
 #define  STD_CAN_ID  0x02
+
 struct CanAppStruct
 {
     UINT8   PcInitDone;

@@ -930,6 +930,7 @@ PUBLIC void lidarPowerOnOffExec(void)
 			    if(gMachineInfo.ldsSensorVersion == 23)
 			    {
 			        EXOLidarPowerOn();
+                    LidarPowerOn();
 			    }
 			    else
 			    {
@@ -959,6 +960,7 @@ PUBLIC void lidarPowerOnOffExec(void)
 	                if(gMachineInfo.ldsSensorVersion == 23)
 	                {
 	                    EXOLidarPowerOff();
+                         LidarPowerOn();
 	                }
 	                else
 	                {
