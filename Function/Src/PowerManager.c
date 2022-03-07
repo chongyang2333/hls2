@@ -30,7 +30,6 @@
 #include "MachineAdditionalInfo.h"
 #include "gd_hal.h"
 #include "delay.h"
-#include "LeadAcidBMS.h"
 
 
 #define ON 1
@@ -41,7 +40,6 @@
 #define TI_BQ34Z100_IIC_ADDR 0xAA
 #define GSA7S_IIC_ADDR 0x16
 #define GF_7S6P_7S8P_IIC_ADDR 0x18
-#define DESAY_7S5P_7S8P_IIC_ADDR 0x22 
     
 BatteryIICStruct sBatI2C;
 
@@ -49,6 +47,8 @@ struct PowerManagerStruct sPowerManager = {0};
 
 PRIVATE void PowerInfoUpdate(void);
 PRIVATE void ChargeCurrentBiasCal(void);
+PRIVATE void RK3399HeartStateUpdate(void);
+PRIVATE void BatteryCoverStateUpdate(void);
 PRIVATE void ChargerPlugEventUpdate(struct ChargeManageStruct *chargeInfo);
 PRIVATE void KeyEventUpdate(void);
 PRIVATE void PowerAlarmExec(void);
@@ -102,11 +102,11 @@ PUBLIC void PowerManagerInit(UINT8 ApplicationMode)
     sBatI2C.SDA_ReadPinState = Battery_SDA_ReadPin;
     sBatI2C.SCL_ReadPinState = Battery_SCL_ReadPin;
        		
-	DisableCharge(ApplicationMode);
+	//DisableCharge(ApplicationMode);
 	LedPowerOn();
   //LidarPowerOff();  //初始化已经关了
-	PadPowerOn();
-    
+	 //LidarPowerOff();
+
     delay_us(300);
     ResetACS711();
     
@@ -126,6 +126,8 @@ PUBLIC void PowerManagerInit(UINT8 ApplicationMode)
 	sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
 	sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = ON;
 	sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = ON; 
+    sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = OFF;
+    sPowerManager.sBoardPowerInfo.PoweroffUploadAckFlag = 0;
     sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.DisinfectionModulePower = OFF;
 
 	sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.ChassisPower = ON;
@@ -141,31 +143,31 @@ PUBLIC void PowerManagerInit(UINT8 ApplicationMode)
     sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel = 93;
     sPowerManager.sBatteryInfo.BatteryFullChargeTopLevel = 95;
 
-	sPowerManager.sAlarm.ChargeCurrentMax = 5500;
-	sPowerManager.sAlarm.ChargeTempMax = 450;  //0.1℃
-	sPowerManager.sAlarm.ChargeTempMin = 10;
-	sPowerManager.sAlarm.ChargerVoltageMax = 31000;
-	sPowerManager.sAlarm.BatteryVoltageMax = 30000;
-	sPowerManager.sAlarm.BatteryLowPowerLevel = 0;
+    sPowerManager.sAlarm.ChargeCurrentMax = 10000;
+    sPowerManager.sAlarm.ChargeTempMax = 450;  //0.1℃
+    sPowerManager.sAlarm.ChargeTempMin = 100;
+    sPowerManager.sAlarm.ChargerVoltageMax = 31000;
+    sPowerManager.sAlarm.BatteryVoltageMax = 30000;
+    sPowerManager.sAlarm.BatteryLowPowerLevel = 0;
 
-	sPowerManager.sAlarm.ChargeCurrentOverCntMax = 10;
-	sPowerManager.sAlarm.ChargerVolateOverCntMax = 10;
-	sPowerManager.sAlarm.ChargeTempOverCntMax = 30;
-	sPowerManager.sAlarm.ChargeTempUnderCntMax = 30;
-	sPowerManager.sAlarm.ComDisconnectCntMax = 10;
-	sPowerManager.sAlarm.BatteryVolateOverCntMax = 10;
-	sPowerManager.sAlarm.BatteryLowPowerCntMax = 80;
+    sPowerManager.sAlarm.ChargeCurrentOverCntMax = 10;
+    sPowerManager.sAlarm.ChargerVolateOverCntMax = 10;
+    sPowerManager.sAlarm.ChargeTempOverCntMax = 30;
+    sPowerManager.sAlarm.ChargeTempUnderCntMax = 30;
+    sPowerManager.sAlarm.ComDisconnectCntMax = 10;
+    sPowerManager.sAlarm.BatteryVolateOverCntMax = 10;
+    sPowerManager.sAlarm.BatteryLowPowerCntMax = 80;
 
 
-	sPowerManager.sChargeInfo.ChargerConnectedVoltageThreshold = 27000; //mV
-	sPowerManager.sChargeInfo.ChargerConnectedCurrentThreshold = 300; //mA
-	sPowerManager.sChargeInfo.ChargeAppState = NOT_CHARGED;
-	sPowerManager.sChargeInfo.ChargerConnectJudgeTime = 15;
+    sPowerManager.sChargeInfo.ChargerConnectedVoltageThreshold = 27000; //mV
+    sPowerManager.sChargeInfo.ChargerConnectedCurrentThreshold = 300; //mA
+    sPowerManager.sChargeInfo.ChargeAppState = NOT_CHARGED;
+    sPowerManager.sChargeInfo.ChargerConnectJudgeTime = 15;
     sPowerManager.sChargeInfo.ChargerDisconnectJudgeTime = 10;
-    
-    sPowerManager.sBatteryInfo.BMS_icType = NONE_RECOGNIZED;
 
-    LeadAcidBatteryInit(); 
+    sPowerManager.sBatteryInfo.BMS_icType = NONE_RECOGNIZED;
+		
+		sPowerManager.sChargeInfo.ChargeMode = 0;
 }
 
 
@@ -181,58 +183,64 @@ PUBLIC void PowerManagerExec(void)
     
 	PowerInfoUpdate();
 
-	//如果powerManage处于Init状态，则先对参数进行校正，在执行真正的电源管理前，需要确保充电关闭，以及外设电源按照合理的状态打开或者关闭
-	if(sPowerManager.ePMState == POWER_MANAGE_INIT)
-	{
-		ChargeCurrentBiasCal();
+    //如果powerManage处于Init状态，则先对参数进行校正，在执行真正的电源管理前，需要确保充电关闭，以及外设电源按照合理的状态打开或者关闭
+    if(sPowerManager.ePMState == POWER_MANAGE_INIT)
+    {
+        //ChargeCurrentBiasCal();
+        sPowerManager.sChargeInfo.ChargeCurrentBiasCorrectedFlag = 1;
+        //完成电流校正，即退出POWER_MANAGE_INIT状态，执行真正的电源管理
+        if (sPowerManager.sChargeInfo.ChargeCurrentBiasCorrectedFlag == 1)
+        {
+            sPowerManager.ePMState = POWER_MANAGE_CHARGE_KEY_EVENT_DETECT;
+        }
+        else
+        {
+            return;
+        }
+    }
 
-		//完成电流校正，即退出POWER_MANAGE_INIT状态，执行真正的电源管理
-		if (sPowerManager.sChargeInfo.ChargeCurrentBiasCorrectedFlag == 1)
-		{
-			sPowerManager.ePMState = POWER_MANAGE_CHARGE_KEY_EVENT_DETECT;
-		}
-		else
-		{
-			return;
-		}
-	}
-	
-	switch(sPowerManager.ePMState)
-	{
-		case POWER_MANAGE_CHARGE_KEY_EVENT_DETECT:
-			//更新充电器插拔事件:充电器插入 && 充电器拔出
-			ChargerPlugEventUpdate(&sPowerManager.sChargeInfo);
-        
-            //更新按键事件:按键长按 && 按键短按
-            KeyEventUpdate();        
-			sPowerManager.ePMState = POWER_MANAGE_ALARM_DETECT;
-			break;
+    switch(sPowerManager.ePMState)
+    {
+    case POWER_MANAGE_CHARGE_KEY_EVENT_DETECT:
+        //更新Rk3399在线状态
+        RK3399HeartStateUpdate();
 
-		case POWER_MANAGE_ALARM_DETECT:
-			//电源相关故障Alarm事件:充电器过压、电池过压、充电过流、通讯线脱落、电量与电压失配
-			PowerAlarmExec();
+        //更新电池盖板状态
+        //BatteryCoverStateUpdate();
 
-			sPowerManager.ePMState = POWER_MANAGE_POWER_ON_OFF_CHARGE_EXEC;
-			break;
+        //更新充电器插拔事件:充电器插入 && 充电器拔出
+        //ChargerPlugEventUpdate(&sPowerManager.sChargeInfo);
 
-		case POWER_MANAGE_POWER_ON_OFF_CHARGE_EXEC:
-			//外设电源开关管理的状态机跳转
-			PM_PowerOnOffExec();
+        //更新按键事件:按键长按 && 按键短按
+        KeyEventUpdate();
+        sPowerManager.ePMState = POWER_MANAGE_ALARM_DETECT;
+        break;
 
-			//充电开关状态机跳转		
-			ChargeOnOffExec(sPowerManager.sBatteryInfo.BMS_icType);
+    case POWER_MANAGE_ALARM_DETECT:
+        //电源相关故障Alarm事件:充电器过压、电池过压、充电过流、通讯线脱落、电量与电压失配
+        //PowerAlarmExec();
+
+        sPowerManager.ePMState = POWER_MANAGE_POWER_ON_OFF_CHARGE_EXEC;
+        break;
+
+    case POWER_MANAGE_POWER_ON_OFF_CHARGE_EXEC:
+        //外设电源开关管理的状态机跳转
+        //PM_PowerOnOffExec();
+
+        //充电开关状态机跳转
+        //ChargeOnOffExec(sPowerManager.sBatteryInfo.BMS_icType);
 
 			sPowerManager.ePMState = POWER_MANAGE_INFO_UPLOAD;
 			break;
 
 		case POWER_MANAGE_INFO_UPLOAD:
 
-			//can消息上报
-			PowerManageInfoUploadingExec();
+        //can消息上报
+        //PowerManageInfoUploadingExec();
 
-			//清除充电器插入事件、按键等事件
-			ClearKeyEvent();
-			ClearChargerPlugEvent();
+        //清除充电器插入事件、按键等事件
+        ClearKeyEvent();
+        //ClearChargerPlugEvent();
 
 			sPowerManager.ePMState = POWER_MANAGE_CHARGE_KEY_EVENT_DETECT;
 			break;
@@ -251,23 +259,17 @@ PUBLIC void PowerManagerExec(void)
 ***********************************************************************/
 PRIVATE void PowerInfoUpdate(void)
 {
+    //这个IO设置为推挽输出，不知道所有机器能否完成读取IO操作
+    sPowerManager.sChargeInfo.eChargeMosState = ReadChargeMosState();
+    //sPowerManager.sChargeInfo.ChargeCurrent = 1000.0f * GetChargeCurrent() - sPowerManager.sChargeInfo.ChargeCurrentBias;
+    sPowerManager.sChargeInfo.ChargeCurrent =0;
+    //sPowerManager.sChargeInfo.ChargeVoltage = 1000.0f * GetChargeVoltage();
+    sPowerManager.sChargeInfo.ChargeVoltage = 0;
+    sPowerManager.sBatteryInfo.BatteryCurrent = 1000.0f * GetBatteryCurrent();
+    sPowerManager.sBatteryInfo.BatteryVoltage = 1000.0f * GetBatteryVoltage();
+    sPowerManager.sBatteryInfo.BatteryLevelRaw = gSensorData.BatteryLevel0x400D;
+    sPowerManager.sBatteryInfo.BatteryTemp = gSensorData.BatteryTemp0x4010;
 
-    if(sPowerManager.sBatteryInfo.BMS_icType == LEAD_ACID_BAT)
-    {
-        LeadAcidInfoUpdate();
-    }
-    else
-    {
-        //这个IO设置为推挽输出，不知道所有机器能否完成读取IO操作
-        sPowerManager.sChargeInfo.eChargeMosState = ReadChargeMosState();	
-        sPowerManager.sChargeInfo.ChargeCurrent = 1000.0f * GetChargeCurrent() - sPowerManager.sChargeInfo.ChargeCurrentBias;
-        sPowerManager.sChargeInfo.ChargeVoltage = 1000.0f * GetChargeVoltage();
-        sPowerManager.sBatteryInfo.BatteryCurrent = 1000.0f * GetBatteryCurrent();
-        sPowerManager.sBatteryInfo.BatteryVoltage = 1000.0f * GetBatteryVoltage();
-        sPowerManager.sBatteryInfo.BatteryLevelRaw = gSensorData.BatteryLevel0x400D;
-        sPowerManager.sBatteryInfo.BatteryTemp = gSensorData.BatteryTemp0x4010;
-    }
-    
 	//对电量进行虚拟化
 	if(sPowerManager.sBatteryInfo.BatteryLevelRaw <= sPowerManager.sBatteryInfo.BatteryFloorLevelLimit)
 	{
@@ -282,12 +284,12 @@ PRIVATE void PowerInfoUpdate(void)
 		sPowerManager.sBatteryInfo.BatteryLevelOptimized = (sPowerManager.sBatteryInfo.BatteryLevelRaw - sPowerManager.sBatteryInfo.BatteryFloorLevelLimit) * 100 / (sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel - sPowerManager.sBatteryInfo.BatteryFloorLevelLimit);
 	}
 
-	//更新串口工具上的数据显示
-	gSensorData.ChargeCurrent0x400C = sPowerManager.sChargeInfo.ChargeCurrent;
-	gSensorData.BatteryCurrent0x400B = sPowerManager.sBatteryInfo.BatteryCurrent;
-	gSensorData.ChargeVoltage0x400F = sPowerManager.sChargeInfo.ChargeVoltage;
-	gSensorData.ChargeState0x400E = sPowerManager.sChargeInfo.eChargeMosState;
-	gSensorData.BatteryVoltage0x400A = gParam[0].Vdc0x2309;
+    //更新串口工具上的数据显示
+    gSensorData.ChargeCurrent0x400C = sPowerManager.sChargeInfo.ChargeCurrent;
+    gSensorData.BatteryCurrent0x400B = sPowerManager.sBatteryInfo.BatteryCurrent;
+    gSensorData.ChargeVoltage0x400F = sPowerManager.sChargeInfo.ChargeVoltage;
+    gSensorData.ChargeState0x400E = sPowerManager.sChargeInfo.eChargeMosState;
+    gSensorData.BatteryVoltage0x400A = sPowerManager.sBatteryInfo.BatteryVoltage;
     gMachineInfo.batteryVersion = sPowerManager.sBatteryInfo.BMS_icType;
 }
 
@@ -308,8 +310,7 @@ PRIVATE void ChargeCurrentBiasCal(void)
 	//MOS关闭1S后开始采集电流数据累积
 	//在随后的250ms内获取到的电流平均值作为采样电流平均值
 	//在获取充电电流采样偏置值后，不再重复进入采样电流偏置计算
-//	if ((sPowerManager.uTick < CHARGE_CURRENT_CORRECT_LAUNCH_TIME) || (sPowerManager.uTick > CHARGE_CURRENT_CORRECT_END_TIME))
-    if (sPowerManager.uTick > CHARGE_CURRENT_CORRECT_END_TIME)
+	if ((sPowerManager.uTick < CHARGE_CURRENT_CORRECT_LAUNCH_TIME) || (sPowerManager.uTick > CHARGE_CURRENT_CORRECT_END_TIME))
 		return;
 
 	if (sPowerManager.uTick < CHARGE_CURRENT_CORRECT_END_TIME)
@@ -323,6 +324,46 @@ PRIVATE void ChargeCurrentBiasCal(void)
 	}
 }
 
+PRIVATE void BatteryCoverStateUpdate(void)
+{
+    static UINT8 BatteryNotCoverCnt = 0;
+
+    if (ReadBatteryCoverState())
+    {
+        BatteryNotCoverCnt++;
+    }
+    else
+    {
+        BatteryNotCoverCnt = 0;
+        sPowerManager.eBatteryCoverState = COVERED;
+    }
+
+    if (BatteryNotCoverCnt >= 3)
+    {
+        sPowerManager.eBatteryCoverState = NOT_COVERED;
+    }
+
+}
+PRIVATE void RK3399HeartStateUpdate(void)
+{
+    static UINT8 Rk3399HeartOffLineCnt = 0;
+
+    if (!ReadRk3399HeartState())
+    {
+        Rk3399HeartOffLineCnt++;
+    }
+    else
+    {
+        Rk3399HeartOffLineCnt = 0;
+        sPowerManager.eRk3399HeartState = ONLINE;
+    }
+
+    if (Rk3399HeartOffLineCnt >= 3)
+    {
+        sPowerManager.eRk3399HeartState = OFFLINE;
+    }
+
+}
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -367,8 +408,7 @@ PRIVATE void ChargerPlugEventUpdate(struct ChargeManageStruct *chargeInfo)
         else
         {
             chargeInfo->eChargerEvent = INSERT_IN;
-            chargeInfo->eChargerConnectState = CONNECT;         
-            LeadAcideEventTask(LEAD_ACID_EVENT_INSERT_IN);    
+            chargeInfo->eChargerConnectState = CONNECT;             
         }
         
         ChargeVoltageReachCnt = 0;
@@ -547,15 +587,15 @@ PRIVATE void PowerAlarmExec(void)
 		sPowerManager.sAlarm.ChargeCurrentOverCnt = sPowerManager.sAlarm.ChargeCurrentOverCntMax;
 	}
 
-	//检查电池温度
-	if (sPowerManager.sBatteryInfo.BatteryTemp > sPowerManager.sAlarm.ChargeTempMax)
-	{
-		sPowerManager.sAlarm.ChargeTempOverCnt++;
-	}
-	else if(sPowerManager.sAlarm.ChargeTempOverCnt)
-	{
-		sPowerManager.sAlarm.ChargeTempOverCnt--;
-	}
+    //检查电池温度
+    if (( (INT16)sPowerManager.sBatteryInfo.BatteryTemp ) > sPowerManager.sAlarm.ChargeTempMax)
+    {
+        sPowerManager.sAlarm.ChargeTempOverCnt++;
+    }
+    else if(sPowerManager.sAlarm.ChargeTempOverCnt)
+    {
+        sPowerManager.sAlarm.ChargeTempOverCnt--;
+    }
 
 	if (sPowerManager.sAlarm.ChargeTempOverCnt >= sPowerManager.sAlarm.ChargeTempOverCntMax)
 	{
@@ -577,26 +617,17 @@ PRIVATE void PowerAlarmExec(void)
 		//sPowerManager.sAlarm.PowerAlarmReg.bit.ChargeTempUnder = 1;
 		sPowerManager.sAlarm.ChargeTempUnderCnt = sPowerManager.sAlarm.ChargeTempUnderCntMax;
 	}
-
 	//检查电池通讯是否脱落
-    if(sPowerManager.sBatteryInfo.BMS_icType == LEAD_ACID_BAT)
-    {
-        sPowerManager.sAlarm.ComDisconnectCnt = 0;
-        sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 0;
-    }
-    else
-    {
-        if (sPowerManager.sAlarm.ComDisconnectCnt >= sPowerManager.sAlarm.ComDisconnectCntMax)
-        {
-            sPowerManager.sAlarm.ComDisconnectCnt = sPowerManager.sAlarm.ComDisconnectCntMax;
-            sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 1;
-        }
-        else if(!sPowerManager.sAlarm.ComDisconnectCnt)
-        {
-            sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 0;
-        }
-    }
-
+	if (sPowerManager.sAlarm.ComDisconnectCnt >= sPowerManager.sAlarm.ComDisconnectCntMax)
+	{
+		sPowerManager.sAlarm.ComDisconnectCnt = sPowerManager.sAlarm.ComDisconnectCntMax;
+		sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 1;
+	}
+	else if(!sPowerManager.sAlarm.ComDisconnectCnt)
+	{
+		sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet = 0;
+	}
+    
     //检查电量是否过低
     if ((sPowerManager.sBatteryInfo.BatteryLevelOptimized <= sPowerManager.sAlarm.BatteryLowPowerLevel) && 
         (!sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet) &&
@@ -625,9 +656,10 @@ PRIVATE void PowerAlarmExec(void)
 	{
 		ClearPowerAlarmReg();
         sPowerManager.sChargeInfo.sChargerCheck.eCheckState = CHECK_APPENDING;
-	}
-
-	RTC_BKP_Write(EN_BATTERY_PROTECT_BKP_ADDR, sPowerManager.sAlarm.PowerAlarmReg.all);
+    }
+    sPowerManager.sAlarm.PowerAlarmReg.all = 0;
+    //需确认BKP寄存器本质是RAM? 无擦写寿命？
+    RTC_BKP_Write(EN_BATTERY_PROTECT_BKP_ADDR, sPowerManager.sAlarm.PowerAlarmReg.all);
 }
 
 
@@ -641,115 +673,294 @@ PRIVATE void PowerAlarmExec(void)
 ***********************************************************************/
 PRIVATE void PM_PowerOnOffExec(void)
 {
-	switch(sPowerManager.sBoardPowerInfo.PowerOnOnffAppState)
-	{
-		case POWERON_INIT:
-			//MCU被软件复位时，即使刚复位时检测到充电器插入，也不允许对头部平板进行关机
-			if ((sPowerManager.sChargeInfo.ChargeVoltage > sPowerManager.sChargeInfo.ChargerConnectedVoltageThreshold) && (sPowerManager.eSysRstState != EN_RESET_TYPE_SOFT))
-			{
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
-                sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
+    switch(sPowerManager.sBoardPowerInfo.PowerOnOnffAppState)
+    {
+    case POWERON_INIT:
+        //MCU被软件复位时，即使刚复位时检测到充电器插入，也不允许对头部平板进行关机
+        if ((sPowerManager.sChargeInfo.ChargeVoltage > sPowerManager.sChargeInfo.ChargerConnectedVoltageThreshold) && (sPowerManager.eSysRstState != EN_RESET_TYPE_SOFT))
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
+            sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = ON;
 
-				sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = CHARGE_POWERON;
-			}
-            //增加判断条件sPowerManager.ePowerKeyState == KEY_UP是为了防止按键启动的时候松动了一下开机按钮，导致按下刚开机就直接关机了
-			else if(sPowerManager.ePowerKeyState == KEY_UP)
-			{
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = ON;
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = ON;
-                sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = PAD_POWEROFF;
+        }
+        //增加判断条件sPowerManager.ePowerKeyState == KEY_UP是为了防止按键启动的时候松动了一下开机按钮，导致按下刚开机就直接关机了
+        else if(sPowerManager.ePowerKeyState == KEY_UP)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = ON;
+            sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = OFF;
 
-				sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = NORMAL_POWERON;
-			}			
-			break;
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = NORMAL_POWERON;
+        }
 
-		case NORMAL_POWERON:
-			//在NORMAL_POWERON状态中允许使能音推、雷达等
-			if (sPowerManager.ePowerKeyEvent == LONG_PRESS)
-			{
-                    if(sPowerManager.sChargeInfo.eChargerConnectState == CONNECT)
-                    {
-                        if (!(sPowerManager.sAlarm.PowerAlarmReg.all & ALARM_LOW_POWER_MASK))
-                        {
-                            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;                            
-                            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
-                            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
-                            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = CHARGE_POWERON;
-                        }
-                    }
-                    else
-                    {
-                        //关机前先关闭音推使能，防止关机时出现爆音问题
-                        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;                            
-                        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;                         
-                        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
-                        sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
-                        EnableMachineAddInfoSave();
-                    }
-			}
+        PadPowerOnInit(sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower);
+        sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.PadPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower;
+        break;
 
-			//当在非充电状态中,低电量的时候跳转入POWEROFF
-			if (sPowerManager.sAlarm.PowerAlarmReg.bit.BatteryLowPower)
-			{
-				if ((sPowerManager.sChargeInfo.eChargerConnectState != CONNECT) && (!sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet))
-				{
-					sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
-
-					sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
-                    EnableMachineAddInfoSave();
-				}
-			}
-			break;
-
-		case CHARGE_POWERON:
-			//当检测故障(非低电量故障)时，应该进入正常POWERON状态，打开头部平板，方便上位机做声光提示
-			if (sPowerManager.sAlarm.PowerAlarmReg.all & ALARM_LOW_POWER_MASK)
-			{
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = ON;
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = ON;
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = ON;
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = A2M7_LIDAR_DEFAULT_SPEED;
-
-				sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = NORMAL_POWERON;
-			}
-			//由于插上充电器导致开机的情形下，当长按按钮时，应该跳转进入Normal_POWERON状态
-			else if (sPowerManager.ePowerKeyEvent == LONG_PRESS)
-			{
-				//跳转入normalPowerOn模式时，应该首先默认打开speaker使能、Vbus电源、雷达电源
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = ON;
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = ON;
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = ON;
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = A2M7_LIDAR_DEFAULT_SPEED;
-				
-				sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = NORMAL_POWERON;
-			}
-			//由于插上充电器导致开机的情形下，当拔出充电器时应该跳转进入关机状态
-			else if(sPowerManager.sChargeInfo.eChargerEvent == PULL_OUT)
-			{
-				sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
-				sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
-                EnableMachineAddInfoSave();
-			}
-			
-			break;
-
-		case POWEROFF:
-			//执行关机操作
-//            LedFsmEventHandle(&sLedFsm, LED_EVENT_MCU_POWEROFF, LED_STATE_CLOSE, NULL);
-            if( IsMachineAddInfoSaveOK() )
-			{
-                McuPowerOff();
+    case NORMAL_POWERON:
+        //在NORMAL_POWERON状态中允许使能音推、雷达等
+        if (sPowerManager.ePowerKeyEvent == LONG_PRESS)
+        {
+            if(sPowerManager.sChargeInfo.eChargerConnectState == CONNECT)
+            {
+                if (!(sPowerManager.sAlarm.PowerAlarmReg.all & ALARM_LOW_POWER_MASK))
+                {
+                    sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF_UPLOAD;
+                    sPowerManager.uPowerOffKeyPressTimestamp = sPowerManager.uTick;
+                }
             }
-			break;
+            else
+            {
+                sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF_UPLOAD;
+                sPowerManager.uPowerOffKeyPressTimestamp = sPowerManager.uTick;
+            }
+        }
+
+        //当在非充电状态中,低电量的时候跳转入低电量上报状态
+        if (sPowerManager.sAlarm.PowerAlarmReg.bit.BatteryLowPower)
+        {
+            if ((sPowerManager.sChargeInfo.eChargerConnectState != CONNECT) && (!sPowerManager.sAlarm.PowerAlarmReg.bit.ComDisconnet))
+            {
+                sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF_UPLOAD;
+                sPowerManager.uPowerOffKeyPressTimestamp = sPowerManager.uTick;
+            }
+        }
+
+        //如果发生打开电池仓盖的动作，无论在任何情况，则应该直接执行关闭整机电源
+        if (sPowerManager.eBatteryCoverState == NOT_COVERED)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.VbusPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
+            sPowerManager.BatteryCoverLeadtoPoweroffSet = 1;
+            EnableMachineAddInfoSave();
+        }
+
+        break;
+
+    case PAD_POWEROFF:
+        //当检测故障(非低电量故障)时，应该进入正常POWERON状态，打开头部平板，方便上位机做声光提示
+        if (sPowerManager.sAlarm.PowerAlarmReg.all & ALARM_LOW_POWER_MASK)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = A2M7_LIDAR_DEFAULT_SPEED;
+            sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = OFF;
+
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = NORMAL_POWERON;
+        }
+        //由于插上充电器导致开机的情形下，当长按按钮时，应该跳转进入Normal_POWERON状态
+        else if (sPowerManager.ePowerKeyEvent == LONG_PRESS)
+        {
+            //跳转入normalPowerOn模式时，应该首先默认打开speaker使能、Vbus电源、雷达电源
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = ON;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = A2M7_LIDAR_DEFAULT_SPEED;
+            sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = OFF;
+
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = NORMAL_POWERON;
+        }
+        //由于插上充电器导致开机的情形下，当拔出充电器时应该跳转进入关机状态
+        else if(sPowerManager.sChargeInfo.eChargerEvent == PULL_OUT)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
+            EnableMachineAddInfoSave();
+        }
+
+        //如果发生打开电池仓盖的动作，无论在任何情况，则应该直接执行关闭整机电源
+        if (sPowerManager.eBatteryCoverState == NOT_COVERED)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.VbusPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
+            sPowerManager.BatteryCoverLeadtoPoweroffSet = 1;
+            EnableMachineAddInfoSave();
+        }
+
+        break;
+
+    case POWEROFF_UPLOAD:
+    {
+        static UINT8 UploadPoweroffCnt = 0;
+        static UINT32 uploadPoweroffTimestamp = 0;
+
+        //每1S给上位机上传一次关闭平板提示
+        if ((sPowerManager.uTick - uploadPoweroffTimestamp >= 40) && (sPowerManager.uTick - sPowerManager.uPowerOffKeyPressTimestamp <= 400))
+        {
+            UploadPoweroffCnt++;
+            uploadPoweroffTimestamp = sPowerManager.uTick;
+            sPowerManager.sBoardPowerInfo.PoweroffUploadAckFlag = 0;
+
+            if (sPowerManager.sAlarm.PowerAlarmReg.bit.BatteryLowPower)
+            {
+                CanUploadLowPoweroffEvent();
+            }
+            else
+            {
+                CanUploadKeyPoweroffEvent();
+            }
+        }
+    }
+
+    //如果收到应答，此时应该跳转入POWEROFF_ACKED等待上位机关机后执行关机操作
+    if (sPowerManager.sBoardPowerInfo.PoweroffUploadAckFlag)
+    {
+        sPowerManager.sBoardPowerInfo.PoweroffUploadAckFlag = 0;
+        sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF_UPLOAD_ACKED;
+        sPowerManager.uPoweroffCmdFeedbackTimestamp = sPowerManager.uTick;
+    }
+    else
+    {
+        //上报即将关机信息后，10s内上位机仍然一直无应答，判定为上位机关机信息反馈超时
+        if (sPowerManager.uTick - sPowerManager.uPowerOffKeyPressTimestamp > 400)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF_UPLOAD_ACK_TIMEOUT;
+        }
+    }
+
+    //如果上位机反馈信息超时
+    if ((sPowerManager.sBoardPowerInfo.PowerOnOnffAppState == POWEROFF_UPLOAD_ACK_TIMEOUT) && (!sPowerManager.sAlarm.PowerAlarmReg.bit.BatteryLowPower))
+    {
+        sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = NORMAL_POWERON;
+    }
+
+    //或者如果按键持续按下10S，执行强制关闭上位机或者关闭整机电源
+    //或者如果此时低电量时同时上报消息无应答时，执行强制关闭上位机或者关闭整机电源
+    if ((sPowerManager.ePowerKeyEvent == LONGLONG_PRESS) || ((sPowerManager.sAlarm.PowerAlarmReg.bit.BatteryLowPower) && (sPowerManager.sBoardPowerInfo.PowerOnOnffAppState == POWEROFF_UPLOAD_ACK_TIMEOUT)))
+    {
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+        sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = ON;
+        sPowerManager.uPoweroffCmdFeedbackTimestamp = sPowerManager.uTick;
+
+        //如果此时充电器未连接，跳转进入POWEROFF状态
+        if (sPowerManager.sChargeInfo.eChargerConnectState == DISCONNECT)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.VbusPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
+            EnableMachineAddInfoSave();
+        }
+        //如果此时充电器连接，跳转进入PAD_POWEROFF状态
+        else
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = PAD_POWEROFF;
+        }
+    }
+
+    //如果发生打开电池仓盖的动作，无论在任何情况，则应该直接执行关闭整机电源
+    if (sPowerManager.eBatteryCoverState == NOT_COVERED)
+    {
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.VbusPower = OFF;
+        sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
+        sPowerManager.BatteryCoverLeadtoPoweroffSet = 1;
+        EnableMachineAddInfoSave();
+    }
+
+    break;
+
+    case POWEROFF_UPLOAD_ACKED:
+    {
+        UINT8 RK3399HeartDeadTimeOut = 0;
+
+        //给了应答后3min仍然没有完成安卓关机，则判断为HeartDeadTimeout
+        if ((sPowerManager.uTick - sPowerManager.uPoweroffCmdFeedbackTimestamp >= 3*60*40) && sPowerManager.eRk3399HeartState)
+        {
+            RK3399HeartDeadTimeOut = 1;
+        }
+
+        //读取上位机RK3399_HEART状态状态，连续读取到3次低电平时，则跳转入平板关机状态或者整机关机状态
+        //或者如果按键持续按下10S，执行强制关闭上位机或者关闭整机电源
+        //或者如果Rk3399 Heart Dead Timeout
+        if (!sPowerManager.eRk3399HeartState || sPowerManager.ePowerKeyEvent == LONGLONG_PRESS || RK3399HeartDeadTimeOut)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+            sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = ON;
+
+            //如果此时充电器未连接，跳转进入POWEROFF状态
+            if (sPowerManager.sChargeInfo.eChargerConnectState == DISCONNECT)
+            {
+                sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.VbusPower = OFF;
+                sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
+                EnableMachineAddInfoSave();
+            }
+            //如果此时充电器连接，跳转进入PAD_POWEROFF状态
+            else
+            {
+                sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = PAD_POWEROFF;
+            }
+        }
+
+        //如果发生打开电池仓盖的动作，无论在任何情况，则应该直接执行关闭整机电源
+        if (sPowerManager.eBatteryCoverState == NOT_COVERED)
+        {
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.VbusPower = OFF;
+            sPowerManager.sBoardPowerInfo.PowerOnOnffAppState = POWEROFF;
+            sPowerManager.BatteryCoverLeadtoPoweroffSet = 1;
+            EnableMachineAddInfoSave();
+        }
+
+        break;
+    }
+
+    case POWEROFF:
+        //执行关机操作
+        LedFsmEventHandle(&sLedFsm, LED_EVENT_MCU_POWEROFF, LED_STATE_CLOSE, NULL);
+        if( IsMachineAddInfoSaveOK() )
+        {
+            McuPowerOff();
+        }
+
+        //当插着充电器进行更换电池重新盖上电池舱门时，则重新进行电源初始化
+        //上述表述的条件是充电器仍然插着，电池舱门处于盖上状态，同时处于状态机的POWEROFF装填下
+        //增加变量sPowerManager.BatteryCoverOpenSet 的原因用于修复在电池电压高于27情况下，关机情况下插入充电器，头部直接开机的问题
+        if ((sPowerManager.eBatteryCoverState == COVERED) &&
+                (sPowerManager.sChargeInfo.ChargeVoltage > sPowerManager.sChargeInfo.ChargerConnectedVoltageThreshold) &&
+                sPowerManager.BatteryCoverLeadtoPoweroffSet)
+        {
+            //Reset
+            HAL_NVIC_SystemReset();
+        }
+
+        break;
 
 		default:
 			break;
 	}
 
-	//更新执行 雷达电源  音响电源  头部平板电源使能动作
-	lidarPowerOnOffExec();
-	SpeakerOnOffExec();	
+    if (sPowerManager.sBoardPowerInfo.LowPowerConsumeMode)
+    {
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = OFF;
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = OFF;
+    }
+    else
+    {
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower = ON;
+        sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = ON;
+    }
+
+    //更新执行 雷达电源  音响电源  头部平板电源使能动作
+    lidarPowerOnOffExec();
+    SpeakerOnOffExec();
     DisinfectionModulePowerOnOffExec();
 
 	if (sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.PadPower != sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.PadPower)
@@ -764,6 +975,19 @@ PRIVATE void PM_PowerOnOffExec(void)
 			PadPowerOff();
 		}
 	}
+    //更新Vbus状态以及使能禁能动作
+    if (sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.VbusPower != sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.VbusPower)
+    {
+        if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.VbusPower)
+        {
+            __nop();
+        }
+        else
+        {
+            VbusDisable();
+            sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.VbusPower = OFF;
+        }
+    }
 }
 
 /***********************************************************************
@@ -778,19 +1002,25 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
     {
         return;
     }
-    
-	switch(sPowerManager.sChargeInfo.ChargeAppState)
-	{
-		case NOT_CHARGED:
-			if (sPowerManager.sChargeInfo.eChargerEvent == INSERT_IN)
-			{
-				sPowerManager.sChargeInfo.ChargeAppState = CHECK_BEFORE_CHARGING;
-			}
-            else if(sPowerManager.sAlarm.PowerAlarmReg.all & ALARM_LOW_POWER_MASK)
-            {
-                sPowerManager.sChargeInfo.ChargeAppState = POWER_ALARM;
-            }
-			break;
+
+    switch(sPowerManager.sChargeInfo.ChargeAppState)
+    {
+    case NOT_CHARGED:
+        if (sPowerManager.eBatteryCoverState == NOT_COVERED)
+        {
+            break;
+        }
+
+        if (sPowerManager.sChargeInfo.eChargerEvent == INSERT_IN)
+        {
+            sPowerManager.sChargeInfo.ChargeAppState = CHECK_BEFORE_CHARGING;
+        }
+        else if(sPowerManager.sAlarm.PowerAlarmReg.all & ALARM_LOW_POWER_MASK)
+        {
+            sPowerManager.sChargeInfo.ChargeAppState = POWER_ALARM;
+        }
+
+        break;
 
 		case CHECK_BEFORE_CHARGING:
 			//充电器输出电压验证低于报警值，可以进入充电状态
@@ -799,7 +1029,6 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 				if (sPowerManager.sBatteryInfo.BatteryLevelRaw <= sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel)
 				{
 					sPowerManager.sChargeInfo.ChargeAppState = CHARGING;
-                    LeadAcideEventTask(LEAD_ACID_EVENT_CHARGING);
 				}	
 			}
 			//监测电池或者充电异常（非低电量异常），跳转入ALARM状态
@@ -814,7 +1043,13 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 				sPowerManager.sChargeInfo.ChargeAppState = NOT_CHARGED;
 			}
 
-			break;
+        //如果发生打开电池仓盖的动作，无论在任何情况，则应该直接执行跳转到非充电状态下
+        if (sPowerManager.eBatteryCoverState == NOT_COVERED)
+        {
+            sPowerManager.sChargeInfo.ChargeAppState = NOT_CHARGED;
+        }
+
+        break;
 
 		case CHARGING:
 			//监测电池或者充电异常(非低电量异常)，跳转入ALARM状态
@@ -826,7 +1061,6 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 			else if (sPowerManager.sChargeInfo.eChargerEvent == PULL_OUT)
 			{
 				sPowerManager.sChargeInfo.ChargeAppState = NOT_CHARGED;
-                LeadAcideEventTask(LEAD_ACID_EVENT_PULL_OUT);
 			}
 			//电量高于95%时，跳转入CHECK_BEFORE_CHARGING
 			else if (sPowerManager.sBatteryInfo.BatteryLevelRaw >= sPowerManager.sBatteryInfo.BatteryTopLevelLimit)
@@ -834,7 +1068,12 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 				sPowerManager.sChargeInfo.ChargeAppState = CHECK_BEFORE_CHARGING;
 			}
 
-			break;
+        //如果发生打开电池仓盖的动作，无论在任何情况，则应该直接执行跳转到非充电状态下
+        if (sPowerManager.eBatteryCoverState == NOT_COVERED)
+        {
+            sPowerManager.sChargeInfo.ChargeAppState = NOT_CHARGED;
+        }
+        break;
 
 		case POWER_ALARM:
             //当故障清除时，应该选择让机器重新判定是否进入充电状态
@@ -870,18 +1109,18 @@ PRIVATE void ChargeOnOffExec(enum BatteryManageSystemType BatteryType)
 	if ((sPowerManager.sChargeInfo.ChargeAppState == CHARGING) || (sPowerManager.sChargeInfo.ChargeAppState == CHECK_BEFORE_CHARGING))
 	{
 		//插上充电后，即显示充电呼吸效果
-//		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_ING, GetBatteryLevelForLed(sPowerManager.sBatteryInfo.BatteryLevelOptimized), NULL);
+		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_ING, GetBatteryLevelForLed(sPowerManager.sBatteryInfo.BatteryLevelOptimized), NULL);
 	}
 	else if(sPowerManager.sChargeInfo.ChargeAppState == NOT_CHARGED)
 	{
 		//拔掉充电器后，进入正常的蓝色待机状态
-//		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
+		LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
 	}
 	else if(sPowerManager.sChargeInfo.ChargeAppState == POWER_ALARM)
 	{
-//        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
+        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
 		//当出现故障时，接收上位机控制，提示红色闪烁故障灯
-//		LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, LED_STATE_ERROR, NULL);
+		LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, LED_STATE_ERROR, NULL);
 	}
 	
 }
@@ -927,48 +1166,31 @@ PUBLIC void lidarPowerOnOffExec(void)
 	{
 			if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower)
 			{
-			    if(gMachineInfo.ldsSensorVersion == 23)
-			    {
-			        EXOLidarPowerOn();
-                    LidarPowerOn();
-			    }
-			    else
-			    {
-                    LidarPowerOn();
-			    }
-                if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
-                {
-                        if(leds_cnt++>20)
-                        {
-                            leds_cnt = 20;
-                            //A2M7_CtrlOn(sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed);
-                            sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
-                            sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
-                        }
-                }
-                else
-                {
-                        sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
-                        sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
-                }
-                sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed;
+							LidarPowerOn();
+							if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
+							{
+									if(leds_cnt++>20)
+									{
+										leds_cnt = 20;
+										A2M7_CtrlOn(sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed);
+										sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
+										sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
+									}
+							}
+							else
+							{
+									sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.LidarPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.LidarPower;
+									sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
+							}
+							sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed;			
 			}
 			else
 			{
 					leds_cnt = 0;
-
-	                if(gMachineInfo.ldsSensorVersion == 23)
-	                {
-	                    EXOLidarPowerOff();
-                         LidarPowerOn();
-	                }
-	                else
-	                {
-	                    LidarPowerOff();
-	                }
+					LidarPowerOff();
 					if ((gMachineInfo.ldsSensorVersion == 9) || (gMachineInfo.ldsSensorVersion == 10))
 					{
-						//A2M7_CtrlOff();
+						A2M7_CtrlOff();
 					}
 					sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarPowerCmdSet = 0;
 					sPowerManager.sBoardPowerInfo.PowerOnState.lidarSpeed = sPowerManager.sBoardPowerInfo.PowerOnConfig.lidarSpeed = 0;
@@ -1052,39 +1274,21 @@ PUBLIC void DisinfectionModulePowerCtrl(UINT8 En)
 PRIVATE void SpeakerOnOffExec(void)
 {
 	//上电后3S钟才打开音推使能，避免音响开机爆音问题
-	if (sPowerManager.uTick < 40)
-	{
-	    return;
-	}
-	else if(sPowerManager.uTick < 2*40)
-	{
-	    MusicPwEnable();
-	}
-    else if(sPowerManager.uTick < 3*40)
+	if (sPowerManager.uTick < 3*40)
+		return;
+
+    if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower != sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower)
     {
-        MuteDisable();
+        sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower;
+        if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower)
+        {
+            YDA138_MuteOff();
+        }
+        else
+        {
+            YDA138_MuteOn();
+        }
     }
-	else
-	{
-	    if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower != sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower)
-	    {
-	        sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower;
-	        if (sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower)
-	        {
-	            MusicPwEnable();
-	            MuteDisable();   // GPIO控制
-
-	            //YDA138_MuteOff(); // 59108控制
-	        }
-	        else
-	        {
-	            MuteEnable();
-	            MusicPwDisable();
-
-	            //YDA138_MuteOn();
-	        }
-	    }
-	}
 }
 
 /***********************************************************************
@@ -1671,7 +1875,28 @@ PUBLIC UINT8 ReadChargeAppState(void)
     }
 
     return 1;
-    
+}   
+PUBLIC void FrameHeader0xB0Parser(UINT8 data[8])
+{
+    switch(data[1])
+    {
+    case 2:
+        sPowerManager.sBoardPowerInfo.PoweroffUploadAckFlag = 1;
+        break;
+
+    case 3:
+        sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = ON;
+        CanLowPowerConsumeMode(sPowerManager.sBoardPowerInfo.LowPowerConsumeMode);
+        break;
+
+    case 5:
+        sPowerManager.sBoardPowerInfo.LowPowerConsumeMode = OFF;
+        CanLowPowerConsumeMode(sPowerManager.sBoardPowerInfo.LowPowerConsumeMode);
+        break;
+
+    default:
+        break;
+    }
 }
 
 /***********************************************************************
@@ -1697,7 +1922,6 @@ PUBLIC void BatteryInfoReadLoop(void)
         const UINT8 GSA7S139_DeviceName[8] = "GSA7S139";
         const UINT8 GSA7S140_DeviceName[8] = "GSA7S140";
         const UINT8 GSA7S141_DeviceName[8] = "GSA7S141";
-        const UINT8 DESAY7S8P_DeviceName[6]= "DESAY";
         
         //100ms刷新一次电池类型识别
         if (sPowerManager.uTick - ReadOperationTime <= 4)
@@ -1720,8 +1944,8 @@ PUBLIC void BatteryInfoReadLoop(void)
             return;
         }
         
-//        MX_I2C3_Init();
-        if (Battery_Serial_Read(GSA7S_IIC_ADDR, 0x21, Tmp1, 11, 0))
+        MX_I2C3_Init();
+        if (Battery_Serial_Read(GSA7S_IIC_ADDR, 0x21, Tmp1, 11, 1))
         {
             sPowerManager.sBatteryInfo.BatteryFloorLevelLimit = 5;
             sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
@@ -1766,7 +1990,7 @@ PUBLIC void BatteryInfoReadLoop(void)
             }            
         }
         
-        if (Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x6C, Tmp1, 11, 0))
+        if (Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x6C, Tmp1, 11, 1))
         {
             sPowerManager.sBatteryInfo.BatteryFloorLevelLimit = 5;
             sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
@@ -1787,40 +2011,12 @@ PUBLIC void BatteryInfoReadLoop(void)
                 return;
             } 
         }
-        if (Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x6B, Tmp1, 6, 0))
-        {
-            sPowerManager.sBatteryInfo.BatteryFloorLevelLimit = 10;
-            sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
-            sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel = 95;
-            sPowerManager.sBatteryInfo.BatteryFullChargeTopLevel = 100;  
-           
-			sPowerManager.sAlarm.ChargeCurrentMax = 10000;
-			sPowerManager.sBatteryInfo.BMS_icType = DESAY_7S8P;
-			return; 
-        }
+        
 
-//        if(sPowerManager.sBatteryInfo.BMS_icType == NONE_RECOGNIZED) ///xxx 需要与machineinfo共同作用
-//        {
-//            sPowerManager.sBatteryInfo.BMS_icType = LEAD_ACID_BAT;      //如果前面没识别到BMS芯片，则该产品可能使用的是铅酸电池
-//            return;
-//        }
     }
     
-    if(sPowerManager.sBatteryInfo.BMS_icType == LEAD_ACID_BAT)
-    {
-        sPowerManager.sBatteryInfo.BatteryFloorLevelLimit = 20;     //铅酸电池预留20%电量
-        sPowerManager.sBatteryInfo.BatteryTopLevelLimit = 100;
-        sPowerManager.sBatteryInfo.BatteryFullChargeFloorLevel = 99;
-        sPowerManager.sBatteryInfo.BatteryFullChargeTopLevel = 100;  
-        sPowerManager.sAlarm.ChargeCurrentMax = 4000;
-        sPowerManager.sChargeInfo.ChargerConnectedCurrentThreshold = leadAcidConnCurrentThrd();
-        lead_acid_battery_info();
-    }
-    else
-    {
-        BatteryI2cReadSOC_Temp();
-        BatteryI2cReadInternalInfo();
-    }
+    BatteryI2cReadSOC_Temp();
+    BatteryI2cReadInternalInfo();
 //    BatteryI2cReadLifetimeDataBlock(&sPowerManager.sBatteryInfo.sLifetimeData);
 }
 
@@ -1849,16 +2045,13 @@ PRIVATE BOOL BatteryReadSN(UINT32 *pSN)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:            
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x1C, (UINT8 *)pSN, 2, 0);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x1C, (UINT8 *)pSN, 2, 1);
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-            break;
-		case DESAY_7S8P:
-         
-            break;
 
+            break;
             
         default:
             break;
@@ -1881,7 +2074,6 @@ PRIVATE BOOL BatteryReadSN(UINT32 *pSN)
 PRIVATE BOOL BatteryReadSoc(UINT8 *pSoc)
 {
     UINT8 ret = 0;
-    UINT16 soc_tmp =0;
     
     switch(sPowerManager.sBatteryInfo.BMS_icType)
     {
@@ -1897,19 +2089,14 @@ PRIVATE BOOL BatteryReadSoc(UINT8 *pSoc)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:            
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x0D, pSoc, 1, 0); 
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x0D, pSoc, 1, 1); 
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x0D, pSoc, 1, 0);
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x0D, pSoc, 1, 1);
             break;
-         
-        case DESAY_7S8P:
-			ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x0D, (UINT8 *)&soc_tmp, 2, 0);
-			*pSoc = soc_tmp/100;
-			break;
-    
+            
         default:
             break;
     }
@@ -1946,17 +2133,13 @@ PRIVATE BOOL BatteryReadTemp(INT16 *pTemp)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2, 0);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2, 1);
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-//            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2, 0);
-            break;  
-                 
-        case DESAY_7S8P:
-//			ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2,0);
-			break;
+//            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x08, (UINT8 *)pTemp, 2, 1);
+            break;            
             
         default:
             break;
@@ -1978,7 +2161,6 @@ PRIVATE BOOL BatteryReadTemp(INT16 *pTemp)
 PRIVATE BOOL BatteryReadFcc(UINT32 *pFcc)
 {
     UINT8 ret = 0;
-    UINT32 Fcc_Temp = 0;
     
     switch(sPowerManager.sBatteryInfo.BMS_icType)
     {
@@ -1994,7 +2176,7 @@ PRIVATE BOOL BatteryReadFcc(UINT32 *pFcc)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x10, (UINT8 *)pFcc, 2,0);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x10, (UINT8 *)pFcc, 2, 1);
             
             if (ret)
             {
@@ -2004,13 +2186,8 @@ PRIVATE BOOL BatteryReadFcc(UINT32 *pFcc)
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x10, (UINT8 *)pFcc, 2, 0);
-            break;      
-                 
-        case DESAY_7S8P:
-			ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x10, (UINT8 *)&Fcc_Temp, 2, 0);
-			*pFcc = Fcc_Temp<<3;
-			break;
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x10, (UINT8 *)pFcc, 2, 1);
+            break;            
               
         default:
             break;
@@ -2034,7 +2211,6 @@ PRIVATE BOOL BatteryReadFcc(UINT32 *pFcc)
 PRIVATE BOOL BatteryReadRc(UINT32 *pRc)
 {
     UINT8 ret = 0;
-    UINT32 Rcc_Temp = 0;
     
     switch(sPowerManager.sBatteryInfo.BMS_icType)
     {
@@ -2050,7 +2226,7 @@ PRIVATE BOOL BatteryReadRc(UINT32 *pRc)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x0F, (UINT8 *)pRc, 2, 0);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x0F, (UINT8 *)pRc, 2, 1);
             
             if (ret)
             {
@@ -2060,13 +2236,8 @@ PRIVATE BOOL BatteryReadRc(UINT32 *pRc)
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x0F, (UINT8 *)pRc, 2, 0);
-            break;  
-                 
-        case DESAY_7S8P:
-			ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0xf, (UINT8 *)&Rcc_Temp, 2, 0);
-			*pRc = Rcc_Temp<<3;
-            break;
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x0F, (UINT8 *)pRc, 2, 1);
+            break;            
             
         default:
             break;
@@ -2104,17 +2275,13 @@ PRIVATE BOOL BatteryReadBv(UINT32 *pBv)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 0); 
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 1); 
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 0);
-            break;     
-                 
-        case DESAY_7S8P:
-            ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 0);
-            break;
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x09, (UINT8 *)pBv, 2, 1);
+            break;            
             
         default:
             break;
@@ -2151,7 +2318,7 @@ PRIVATE BOOL BatteryReadSoh(UINT32 *pSoh)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x4F, (UINT8 *)pSoh, 1, 0);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x4F, (UINT8 *)pSoh, 1, 1);
             
             if (ret)
             {
@@ -2161,18 +2328,13 @@ PRIVATE BOOL BatteryReadSoh(UINT32 *pSoh)
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x7C, (UINT8 *)pSoh, 1, 0);
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x7C, (UINT8 *)pSoh, 1, 1);
             
             if (ret)
             {
                 *pSoh = *pSoh & 0xFF;
             }  
-            break; 
-                   
-        case DESAY_7S8P:
-            ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x70, (UINT8 *)pSoh, 2, 0);
-            break;  
-            
+            break;            
             
         default:
             break;
@@ -2210,17 +2372,13 @@ PRIVATE BOOL BatteryReadCc(UINT32 *pCc)
         case GSA7S139:
         case GSA7S140:
         case GSA7S141:
-            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x17, (UINT8 *)pCc, 2, 0);
+            ret = Battery_Serial_Read(GSA7S_IIC_ADDR, 0x17, (UINT8 *)pCc, 2, 1);
             break;
             
         case GF_7S6P:
         case GF_7S8P:
-            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x7B, (UINT8 *)pCc, 2, 0);            
-            break;   
-                 
-        case DESAY_7S8P:
-            ret = Battery_Serial_Read(DESAY_7S5P_7S8P_IIC_ADDR, 0x17, (UINT8 *)pCc, 2, 0);  
-			break;
+            ret = Battery_Serial_Read(GF_7S6P_7S8P_IIC_ADDR, 0x7B, (UINT8 *)pCc, 2, 1);            
+            break;             
             
         default:
             break;
@@ -2251,8 +2409,7 @@ PRIVATE BOOL BatteryReadCellVoltage(UINT16  CellV[7])
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-         
-        case DESAY_7S8P:    
+            
             return 0;
             break;
     
@@ -2318,8 +2475,7 @@ PRIVATE BOOL BatteryReadSafetyAlert(UINT32 *pSafetyAlert)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-                     
-        case DESAY_7S8P:    
+            
             return 0;
             break;
 
@@ -2362,8 +2518,7 @@ PRIVATE BOOL BatteryReadSafetyStatus(UINT32 *pSafetyStatus)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-                     
-        case DESAY_7S8P:    
+            
             return 0;
             break;
 
@@ -2406,8 +2561,7 @@ PRIVATE BOOL BatteryReadPFAlert(UINT32 *pPFAlert)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-                     
-        case DESAY_7S8P:    
+            
             return 0;
             break;
 
@@ -2450,8 +2604,7 @@ PRIVATE BOOL BatteryReadPFStatus(UINT32 *pPFStatus)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-                     
-        case DESAY_7S8P:    
+            
             return 0;
             break;
 
@@ -2494,8 +2647,7 @@ PRIVATE BOOL BatteryReadOperationStatus(UINT32 *pOperationStatus)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-                     
-        case DESAY_7S8P:    
+            
             return 0;
             break;
 
@@ -2538,8 +2690,7 @@ PRIVATE BOOL BatteryReadChargingStatus(UINT32 *pChargingStatus)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-                     
-        case DESAY_7S8P:    
+            
             return 0;
             break;
 
@@ -2588,8 +2739,7 @@ PRIVATE BOOL BatteryReadLifetimeData(struct BatteryLifeTimeDataBlock *pData)
         case TI_BQ34Z100:
         case GF_7S6P:
         case GF_7S8P:
-                     
-        case DESAY_7S8P:    
+            
             return 0;
             break;
 
@@ -2611,7 +2761,7 @@ PRIVATE BOOL BatteryReadLifetimeData(struct BatteryLifeTimeDataBlock *pData)
             if (ret_lifetimeDataBlock3)
             {
                 memcpy((UINT8 *)(&(pData->MaxDeltaCellVoltage)), Tmp+3, 13);
-                memcpy((UINT8 *)(&(pData->MaxTempFET)), Tmp+16, 1);
+                memcpy((UINT8 *)(&(pData->MaxTempFET)), Tmp+163, 1);
             }   
 
             ret_lifetimeDataBlock4 = ManufacturerBlockAccesRead(GSA7S_IIC_ADDR, 0x44, 0x63, Tmp, 4);
@@ -2718,7 +2868,7 @@ PUBLIC void SetVbusPower(UINT8 State)
  * RETURNS:
  *
 ***********************************************************************/
-#define ADC0_JDR0_GAIN  0.01859225f    // Dc Voltage coff MT_BUS
+#define ADC0_JDR0_GAIN  0.02306f    // Dc Voltage coff MT_BUS
 PRIVATE float GetVbusVoltage(void)
 {
     float temp = 0;
@@ -2748,17 +2898,20 @@ PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode)
 //        return;
 //    }
     
-    UINT8 BlockSoftStartTick = 0;
+    UINT16 BlockSoftStartTick = 0;
     UINT8 Vbus_Judge_Cnt = 0;
     REAL32 Vbus_tmp = 0.0f;
     REAL32 Vbus_tmp_last = 0.0f;
     REAL32 Vbus_delta_tmp = 0.0f;
+    UINT8  Vbus_time_tor = 0;
+    UINT8  Vbus_time_flag = 0;
     
     //Ensure 12V PowerOn completely
     DrvPwEnable();
     delay_ms(50);
     
     VbusBufferEnable();
+    delay_ms(30);
     sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 0;
     while(1)
     {
@@ -2770,23 +2923,34 @@ PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode)
         {
             Vbus_Judge_Cnt--;
         }
-        
-        if (Vbus_Judge_Cnt >= 10)
+        if(Vbus_Judge_Cnt >= 10) //10ms
+        {
+            VbusEnable();
+            Vbus_time_flag = 1;
+        }
+        if(Vbus_time_flag)
+        {
+            Vbus_time_tor++;
+        }
+        //if (Vbus_Judge_Cnt >= 25) //25ms
+        if(Vbus_time_tor>10)//10ms  ,不能用Vbus_Judge_Cnt，否则合主mos后Vbus_Judge_Cnt--，导致超时
         {
             VbusEnable();
             VbusBufferDisable();
             SetVbusPower(1);
             sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 1;
-            
-#if (DEBUG_VBUS_SOFT_START == 1)            
+            Vbus_time_tor = 0;
+            Vbus_time_flag = 0;
+
+#if (DEBUG_VBUS_SOFT_START == 1)
             memset(Vbus_Debug, 0, 200);
             memset(Vbus_climb_Slope_Debug, 0, 200);
 #endif
-            
-            break;        
+
+            break;
         }
-        
-        if (BlockSoftStartTick >= 200)
+
+        if (BlockSoftStartTick > 300)// 300ms
         {
             SetVbusPower(0);
             VbusBufferDisable();
@@ -2794,9 +2958,9 @@ PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode)
             break;
         }
         
-        AdcSample0Start();
-        AdcSample0ClearFlag();
-        
+        AdcSampleStart();
+        AdcSampleClearFlag();
+        delay_us(100);
         Vbus_tmp_last = Vbus_tmp;
         Vbus_tmp =   GetVbusVoltage(); 
         Vbus_delta_tmp = Vbus_tmp - Vbus_tmp_last;
@@ -2829,8 +2993,9 @@ PUBLIC void VbusSoftStartNoBlock(REAL32 VbusAdcValue)
     PRIVATE REAL32 AdcValueLast = 0.0f;
     PRIVATE UINT8  VbusJudgeCnt = 0;
     PRIVATE UINT8 _1ms_tickCnt = 0;
-    
-    if (Tick > 2000)
+    PRIVATE UINT8  Vbus_time = 0;
+    PRIVATE UINT8  Vbus_flag = 0;
+    if (Tick > 3000)//时间增加是小花生上电mos驱动改变，动作时间变长
     {
         VbusBufferDisable();
         sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 2;
@@ -2861,9 +3026,20 @@ PUBLIC void VbusSoftStartNoBlock(REAL32 VbusAdcValue)
             {
                 VbusJudgeCnt--;
             }
-            
             if (VbusJudgeCnt >= 10)
             {
+                VbusEnable();
+                Vbus_flag = 1;
+            }
+            if(Vbus_flag)
+            {
+                Vbus_time++;
+            }
+            //if (VbusJudgeCnt >= 25) 不能用VbusJudgeCnt,否则合主mos后VbusJudgeCnt可能减少导致超时
+            if(Vbus_time>10)//
+            {
+                Vbus_time = 0;
+                Vbus_flag = 0;
                 VbusEnable();
                 VbusBufferDisable();
                 SetVbusPower(1);
@@ -2877,6 +3053,8 @@ PUBLIC void VbusSoftStartNoBlock(REAL32 VbusAdcValue)
     else if (!Tick)
     {
         VbusBufferEnable();
+        Vbus_time = 0;
+        Vbus_flag = 0;
     }
 
     Tick++;
@@ -2887,7 +3065,9 @@ PUBLIC void VbusSoftStartNoBlock(REAL32 VbusAdcValue)
         Tick_Last = 0;
         AdcValueLast = 0.0f;
         VbusJudgeCnt = 0;
-        _1ms_tickCnt = 0;     
+        _1ms_tickCnt = 0;
+        Vbus_time = 0;
+        Vbus_flag = 0;
     }
     
 

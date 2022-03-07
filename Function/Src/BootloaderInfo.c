@@ -2,6 +2,7 @@
 #include "Eeprom.h"
 //#include "Log.h"
 #include "string.h"
+#include "delay.h"
 
 extern struct BootLoaderInfo bootloaderInfo;
 extern ST_VersionStruct SoftwareVersion;

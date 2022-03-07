@@ -3,7 +3,7 @@
 
 /*!
     \brief    HAL_GPIO_WritePin
-    \param[in]  gpio_periph: GPIO port 
+    \param[in]  gpio_periph: GPIO port
                 only one parameter can be selected which is shown as below:
       \arg        GPIOx(x = A,B,C,D,E,F,G,H,I)
     \param[in]  pin: GPIO pin
@@ -26,12 +26,12 @@ void HAL_GPIO_WritePin(uint32_t gpio_periph,uint32_t pin,GPIO_PinState PinState)
     {
         GPIO_BOP(gpio_periph) = (uint32_t)pin;
     }
-    
+
 }
 
 /*!
     \brief    HAL_GPIO_WritePin
-    \param[in]  gpio_periph: GPIO port 
+    \param[in]  gpio_periph: GPIO port
                 only one parameter can be selected which is shown as below:
       \arg        GPIOx(x = A,B,C,D,E,F,G,H,I)
     \param[in]  pin: GPIO pin
@@ -48,7 +48,7 @@ void HAL_GPIO_WritePin(uint32_t gpio_periph,uint32_t pin,GPIO_PinState PinState)
 
 /*!
     \brief    get GPIO pin input status
-    \param[in]  gpio_periph: GPIO port 
+    \param[in]  gpio_periph: GPIO port
                 only one parameter can be selected which is shown as below:
       \arg        GPIOx(x = A,B,C,D,E,F,G,H,I)
     \param[in]  pin: GPIO pin
@@ -59,17 +59,17 @@ void HAL_GPIO_WritePin(uint32_t gpio_periph,uint32_t pin,GPIO_PinState PinState)
 */
 GPIO_PinState HAL_GPIO_ReadPin(uint32_t gpio_periph,uint32_t pin)
 {
-  GPIO_PinState bitstatus;
+    GPIO_PinState bitstatus;
 
-  if((GPIO_ISTAT(gpio_periph)&(pin)) != (uint32_t)GPIO_PIN_RESET)
-  {
-    bitstatus = GPIO_PIN_SET;
-  }
-  else
-  {
-    bitstatus = GPIO_PIN_RESET;
-  }
-  return bitstatus;
+    if((GPIO_ISTAT(gpio_periph)&(pin)) != (uint32_t)GPIO_PIN_RESET)
+    {
+        bitstatus = GPIO_PIN_SET;
+    }
+    else
+    {
+        bitstatus = GPIO_PIN_RESET;
+    }
+    return bitstatus;
 }
 
 
@@ -81,8 +81,8 @@ GPIO_PinState HAL_GPIO_ReadPin(uint32_t gpio_periph,uint32_t pin)
   */
 void HAL_NVIC_SystemReset(void)
 {
-  /* System Reset */
-  NVIC_SystemReset();
+    /* System Reset */
+    NVIC_SystemReset();
 }
 
 

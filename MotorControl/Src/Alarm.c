@@ -24,7 +24,6 @@
 #include "LedDriver.h"
 #include "gd_hal.h"
 #include "math.h"
-
 extern struct CanAppStruct    sMyCan;
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 extern struct PowerManagerStruct sPowerManager;
@@ -42,6 +41,8 @@ extern PUBLIC UINT8 ApplicationMode;
 #define MOTOR_STALL_TIME     400   // 200ms
 #define MOTOR_STALL_SPEED    10.0f    // 10rpm
 #define HALL_ALARM_MAX_CNT   1
+#define TACT_SWITCH_PROTECT_RESPONSE_TIME 200 //100ms = 200 * 500us
+#define TACT_SWITCH_PROTECT_UNLOCK_TIME 4000 //2000ms = 4000 * 500us
 
 //#define I2T_TIME             500  // 100ms
 
@@ -133,6 +134,7 @@ PUBLIC void AlarmInit(struct AxisCtrlStruct *P)
 	pAlarm->IvTotle = 0;
 	pAlarm->IwTotle = 0;
 	pAlarm->phaselose_time = 0;
+    pAlarm->vdc_ov_step = 0;
 }
 
 /***********************************************************************
@@ -167,10 +169,13 @@ PUBLIC void AlarmInit(struct AxisCtrlStruct *P)
 ***********************************************************************/
 PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 {
+    extern PUBLIC void SetVbusPower(UINT8 State);
+
     struct AlarmStruct *pAlarm = &P->sAlarm;
 	REAL32 Imax,Imin;
-	UINT16 Safe_IO = 0;
-
+    UINT16  Safe_IO = 0;
+    UINT8   flag1 = 0;
+    UINT8   flag2 = 0;
     // Inner Alarm : sheduler error  
     if(GetIsrElapsedTime() > MAX_PWM_ISR_TIME)
     {
@@ -256,67 +261,70 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 	        pAlarm->HallErrCnt = HALL_ALARM_MAX_CNT;
 	    }
 	}
-
-    //todo Safe_IO = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14)|HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
-    if((Safe_IO == 0) && (pAlarm->ErrReg.bit.StutterStop))
+           Safe_IO = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10)|HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11);
+    if((Safe_IO == 0)&&(pAlarm->ErrReg.bit.StutterStop))
     {
-    	pAlarm->EmergencyStopRstCnt++;
-        
-        #define WAIT_SOFT_START_FINISH (3000)
-        #define SOFT_START_BEGIN (3)
+#define WAIT_SOFT_START_FINISH (3500)
+#define SOFT_START_BEGIN (3)
 
+        pAlarm->EmergencyStopRstCnt++;
         if (pAlarm->EmergencyStopRstCnt > WAIT_SOFT_START_FINISH)
         {
             pAlarm->ErrReg.bit.StutterStop = 0;
+            pAlarm->vdc_ov_step = 0;
             ClearScramStatus(P->AxisID);
         }
-        else if(pAlarm->EmergencyStopRstCnt > SOFT_START_BEGIN)
+        else if (pAlarm->EmergencyStopRstCnt > SOFT_START_BEGIN)
         {
             if ((!sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) && (!sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
             {
                 sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 1;
             }
         }
-	}
-	else if(Safe_IO == 1)// && (pAlarm->ErrReg.bit.StutterStop == 0))
-	{  
-		pAlarm->ErrReg.bit.StutterStop = 1;
-		pAlarm->EmergencyStopRstCnt = 0;
+    }
+    //else if((HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15) == 0) && ReadPadPowerState())
+    else if((Safe_IO == 1)||(pAlarm->vdc_ov_step == 1))
+    {
+        if(Safe_IO == 1)
+        {
+            pAlarm->ErrReg.bit.StutterStop = 1;
+        }
+        else
+        {
+            pAlarm->vdc_ov_step = 2;
+        }
+        pAlarm->EmergencyStopRstCnt = 0;
         sPowerManager.sBoardPowerInfo.VbusSoftStartFlag = 0;
         sPowerManager.sBoardPowerInfo.VbusSoftStartEn = 0;
         VbusDisable();
         SetVbusPower(0);
-	}
-    
-//    if (ApplicationMode)
-//    {
-        if (2 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
-        {
-            sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
-            sAxis[1].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
-        }
-        else if (1 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
-        {
-            sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 0;
-            sAxis[1].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 0;
-        }
-        else
-        {
-            if ((P->AxisID) && (sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
-            {
-                VbusSoftStartNoBlock(GetDcVoltageNoFilter());
-            }
-        }
-//    }
-//    modify by hyr 去掉相电流硬件保护
-//    if(GetHardOverCurState(P->AxisID))
-//    {
-//        pAlarm->ErrReg.bit.HardCurOver = 1;
-//    }
+    }
 
-	if(GetIbusOverCurState(P->AxisID))
+    if (2 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
     {
-        pAlarm->ErrReg.bit.BusCurOver = 1;
+        sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
+        sAxis[1].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 1;
+    }
+    else if (1 == sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
+    {
+        sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 0;
+        sAxis[1].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure = 0;
+    }
+    else
+    {
+        if ((P->AxisID) && (sPowerManager.sBoardPowerInfo.VbusSoftStartEn))
+        {
+            VbusSoftStartNoBlock(GetDcVoltageNoFilter());
+        }
+    }
+    //硬件过流
+    if(GetHardOverCurState(P->AxisID))
+    {
+        pAlarm->ErrReg.bit.HardCurOver = 1;
+    }
+		if(GetIbusOverCurState(P->AxisID))
+    {
+        //pAlarm->ErrReg.bit.BusCurOver = 1;
     }
 #if 0
 	if(((P->sCurLoop.Ia > pAlarm->PhaseCurrentLimit) || (P->sCurLoop.Ia < -pAlarm->PhaseCurrentLimit))
@@ -381,7 +389,8 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
         CiA402_LocalError(P->AxisID, pAlarm->ErrReg.all);		
 	}
     
-    if ((pAlarm->ErrReg.bit.BusCurOver) || (pAlarm->ErrReg.bit.SpdOver) || (pAlarm->ErrReg.bit.StutterStop))
+    if ((pAlarm->ErrReg.bit.HardCurOver) || (pAlarm->ErrReg.bit.SpdOver) || (pAlarm->ErrReg.bit.StutterStop) || (pAlarm->ErrReg.bit.TactSwitchSet)||
+            (sAxis[0].sAlarm.ErrReg.bit.BusCurOver))
     {
         P->PowerEn = 0;
     }
@@ -418,43 +427,54 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     // Vdc judgement
     if(P->sCurLoop.Vdc > pAlarm->VdcMax)
     {
-			  pAlarm->VdcOverCnt++;
+        pAlarm->VdcOverCnt = BEMF_DISCHATGE_TIME+1;
     }
     else if(P->sCurLoop.Vdc > pAlarm->VdcWarn && !pAlarm->ErrReg.bit.VdcOver)
     {
         pAlarm->VdcOverCnt++;
+        BEMF_DischargeOn();
+				 pAlarm->VdcDischargeFlag = 1;
     }
     else if(P->sCurLoop.Vdc > pAlarm->VdcMin)
-    {       
+    {
+       
         if(pAlarm->VdcUnderCnt)
         {
             pAlarm->VdcUnderCnt--;
         }
-				
-				if(P->sCurLoop.Vdc < pAlarm->VdcWarn -2)
-				{
-					if(pAlarm->VdcOverCnt)
-					{
-							pAlarm->VdcOverCnt--;
-					}
-				}
-        else
+        if(P->sCurLoop.Vdc < pAlarm->VdcWarn -2)
         {
-              pAlarm->VdcOverCnt++;
+            BEMF_DischargeOff();
+						pAlarm->VdcDischargeFlag = 0;
+            if(pAlarm->VdcOverCnt)
+            {
+                pAlarm->VdcOverCnt--;
+            }
         }
+				else
+				{
+					  if(pAlarm->VdcDischargeFlag == 1)
+						{
+								 pAlarm->VdcOverCnt++;
+						}
+				}
     }
     else
     {
         pAlarm->VdcOverCnt = 0;
-		    if(sPowerManager.sBoardPowerInfo.VbusSoftStartFlag) // 防止按急停松开上电中报欠压
+        if (sPowerManager.sBoardPowerInfo.VbusSoftStartFlag)
         {
             pAlarm->VdcUnderCnt++;
         }
+				BEMF_DischargeOff();
+				pAlarm->VdcDischargeFlag = 0;
     }
     
     // Vdc Over Alarm
     if(pAlarm->VdcOverCnt >= BEMF_DISCHATGE_TIME)
     {
+        BEMF_DischargeOff();
+			  pAlarm->VdcDischargeFlag = 0;
         pAlarm->ErrReg.bit.VdcOver = 1;
         pAlarm->VdcOverCnt = BEMF_DISCHATGE_TIME;
     }
@@ -468,6 +488,7 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 	//Pwmout Break Alarm
     if (P->sEncoder.HallEnable == 2)
     {
+
         pAlarm->PwmoutDisconnectCnt++;
        
         #define MAX_PWMOUT_DISCONNECT   (1000)
@@ -556,13 +577,11 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 		else
 		{
 			if(m_Cur >= 2000)
-            {
 				m_Data = invOvLdTb[MTR_OV_LD_TB_END_ID];
-            }
-            else if(m_Cur < 1100)
-            {
-                m_Data = 4000ul;
-            }
+						else if(m_Cur<1100)
+						{
+							 m_Data = invOvLdTb[0];
+						}
 			else//1100<= m_Cur <2000
 			{
 				for(i_index = 0;i_index < MTR_OV_LD_TB_END_ID;i_index++)
@@ -658,7 +677,7 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
 			  pAlarm->SpdFollwCnt = 0;
 		}
 		// can lost alarm
-    if(sMyCan.CanLostErr)
+   if(sMyCan.CanLostErr == 2)
     {
         sAxis[0].sAlarm.ErrReg.bit.CanLost = 1;
         sAxis[1].sAlarm.ErrReg.bit.CanLost = 1;
@@ -682,7 +701,7 @@ PUBLIC void ClearAlarm(struct AxisCtrlStruct *P)
 {
     struct AlarmStruct *pAlarm = &P->sAlarm;
     
-    pAlarm->ErrReg.all = pAlarm->ErrReg.all & 0xFF870001;
+    pAlarm->ErrReg.all = pAlarm->ErrReg.all & 0xFF870003;
     pAlarm->I2T_accumulator = 0.0f;
     pAlarm->SpdOverCnt = 0;
     pAlarm->StallCnt = 0;

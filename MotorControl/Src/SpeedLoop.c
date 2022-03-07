@@ -176,30 +176,80 @@ PRIVATE void PolynomialCoeffCalculation(struct CurveParaStruct *P)
 ***********************************************************************/
 PRIVATE void SpeedRefSelect(struct AxisCtrlStruct *P)
 {
-	REAL32 Acc = 0.0f;
-    REAL32 tmp = 0.0f;
+	//REAL32 Acc = 0.0f;
+  REAL32 tmp = 0.0f;
 	REAL32 tmp1 = 0.0f;
-    
-    struct SpeedLoopStruct *pSpd = &P->sSpdLoop;
+  REAL32 AccStep = 0.0f;
+	REAL32 DecStep = 0.0f;  
+  struct SpeedLoopStruct *pSpd = &P->sSpdLoop;
 	struct CurveParaStruct *pCurve = &P->CurvePara;
 
 	switch(P->CtrlMode)
 	{
 		case SPD_CTRL :
 			{
-				Acc = pSpd->SpdRef - pSpd->SpdRefOld;
+				#if 0
+        Acc = pSpd->SpdRef - pSpd->SpdRefOld;
 
-				if(Acc > (pSpd->AccMax/SpeedPeriod)) 
-	            {
-	                pSpd->SpdRefNoFilter = pSpd->SpdRefOld + (pSpd->AccMax/SpeedPeriod);
-	            }
-				else if(Acc < - (pSpd->DecMax/SpeedPeriod)) 
-	            {
-	                pSpd->SpdRefNoFilter = pSpd->SpdRefOld - (pSpd->DecMax/SpeedPeriod);
-	            }
+        if(Acc > (pSpd->AccMax/SpeedPeriod))
+        {
+            pSpd->SpdRefNoFilter = pSpd->SpdRefOld + (pSpd->AccMax/SpeedPeriod);
+        }
+        else if(Acc < - (pSpd->DecMax/SpeedPeriod))
+        {
+            pSpd->SpdRefNoFilter = pSpd->SpdRefOld - (pSpd->DecMax/SpeedPeriod);
+        }
+        else //֢oʙژݼһߤì̙׈ࠉŜϞרսկٸ̙֨׈
+        {
+            pSpd->SpdRefNoFilter = pSpd->SpdRef;
+        }
+				#endif 
+				//new  solution ACC!=DEC  dancing and Solicit customers  machine go forward or go back 
+				AccStep = pSpd->AccMax/SpeedPeriod;
+				DecStep = pSpd->DecMax/SpeedPeriod;
+				if(pSpd->SpdRef > pSpd->SpdRefOld)
+				{
+						if(pSpd->SpdRefOld > 0)
+						{
+								pSpd->SpdRefNoFilter = pSpd->SpdRefOld + AccStep;
+								if(pSpd->SpdRefNoFilter > pSpd->SpdRef)
+								{
+										pSpd->SpdRefNoFilter = pSpd->SpdRef;
+								}
+						}
+						else
+						{
+									pSpd->SpdRefNoFilter = pSpd->SpdRefOld + DecStep;
+									if(pSpd->SpdRefNoFilter > pSpd->SpdRef)
+									{
+											pSpd->SpdRefNoFilter = pSpd->SpdRef;
+									}
+						}
+						
+				}
+				else if(pSpd->SpdRef < pSpd->SpdRefOld)
+				{
+							if(pSpd->SpdRefOld < 0)
+						{
+								pSpd->SpdRefNoFilter = pSpd->SpdRefOld - AccStep;
+								if(pSpd->SpdRefNoFilter < pSpd->SpdRef)
+								{
+										pSpd->SpdRefNoFilter = pSpd->SpdRef;
+								}
+						}
+						else
+						{
+									pSpd->SpdRefNoFilter = pSpd->SpdRefOld - DecStep;
+									if(pSpd->SpdRefNoFilter < pSpd->SpdRef)
+									{
+											pSpd->SpdRefNoFilter = pSpd->SpdRef;
+									}
+						}
+				}
 				else
 				{
-					pSpd->SpdRefNoFilter = pSpd->SpdRef;
+						pSpd->SpdRefNoFilter = pSpd->SpdRef;
+					
 				}
 
 				tmp = (pSpd->SpdRefNoFilter - pSpd->SpdRefOld )*pSpd->TorFFGain;
@@ -210,7 +260,7 @@ PRIVATE void SpeedRefSelect(struct AxisCtrlStruct *P)
 	            //Speed reference filter
 	            if(P->sFilterCfg.bit.SpdRefFilter)
 	                pSpd->SpdRefActul = FilterIIR1LPFExec(&pSpd->sSpdRefFilter, pSpd->SpdRefNoFilter );
-				if( fabs(pSpd->SpdRefActul- pSpd->SpdRefNoFilter)<1.0)
+				if( fabs(pSpd->SpdRefActul- pSpd->SpdRefNoFilter)<0.000001f)
 				{
 					pSpd->SpdRefActul = pSpd->SpdRefNoFilter;
 				}	

@@ -57,12 +57,11 @@
 
 /* USER CODE END Private defines */
 
- //modify by hyr ?????u??
-#define MUSIC_ENABLE_PORT   GPIOC
-#define MUSIC_ENABLE_PIN    GPIO_PIN_15
-//modify by hyr ?????u??
-#define MUSIC_MUTE_PORT     GPIOC
-#define MUSIC_MUTE_PIN      GPIO_PIN_14
+
+#define MUSIC_ENABLE_PORT   GPIOB
+#define MUSIC_ENABLE_PIN    GPIO_PIN_14
+#define MUSIC_MUTE_PORT     GPIOB
+#define MUSIC_MUTE_PIN      GPIO_PIN_15
 
 
 UINT8 MX_GPIO_Init(void);
@@ -103,9 +102,12 @@ uint8_t ReadChargeInPinState(void);
 void PadPowerOn(void);
 void PadPowerOff(void);
 uint8_t ReadPadPowerState(void);
+uint8_t ReadRk3399HeartState(void);
+uint8_t ReadBatteryCoverState(void);
 
 UINT16 VeneerAgingTestState(void);
-
+PUBLIC void PadPowerOnInit(UINT8 PowerEn);
+PUBLIC UINT8 ReadSelectMode(void);
 void DisinfectionModulePowerOn(void);
 void DisinfectionModulePowerOff(void);
 
@@ -113,16 +115,10 @@ PUBLIC UINT8 ReadApplicationMode(void);
 
 void MusicPwEnable(void);
 void MusicPwDisable(void);
-void DiagnosticEnable(void);
-void DiagnosticEnable(void);
+
 void MuteEnable(void);
 void MuteDisable(void);
-void ExtVEnable(void);
-void ExtVDisable(void);
-void EXOLidarPowerOff(void);
-void EXOLidarPowerOn(void);
-void LOGOEnable(void);
-void LOGODisable(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -42,50 +42,48 @@ PUBLIC void IST8310I2C_Init(void)
 {
 		UINT8 dataread = 0;
 		UINT8 i = 0;
-
+	
    	sGpioIIC.SDA_WritePin = IST8310_SDA_WritePin;
     sGpioIIC.SCL_WritePin = IST8310_SCL_WritePin;
     sGpioIIC.SDA_ReadPinState = IST8310_SDA_ReadPin;
     sGpioIIC.SCL_SetPinDir = IST8310_SCL_SetPinDir;
     sGpioIIC.SDA_SetPinDir = IST8310_SDA_SetPinDir;
 	
-	  IST8310_Cfg = 0;	  	 
-		IST8310I2C_WADDR = 0x18;
-	ExtVEnable();//modify by hyr ??бзбу?a3.3V
-		while(dataread != 0x10)
-		{
-			 IST8310I2C_Serial_Read(0x0,&dataread,1);
-			 i++;
-			 if(dataread == 0x10)
-			 {
-					IST8310_Cfg |= 0x1;
-					break;
-			 }
-			 
-			 if(i>=3)
-			 {
-					break;
-			 }
-		}
-	
-		IST8310I2C_WADDR = 0x1C;
-		i = 0;
-		dataread = 0;
-		while(dataread != 0x10)
-		{
-				IST8310I2C_Serial_Read(0x0,&dataread,1);
-				i++;
-				if(dataread == 0x10)
-				{
-						IST8310_Cfg |= 0x2;
-						break;
-				}
-				if(i>=3)
-				{
-						break;
-				}
-		}
-    ExtVDisable();//modify by hyr 1??ид?3.3V
+		 IST8310_Cfg = 0;
+	  	 
+		 IST8310I2C_WADDR = 0x18;
+		 while(dataread != 0x10)
+			{
+					IST8310I2C_Serial_Read(0x0,&dataread,1);
+					i++;
+					if(dataread == 0x10)
+					{
+							IST8310_Cfg |= 0x1;
+							break;
+					}
+					if(i>=3)
+					{
+								break;
+					}
+			}
+		 
+		 IST8310I2C_WADDR = 0x1C;
+		 i = 0;
+		 dataread = 0;
+			while(dataread != 0x10)
+			{
+					IST8310I2C_Serial_Read(0x0,&dataread,1);
+					i++;
+					if(dataread == 0x10)
+					{
+							IST8310_Cfg |= 0x2;
+							break;
+					}
+					if(i>=3)
+					{
+								break;
+					}
+			}
 }
 
 
@@ -207,60 +205,53 @@ PUBLIC void IST8310I2C_Serial_Read(UINT16 Readaddr,UINT8 *Str,UINT16 Len)
     }
 }
 
-//SDA
+// Eeprom module: SDA
 void IST8310_SDA_WritePin(uint8_t PinState)
 {
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, PinState);
+     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, PinState?GPIO_PIN_SET:GPIO_PIN_RESET);
 }
 
-//SCL
+// Eeprom module: SCL
 void IST8310_SCL_WritePin(uint8_t PinState)
 {
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, PinState);
+	   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, PinState?GPIO_PIN_SET:GPIO_PIN_RESET);
 }
 
-//SDA Read
+// Eeprom module: SDA Read
 uint8_t IST8310_SDA_ReadPin(void)
 {
-    return HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2);
+    return HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11);
 }
 
 void IST8310_SDA_SetPinDir( uint8_t IsOut )
 {
-//    GPIO_InitTypeDef GPIO_Config;
-//    
-//    /*Configure GPIO pins : PB9 PB8:SDA SCL */
-//    GPIO_Config.Pin = GPIO_PIN_2;
-//    if( IsOut )
-//    {
-//        GPIO_Config.Mode = GPIO_MODE_OUTPUT_OD;
-//    }
-//    else
-//    {
-//        GPIO_Config.Mode = GPIO_MODE_INPUT;
-//    }
-//    GPIO_Config.Pull = GPIO_NOPULL;
-//    GPIO_Config.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//    HAL_GPIO_Init( GPIOE, &GPIO_Config ); 
+    /*Configure GPIO pins : PB9 PB8: EEPROM SDA SCL */
+    if( IsOut )
+    {
+         gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
+				 gpio_output_options_set(GPIOD,GPIO_OTYPE_OD,GPIO_OSPEED_50MHZ,GPIO_PIN_11);
+			 
+    }
+    else
+    {
+				 gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
+    }
 }
 
 void IST8310_SCL_SetPinDir( uint8_t IsOut )
 {
-//    GPIO_InitTypeDef GPIO_Config;
-//    
-//    /*Configure GPIO pins : PB8:SDA SCL */
-//    GPIO_Config.Pin = GPIO_PIN_6;
-//    if( IsOut )
-//    {
-//        GPIO_Config.Mode = GPIO_MODE_OUTPUT_OD;
-//    }
-//    else
-//    {
-//        GPIO_Config.Mode = GPIO_MODE_INPUT;
-//    }
-//    GPIO_Config.Pull = GPIO_NOPULL;
-//    GPIO_Config.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//    HAL_GPIO_Init( GPIOE, &GPIO_Config); 
+    /*Configure GPIO pins : PB9 PB8: EEPROM SDA SCL */
+    if( IsOut )
+    {
+				 
+         gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
+			   gpio_output_options_set(GPIOD,GPIO_OTYPE_OD,GPIO_OSPEED_50MHZ,GPIO_PIN_11);
+			 
+    }
+    else
+    {
+				 gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_9);
+    }
 }
 /***********************************************************************
  * DESCRIPTION:

@@ -117,8 +117,10 @@ PUBLIC void TemperatureExec(void)
    
 
     GetMosAdc(&LeftMosAdc, &RightMosAdc);
-    gParam[0].MosTemp0x230B = ReadMosTemperature(LeftMosAdc);
-    gParam[1].MosTemp0x230B = ReadMosTemperature(RightMosAdc);
+    //gParam[0].MosTemp0x230B = ReadMosTemperature(LeftMosAdc);
+    //gParam[1].MosTemp0x230B = ReadMosTemperature(RightMosAdc);
+    gParam[0].MosTemp0x230B = 25;
+    gParam[1].MosTemp0x230B = 25;
     
 //    GetMotorAdc(&leftMotorAdc, &rightMotorAdc);
 //    gParam[0].MotorTemp0x230C = ReadMotorTemperature(leftMotorAdc);
@@ -140,6 +142,12 @@ PRIVATE INT16 ReadMosTemperature(UINT16 AdcValue)
     INT16  MidVal = 0;
     INT16  Temperature = 0;
 
+    if (AdcValue < MosTempAdcTable[TempMax])
+    {
+        TempMin = TempMax;
+    }
+    else
+    {
     while(AdcValue >= MosTempAdcTable[TempMax] )
     {
             MidVal = (TempMax + TempMin) / 2;
@@ -158,6 +166,7 @@ PRIVATE INT16 ReadMosTemperature(UINT16 AdcValue)
             {
                     TempMin = MidVal;
             }
+        }
     }
 
     Temperature = (TempMin-4)*5;
@@ -177,6 +186,12 @@ PRIVATE INT16 ReadMotorTemperature(UINT16 AdcValue)
     INT16  MidVal = 0;
     INT16  Temperature = 0;
 
+    if (AdcValue < MotorTempAdcTable[TempMax])
+    {
+        TempMin = TempMax;
+    }
+    else
+    {
     while(AdcValue >= MotorTempAdcTable[TempMax] )
     {
             MidVal = (TempMax + TempMin) / 2;
@@ -195,6 +210,7 @@ PRIVATE INT16 ReadMotorTemperature(UINT16 AdcValue)
             {
             	TempMin = MidVal;
             }
+        }
     }
 
     Temperature = (TempMin-4)*5;
