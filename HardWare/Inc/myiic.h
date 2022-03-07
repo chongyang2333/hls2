@@ -10,6 +10,8 @@
 #include "gd32f4xx.h"
 
 typedef struct{
+        void        (*SDA_SetPinDir )( uint8_t Dir );
+        void        (*SCL_SetPinDir )( uint8_t Dir );
 		void        (*SDA_WritePin)(uint8_t PinState);
         void        (*SCL_WritePin)(uint8_t PinState);
         uint8_t     (*SDA_ReadPinState)(void);

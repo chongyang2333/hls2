@@ -244,13 +244,13 @@ void CiA402_LocalError(UINT16 NodeID, UINT16 ErrorCode)
 {   
     UINT16 PartnerID = NodeID?0:1;
     //if(ErrorCode & 0x3FFF)
-	if((ErrorCode & 0xBFFF) && (sAxis[NodeID].sAlarm.ErrReg.bit.StutterStop == 0))
+    if((ErrorCode & 0xBFFF) && (sAxis[NodeID].sAlarm.ErrReg.bit.StutterStop == 0) && (sAxis[NodeID].sAlarm.ErrReg.bit.TactSwitchSet == 0))
     {
         sAxis[PartnerID].sAlarm.ErrReg.bit.PartnerErr = 1; 
     }
     
     if( (LocalAxes[NodeID].i16State == STATE_FAULT_REACTION_ACTIVE)
-        || (LocalAxes[NodeID].i16State == STATE_FAULT) || gParam[NodeID].ErrorCode0x603F)
+            || (LocalAxes[NodeID].i16State == STATE_FAULT) || gParam[NodeID].ErrorCode0x603F == ErrorCode)
     {
     	return;
     }

@@ -31,9 +31,6 @@
 #include "LedDriver.h"
 #include "gpio.h"
 #include "MachineAdditionalInfo.h"
-#include "CurrentSample.h"
-#include "LeadAcidBMS.h"
-
 #include "ISTMagic.h"
 #include "math.h"
 
@@ -59,25 +56,23 @@ extern PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P);
 extern PUBLIC void ClearCanBreakAlarm(void);
 
 extern PUBLIC void InnerCtrlExec(struct AxisCtrlStruct *P);
-extern PUBLIC void GetPhaseCurrentRe(struct AxisCtrlStruct *X);
 
 extern PUBLIC void VeneerAgingTest(void);
-extern PUBLIC void GetPhaseCurrentReal(struct AxisCtrlStruct *P);
+
+PRIVATE void SpeedSetAvoidFalling(void);
 
 struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 struct SchedulerStruct sScheduler;
-
-extern UINT8 alarm_level ;
-extern UINT8 alarm_levelBak; 
-UINT16 alarm_cnt = 0;
-
+UINT16  ErrCode_Send_Flag = 0;
 PRIVATE void CanFdbMcInfoExec(void);
 PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime);
 PRIVATE void MotionParamUpdateExec(void);
 PRIVATE void ParamFdbUpdate(void);
-PRIVATE void SpeedSetAvoidFalling(void);
 
-
+UINT16  New_Err_Flag = 0;
+extern UINT8 alarm_level ;
+extern UINT8 alarm_levelBak; 
+UINT16 alarm_cnt = 0;
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -106,16 +101,12 @@ PUBLIC void ControlRunInit(void)
         sAxis[i].sFilterCfg.all = gParam[i].FilterConfig0x2105;
     }    
 }
-
-
-
 PRIVATE void SpeedSetAvoidFalling(void)
 {
 	if(alarm_levelBak == 0)
 	{
 		alarm_levelBak = alarm_level;
 	}
-	
 	if(alarm_levelBak == 0)
 	{
 		alarm_cnt = 0;
@@ -180,8 +171,6 @@ PRIVATE void SpeedSetAvoidFalling(void)
 	}
 }
 
-
-
 /***********************************************************************
  * DESCRIPTION: main ISR 10khz
  *
@@ -193,17 +182,11 @@ PUBLIC void ControlRunExec(void)
 	/* Read time stamp at the entrance of interrupt:
             for calculate the elapsed time of interrupt*/
 	UINT32 IsrStartTime = ReadTimeStampTimer();
-	static UINT16 Cnt_1ms = 0;
-	GetPhaseCurrentReal(&sAxis[0]);
-	GetPhaseCurrentReal(&sAxis[1]);
-//  	GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
-//    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
-
+    
+    static UINT16 Cnt_1ms = 0;
+    
 	/* Start phase current,DC current,DC voltage sample */
-	  AdcSample0Start();
-	  //AdcSampleStart();
-//    GetPhaseCurrentRe(&sAxis[0]);
-//    GetPhaseCurrentRe(&sAxis[1]);
+	AdcSampleStart();
     
 	/* Get encoder counter*/
 	GetEncoderPulse(&sAxis[0].sEncoder, AXIS_LEFT);
@@ -226,10 +209,10 @@ PUBLIC void ControlRunExec(void)
 	/* Execute every 5 cycles */
 	UINT16 Tick = sScheduler.SchNum%5;
 //*
-	if(sScheduler.SchNum%2)
-	{
-		SpeedSetAvoidFalling();
-		SpeedLoopExec(&sAxis[0]);
+    if(sScheduler.SchNum%2)
+    {
+        SpeedSetAvoidFalling();
+        SpeedLoopExec(&sAxis[0]);
         SpeedLoopExec(&sAxis[1]);
 	}
 	else
@@ -267,29 +250,28 @@ PUBLIC void ControlRunExec(void)
             if(Cnt_1ms++>=2)
             {
                 Cnt_1ms = 0;
+                //timerForCan1MS();
             }
 		break;
 	}
 
     /* wait for ADC to complete, then acknowledge flag	*/ 
-    //AdcSampleClearFlag();
+    AdcSampleClearFlag();
 
-	  /* Calculate phase current */
-//	  GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib);
-//    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
-    AdcSample0ClearFlag();
+	/* Calculate phase current */
+	GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib );
+    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
+    
     GetDcVoltage(&sAxis[0].sCurLoop.Vdc);
     sAxis[1].sCurLoop.Vdc = sAxis[0].sCurLoop.Vdc;
     
 	/* Current loop calculation */
-	  CurrentLoopExec(&sAxis[0]);
+	CurrentLoopExec(&sAxis[0]);
     CurrentLoopExec(&sAxis[1]);
     
-	sAxis[0].sCurLoop.TdNumber = 9960;
-	sAxis[1].sCurLoop.TdNumber = 9960;
 	/* Update PWM compare value */
-    PwmUpdate(AXIS_LEFT, sAxis[0].PowerFlag, sAxis[0].sCurLoop.TaNumber, sAxis[0].sCurLoop.TbNumber, sAxis[0].sCurLoop.TcNumber,sAxis[0].sCurLoop.TdNumber);
-    PwmUpdate(AXIS_RIGHT, sAxis[1].PowerFlag, sAxis[1].sCurLoop.TaNumber, sAxis[1].sCurLoop.TbNumber, sAxis[1].sCurLoop.TcNumber, sAxis[1].sCurLoop.TdNumber);
+    PwmUpdate(AXIS_LEFT, sAxis[0].PowerFlag, sAxis[0].sCurLoop.TaNumber, sAxis[0].sCurLoop.TbNumber, sAxis[0].sCurLoop.TcNumber);
+    PwmUpdate(AXIS_RIGHT, sAxis[1].PowerFlag, sAxis[1].sCurLoop.TaNumber, sAxis[1].sCurLoop.TbNumber, sAxis[1].sCurLoop.TcNumber);    
 	
     /* PWM on/off judgment */
     PowerOnOffExec(&sAxis[0], sScheduler.TickCnt);
@@ -298,12 +280,10 @@ PUBLIC void ControlRunExec(void)
     DataCollectingLoop(sScheduler.TickCnt);
     
 	/* Data collect module  */
-    LeadAcidBatteryDischargeListen();
-    LeadAcidBatteryChargeListen();
 //	data_collect_loop();
 
     sScheduler.SchNum++;
-	  sScheduler.SchNum = sScheduler.SchNum%MAX_SCH_NUM;
+	sScheduler.SchNum = sScheduler.SchNum%MAX_SCH_NUM;
     
     if(sScheduler.SchNum == 0)  // 1s
     {
@@ -312,14 +292,21 @@ PUBLIC void ControlRunExec(void)
     }
 
 	/* Main interrupt tick: add 1 at each cycle */
-	 sScheduler.TickCnt++;
+	sScheduler.TickCnt++;
     
 	/* Calculate the elapsed time of interrupt */
     sScheduler.IsrElapsedTime = ReadTimeStampTimer() - IsrStartTime;
+    if((sAxis[0].sAlarm.ErrReg.all != 0)||(sAxis[1].sAlarm.ErrReg.all!= 0))//±¨¹ÊÕÏÁ¢¼´ÉÏ±¨Âß¼­£¬²»ÊÇ100ms²éÑ¯ÉÏ±¨£¬Ëõ¶ÌÉÏÎ»»úÏìÓ¦Ê±¼ä
+    {
+        if((sAxis[0].sAlarm.ErrReg.all != sAxis[0].sAlarm.ErrRegBak.all)||(sAxis[1].sAlarm.ErrReg.all != sAxis[1].sAlarm.ErrRegBak.all))
+        {
+            ErrCode_Send_Flag = 1;
+        }
+    }
+    sAxis[0].sAlarm.ErrRegBak.all = sAxis[0].sAlarm.ErrReg.all;
+    sAxis[1].sAlarm.ErrRegBak.all = sAxis[1].sAlarm.ErrReg.all;
 
 }
-
-void led_bar_driver( void );
 
 /***********************************************************************
  * DESCRIPTION:general timer interrupt . 40HZ
@@ -327,7 +314,6 @@ void led_bar_driver( void );
  * RETURNS:
  *
 ***********************************************************************/
-UINT16 KeyStateCnt=0;
 PUBLIC void TimerIsrExec(void)
 {   
     UINT32 StartTime = ReadTimeStampTimer();
@@ -340,8 +326,8 @@ PUBLIC void TimerIsrExec(void)
     //Gyro task 
     GyroExec();
     
-//    LedDriverExec();
-//    led_bar_driver();
+    LedDriverExec();
+    led_bar_driver();
     // StateMachine
     CiA402_StateMachine();
     
@@ -358,17 +344,15 @@ PUBLIC void TimerIsrExec(void)
     CanAppExec();
     
     // PowerManager task    
-    PowerManagerExec();
+    //PowerManagerExec();
 	
 //	VeneerAgingTest();
     
     ClearCanBreakAlarm();
-    
-	MagXYZ_Exec();
-		
+    MagXYZ_Exec();
     sScheduler.Tim7IsrTime = ReadTimeStampTimer() - StartTime;
     
-    if(sScheduler.Tim7IsrTime > 2 * MAX_TIMER_ISR_TIME) // 15ms
+    if(sScheduler.Tim7IsrTime > MAX_TIMER_ISR_TIME) // 15ms
     {
         sAxis[0].sAlarm.ErrReg.bit.InnerErr = 1;
         sAxis[1].sAlarm.ErrReg.bit.InnerErr = 1;
@@ -387,97 +371,120 @@ PUBLIC void VeneerAgingTest(void)
 	static UINT16 Cnt_25ms = 0;
 	static UINT16 testFlg = 0;
 	static UINT16 testStateBak = 0;
+    static UINT16 first_cnt = 0;
 
+    if((gParam[0].RestoreDefaults0x2400 == 1)||(gParam[0].SaveParameter0x2401 == 1))
+    {
+        return;
+    }
+    if(first_cnt<80)
+    {
+        first_cnt++;
+        return;
+    }
 	if(VeneerAgingTestState() == 2 && testStateBak == 2 && testFlg != 2)
 	{
 		testFlg = 1;
-		if(gMachineInfo.motorVersion == 7)
-		{
-			gParam[1].ProfileAcc0x6083 = gParam[1].ProfileDec0x6084 = 150000;
-			gParam[0].ProfileAcc0x6083 = gParam[0].ProfileDec0x6084 = 150000;
-			gParam[0].ControlWord0x6040 = 0xF;
-			gParam[1].ControlWord0x6040 = 0xF;
-			Cnt_25ms ++;
-			if(Cnt_25ms <= 60)
-			{
-				gParam[0].TargetVelocity0x60FF = 54612;
-				//gParam[1].TargetVelocity0x60FF = 13653;
-			}
-			else if(Cnt_25ms <= 120)
-			{
-				//gParam[0].TargetVelocity0x60FF = 13653;
-				gParam[1].TargetVelocity0x60FF = 54612;
-			}
-			else if(Cnt_25ms <= 180)
-			{
-				gParam[0].TargetVelocity0x60FF = -54612;
-				//gParam[1].TargetVelocity0x60FF = 13653;
-			}
-			else if(Cnt_25ms <= 240)
-			{
-				//gParam[0].TargetVelocity0x60FF = -13653;
-				gParam[1].TargetVelocity0x60FF = -54612;
-				if(Cnt_25ms == 240)
-				{
-					Cnt_25ms = 0;
-				}
-			}	
-		}
-		else
-		{
-			gParam[1].ProfileAcc0x6083 = gParam[1].ProfileDec0x6084 = 40000;
-			gParam[0].ProfileAcc0x6083 = gParam[0].ProfileDec0x6084 = 40000;
-			gParam[0].ControlWord0x6040 = 0xF;
-			gParam[1].ControlWord0x6040 = 0xF;
-			Cnt_25ms ++;
-			if(Cnt_25ms <= 60)
-			{
-				gParam[0].TargetVelocity0x60FF = 13653;
-				//gParam[1].TargetVelocity0x60FF = 13653;
-			}
-			else if(Cnt_25ms <= 120)
-			{
-				//gParam[0].TargetVelocity0x60FF = 13653;
-				gParam[1].TargetVelocity0x60FF = 13653;
-			}
-			else if(Cnt_25ms <= 180)
-			{
-				gParam[0].TargetVelocity0x60FF = -13653;
-				//gParam[1].TargetVelocity0x60FF = 13653;
-			}
-			else if(Cnt_25ms <= 240)
-			{
-				//gParam[0].TargetVelocity0x60FF = -13653;
-				gParam[1].TargetVelocity0x60FF = -13653;
-				if(Cnt_25ms == 240)
-				{
-					Cnt_25ms = 0;
-				}
-			}	
-		}
-	}
-	else if((testFlg != 0) )//&& (VeneerAgingTestState() == 0))
-	{
-		if(testFlg ==1)
-		{
-				Cnt_25ms = 0;
-		}
-		Cnt_25ms++;
-		testFlg = 2;
-		if(Cnt_25ms > 40)
-		{
-			gParam[0].ControlWord0x6040 = 0x6;
-			gParam[1].ControlWord0x6040 = 0x6;
-			if(Cnt_25ms>50)//2??¨®¨º¡À¡ê?¨®?¨¤¡äD????¡¥?¨¹¨¢??¨¢¨¤??¨¬¨°?¨¦¨´¡ê?¨°a¡ã?¨ª¡ê?1¦Ì?¡¤a¨¨y?¨¤????100ms?¨®¨º¡À¦Ì?
-			{
-				testFlg = 0;
-				Cnt_25ms = 0;
-			}
-		}		
-		gParam[0].TargetVelocity0x60FF = 0;
-		gParam[1].TargetVelocity0x60FF = 0;
-	}
-	testStateBak = VeneerAgingTestState();
+        if((gMachineInfo.motorVersion == 7)||(gMachineInfo.motorVersion == 2))
+            //if(gMachineInfo.motorVersion == 7)
+        {
+            gParam[1].ProfileAcc0x6083 = gParam[1].ProfileDec0x6084 = 150000;
+            gParam[0].ProfileAcc0x6083 = gParam[0].ProfileDec0x6084 = 150000;
+            gParam[0].ControlWord0x6040 = 0xF;
+            gParam[1].ControlWord0x6040 = 0xF;
+            Cnt_25ms ++;
+            if(Cnt_25ms <= 60)
+            {
+                gParam[0].TargetVelocity0x60FF = 54612;
+                //gParam[1].TargetVelocity0x60FF = 13653;
+            }
+            else if(Cnt_25ms <= 120)
+            {
+                //gParam[0].TargetVelocity0x60FF = 13653;
+                gParam[1].TargetVelocity0x60FF = 54612;
+            }
+            else if(Cnt_25ms <= 180)
+            {
+                gParam[0].TargetVelocity0x60FF = -54612;
+                //gParam[1].TargetVelocity0x60FF = 13653;
+            }
+            else if(Cnt_25ms <= 240)
+            {
+                //gParam[0].TargetVelocity0x60FF = -13653;
+                gParam[1].TargetVelocity0x60FF = -54612;
+                if(Cnt_25ms == 240)
+                {
+                    Cnt_25ms = 0;
+                }
+            }
+        }
+        else
+        {
+            gParam[1].ProfileAcc0x6083 = gParam[1].ProfileDec0x6084 = 40000;
+            gParam[0].ProfileAcc0x6083 = gParam[0].ProfileDec0x6084 = 40000;
+            gParam[0].ControlWord0x6040 = 0xF;
+            gParam[1].ControlWord0x6040 = 0xF;
+            Cnt_25ms ++;
+            if(Cnt_25ms <= 60)
+            {
+                gParam[0].TargetVelocity0x60FF = 13653;
+                //gParam[1].TargetVelocity0x60FF = 13653;
+            }
+            else if(Cnt_25ms <= 120)
+            {
+                //gParam[0].TargetVelocity0x60FF = 13653;
+                gParam[1].TargetVelocity0x60FF = 13653;
+            }
+            else if(Cnt_25ms <= 180)
+            {
+                gParam[0].TargetVelocity0x60FF = -13653;
+                //gParam[1].TargetVelocity0x60FF = 13653;
+            }
+            else if(Cnt_25ms <= 240)
+            {
+                //gParam[0].TargetVelocity0x60FF = -13653;
+                gParam[1].TargetVelocity0x60FF = -13653;
+                if(Cnt_25ms == 240)
+                {
+                    Cnt_25ms = 0;
+                }
+            }
+        }
+    }
+    else if((testFlg != 0) )//&& (VeneerAgingTestState() == 0))
+    {
+        if(testFlg ==1)
+        {
+            Cnt_25ms = 0;
+        }
+        Cnt_25ms++;
+        testFlg = 2;
+#if 0 //µ¥¼ìµç»ú
+        if(Cnt_25ms > 40)//ÏÈ¼õËÙ£¬ÔÙÍ£»ú£¬·ñÔò¸ßËÙÖ±½ÓÉ²³µÕð¶¯´ó
+        {
+            gParam[0].ControlWord0x6040 = 0x6;
+            gParam[1].ControlWord0x6040 = 0x6;
+            if(Cnt_25ms>50)//ÑÓÊ±250ms¸øÐÂÃüÁî£¬·ñÔò»áÓÐàÔµÄÏìÉù
+            {
+                testFlg = 0;
+                Cnt_25ms = 0;
+            }
+        }
+        gParam[0].TargetVelocity0x60FF = 0;
+        gParam[1].TargetVelocity0x60FF = 0;
+#else //ÀÏ»¯²âÊÔ ÈÝÒ×¹ýÑ¹Ö±½ÓÍ£
+        gParam[0].ControlWord0x6040 = 0x6;
+        gParam[1].ControlWord0x6040 = 0x6;
+        if(Cnt_25ms>10)//ÑÓÊ±250ms¸øÐÂÃüÁî£¬·ñÔò»áÓÐàÔµÄÏìÉù
+        {
+            testFlg = 0;
+            Cnt_25ms = 0;
+            gParam[0].TargetVelocity0x60FF = 0;
+            gParam[1].TargetVelocity0x60FF = 0;
+        }
+#endif
+    }
+    testStateBak = VeneerAgingTestState();
 
 }
 
@@ -542,10 +549,11 @@ PRIVATE void CanFdbMcInfoExec(void)
     CanSendSpdFdb(LeftInc, RightInc);
     
     //Fdb Error :10HZ
-    if(Tick == 0)
+    if((Tick == 0)||(ErrCode_Send_Flag == 1))
     {
+        ErrCode_Send_Flag = 0;
         CanSendErrorCode(sAxis[0].sAlarm.ErrReg.all, sAxis[1].sAlarm.ErrReg.all);
-		CanSendErrorCodeHigh((sAxis[0].sAlarm.ErrReg.all>>16), (sAxis[1].sAlarm.ErrReg.all>>16));
+        CanSendErrorCodeHigh((sAxis[0].sAlarm.ErrReg.all>>16), (sAxis[1].sAlarm.ErrReg.all>>16));
     }
  
 #if defined CAN_LOG_MODULE  
@@ -611,7 +619,7 @@ PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime)
         else
         {
             /*Boot Strap Cap Charge*/
-            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0,9999);
+            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0);
             if (0 == P->BootStrapCapChargeFlag)
             {
                 PwmEnable(P->AxisID);
@@ -639,7 +647,7 @@ PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime)
         else
         {
             /*Star Sealing Protection*/
-            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0,9999);
+            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0);
             if (0 == P->StarSealProtectFlag)
             {
                 P->StarSealProtectFlag = 1;
@@ -668,6 +676,7 @@ PRIVATE void MotionParamUpdateExec(void)
     if(gParam[0].QuickStopEn0x6086)
     {
         Tmp = (float)gParam[0].QuickStopDec0x6085/(float)gParam[0].EncoderPPR0x2202;
+		sAxis[0].sSpdLoop.AccMax = Tmp*6.0f;
     }
     else
     {
@@ -676,21 +685,22 @@ PRIVATE void MotionParamUpdateExec(void)
     sAxis[0].sSpdLoop.DecMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
 		sAxis[0].sSpdLoop.AccMax2 = sAxis[0].sSpdLoop.AccMax;
 		sAxis[0].sSpdLoop.DecMax2 = sAxis[0].sSpdLoop.DecMax;
-    
+
     Tmp = (float)gParam[1].ProfileAcc0x6083/(float)gParam[1].EncoderPPR0x2202;
     sAxis[1].sSpdLoop.AccMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
     if(gParam[1].QuickStopEn0x6086)
     {
         Tmp = (float)gParam[1].QuickStopDec0x6085/(float)gParam[1].EncoderPPR0x2202;
+		sAxis[1].sSpdLoop.AccMax = Tmp*6.0f;
     }
     else
     {
         Tmp = (float)gParam[1].ProfileDec0x6084/(float)gParam[1].EncoderPPR0x2202;
     }
     sAxis[1].sSpdLoop.DecMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
-    sAxis[1].sSpdLoop.AccMax2 = sAxis[1].sSpdLoop.AccMax;
+		sAxis[1].sSpdLoop.AccMax2 = sAxis[1].sSpdLoop.AccMax;
 		sAxis[1].sSpdLoop.DecMax2 = sAxis[1].sSpdLoop.DecMax;
-		
+
     sAxis[0].sCurLoop.Cp = (float)gParam[0].CurrentLoopKp0x2103*CUR_KP_FACTOR;
     sAxis[0].sCurLoop.Ci = (float)gParam[0].CurrentLoopKi0x2104*CUR_KI_FACTOR;
     
@@ -763,7 +773,7 @@ PRIVATE void ParamFdbUpdate(void)
             gParam[i].ErrorRegister0x230D = sAxis[i].sAlarm.ErrReg.all;
  
             gParam[i].ActualVelocity0x606C = (float)sAxis[i].sEncoder.PulseMax*sAxis[i].sSpdLoop.SpdFdb/60.0f;
-            gParam[i].ActualCurrent0x6078 = sAxis[i].sCurLoop.IqFdb*1000.0f;
+            gParam[i].ActualCurrent0x6078 = sAxis[i].sCurLoop.IValidFdb*1000.0f;
             
             gParam[i].ActualPosition0x6064 = sAxis[i].sPosLoop.PosFdb;
         }
@@ -783,7 +793,7 @@ PRIVATE void ParamFdbUpdate(void)
     }
     
     (Tick >= 3) ? (Tick = 0) : Tick++;
-    
+    gSensorData.BatteryVoltage0x400A = 1000.0f * GetBatteryVoltage();;
 }
 
 /***********************************************************************
@@ -987,3 +997,13 @@ PUBLIC INT32 DataCollectGetValue(UINT16 Index)
     return res;
 }
 
+PUBLIC void I_Bus_FO(void)
+{
+    //sAxis[0].sAlarm.ErrReg.bit.BusCurOver = 1;
+    //sAxis[1].sAlarm.ErrReg.bit.BusCurOver = 1;
+    //sAxis[0].PowerEn = 0;
+    //sAxis[1].PowerEn = 0;
+    //VbusDisable();
+    sAxis[0].sAlarm.I_Bus_FO_Cnt++;
+    sAxis[1].sAlarm.I_Bus_FO_Cnt = sAxis[0].sAlarm.I_Bus_FO_Cnt;
+}

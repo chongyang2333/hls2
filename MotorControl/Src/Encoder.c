@@ -39,9 +39,9 @@ PUBLIC void EncoderInit(struct AxisCtrlStruct *P)
 	pEnc->CNTPulseOld = 0;
 	pEnc->PulseMax = gParam[P->AxisID].EncoderPPR0x2202;
 //    pEnc->PulseMax = 4096;
-	pEnc->MechAngle = 0;
-	pEnc->ElecAngle = 0;
-	pEnc->PolePairs = gParam[P->AxisID].MotorPolePairs0x2201;
+    pEnc->ElecAngle = 0;
+    pEnc->MechAngle = 0;
+    pEnc->PolePairs = gParam[P->AxisID].MotorPolePairs0x2201;
 //    pEnc->PolePairs = 10;
     
     pEnc->PulsePerElecPRD = pEnc->PulseMax/pEnc->PolePairs ;
@@ -50,7 +50,6 @@ PUBLIC void EncoderInit(struct AxisCtrlStruct *P)
 	pEnc->SinUnit = C_SinUint;		
 
     pEnc->HallEnable = gParam[P->AxisID].HallEnable0x2203;
-//    pEnc->HallEnable = 1;.
 
     if(gParam[P->AxisID].MotorInverse0x2208)
     {
@@ -140,7 +139,6 @@ PUBLIC void AbsEncoderReadStart(void)
 ***********************************************************************/
 PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
 {
-    INT32 offset = 0;
     INT32 tmp = 0;
     
     struct EncoderStruct *pEnc = &P->sEncoder; 
@@ -379,7 +377,11 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
        if (pEnc->VirtualPhaseZTrig || (!pEnc->InitPosDoneUsingPwmout))
         {
          
-            pEnc->InitPosDoneUsingPwmout = 1;
+						if(pEnc->RisingCnt>=2)
+						{
+							 pEnc->InitPosDoneUsingPwmout = 1;
+						}
+         
             pEnc->VirtualPhaseZTrig = 0;
             
             pEnc->PwmoutAB_Crt_Cnt =  GetIncEncoderPulse(P->AxisID);

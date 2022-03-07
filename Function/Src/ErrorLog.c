@@ -19,8 +19,8 @@
 #include "Eeprom.h"
 #include "Param.h"
 
-#define ERR_LOG_POINTER_EE_ADDR   1024    // TODO
-#define ERR_LOG_INFO_EE_ADDR      (ERR_LOG_POINTER_EE_ADDR+4)    
+#define ERR_LOG_POINTER_EE_ADDR   2560    // TODO
+#define ERR_LOG_INFO_EE_ADDR      (ERR_LOG_POINTER_EE_ADDR+4)
 
 #define ERR_LOG_MAX_NUM           80
 

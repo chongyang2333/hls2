@@ -21,7 +21,7 @@
 #include "Encoder.h"
 #include "Alarm.h"
 #include "gd32f4xx_exti.h"
-#include "CurrentSample.h"
+
 /*------------------------- Public Constants ----------------------*/
 #define MAX_AXIS_NUM        2
 
@@ -50,11 +50,7 @@
 #define SPEED_FRQ           CURRENT_FRQ/2
 #define POSITION_FRQ        CURRENT_FRQ/5
 
-//????????
-#define TW_AFTER            600
-#define TW_BFTER            800
-#define TW_BEFORE           201
-#define TW_AEFORE           550
+
 
 #define CURRENT_PRD         (1.0f/(float)CURRENT_FRQ)
 //#define SPEED_PRD           (5.0f*CURRENT_PRD)
@@ -76,8 +72,8 @@
 #define C_SinUint1D2        (C_SinUint>>1)
 #define C_SinUint3D4        ((C_SinUint>>2)*3)
 
-#define MAX_TIMER_ISR_TIME   (15000*200)  // 15MS
-#define MAX_PWM_ISR_TIME     (80*200)     // Max is 100us
+#define MAX_TIMER_ISR_TIME   (15000*100)  // 15MS
+#define MAX_PWM_ISR_TIME     (80*100)     // Max is 100us
 
 #define VBUS_VOLTAGE_CLIMB_SLOPE_CONDITION  0.03f
 #define VBUS_VOLTAGE_CONDITION  18.0f
@@ -89,9 +85,6 @@ struct CurrentLoopStruct
 	REAL32	Ia;                  // phase a actual current
 	REAL32	Ib;                  // phase b actual current
 	REAL32	Ic;                  // phase c actual current
-	INT16   CurPhaA_Data[3];
-	INT16   CurPhaB_Data[3];
-	INT16   CurPhaC_Data[3];
 	REAL32	Ialfa;               // Ialfa actual current
 	REAL32	Ibeta;               // Ibeta actual current
     
@@ -109,7 +102,7 @@ struct CurrentLoopStruct
     REAL32	IqFdb;               //  Iq Feedback
     REAL32	IdErr;               //  Id following error
     REAL32	IqErr;               //  Iq following error
-    REAL32	IValidFdb;           //  I Valid value Feedback  // ÔøΩÔøΩ–ß÷µ
+    REAL32	IValidFdb;           //  I Valid value Feedback  // ”––ß÷µ
 
     REAL32	Cp;                  //  current loop proportion gain
     REAL32	Ci;                  //  current loop intigration gain
@@ -144,13 +137,9 @@ struct CurrentLoopStruct
 	REAL32	Vbeta;               // beta-axis voltage
 
 	/* SVPWM Module */
-	INT16   Sector;              // SectorNum
-	INT16   SectorLast;
 	INT16	TaNumber;            // SVPWM output for timer compare value
 	INT16	TbNumber;            // SVPWM output for timer compare value
 	INT16	TcNumber;            // SVPWM output for timer compare value
-	INT16   TdNumber;            // ADC Sample Time
-	INT16   CurEffective;        // Current Effective flag
 	INT16	Tonmin;              // PWM on min value (timer counter)
 	INT16	Tonmax;              // PWM on max value (timer counter)
 	INT16	PWMPRD;              // PWM period value (timer counter)
@@ -169,6 +158,8 @@ struct CurrentLoopStruct
     
     REAL32  IF_CurRef;
 	REAL32  IF_DeltaAngle;
+	
+	REAL32  IqRefBak;
 
 	struct IIR1LPFStruct sTorFilter1;
 //	struct AverageFilter sIvalFilter1;
@@ -200,10 +191,9 @@ struct SpeedLoopStruct
 
 	REAL32  AccMax;         // speed reference accerlation limit
 	REAL32  DecMax;         // speed reference decerlation limit
-
 	REAL32  AccMax2;
 	REAL32  DecMax2;
-	
+
 	REAL32  IncToRpmUnit;   // encoder pulse unit to RPM unit
 
 	REAL32  Jtotal;
@@ -215,17 +205,17 @@ struct SpeedLoopStruct
     REAL32  FilteredDisturComp;
     REAL32  DisturbanceComp;
     REAL32  SpdRefNoFilter;
-	REAL32  SpdRefActul;     //  µÔøΩÔøΩsÔøΩÔøΩÔøΩﬂøÔøΩÔøΩ∆∫ÔøΩÔøΩÔøΩŸ∂ÔøΩ
+	REAL32  SpdRefActul;     //  µº s«˙œﬂøÿ÷∆∫ÛµƒÀŸ∂»
 
-/*	REAL32 Acc;				// ÔøΩÔøΩÔøΩŸ∂ÔøΩ
-	REAL32 SpdRefActul;     //  µÔøΩÔøΩsÔøΩÔøΩÔøΩﬂøÔøΩÔøΩ∆∫ÔøΩÔøΩÔøΩŸ∂ÔøΩ
-	REAL32 CoeffA1;			// ÔøΩÔøΩÔøΩÔøΩ ΩœµÔøΩÔøΩ
+/*	REAL32 Acc;				// º”ÀŸ∂»
+	REAL32 SpdRefActul;     //  µº s«˙œﬂøÿ÷∆∫ÛµƒÀŸ∂»
+	REAL32 CoeffA1;			// ∂‡œÓ Ωœµ ˝
     REAL32 CoeffA2;
 	REAL32 CoeffA3;
 	REAL32 CoeffA4;
 	REAL32 CoeffA5;
 	REAL32 Counts;
-	REAL32 SpdRefInc;		// ÔøΩÔøΩÔøΩÔøΩÔøΩŸ∂»±‰ªØÔøΩÔøΩ
+	REAL32 SpdRefInc;		// ∏¯∂®ÀŸ∂»±‰ªØ¡ø
 	REAL32 SpdRefActulOld;
 	REAL32 SpdRefActulBak;
 */	
@@ -236,14 +226,14 @@ struct SpeedLoopStruct
 };
 struct  CurveParaStruct
 {
-	REAL32 Acc;				// ÔøΩÔøΩÔøΩŸ∂ÔøΩ
-	REAL32 CoeffA1;			// ÔøΩÔøΩÔøΩÔøΩ ΩœµÔøΩÔøΩ
+	REAL32 Acc;				// º”ÀŸ∂»
+	REAL32 CoeffA1;			// ∂‡œÓ Ωœµ ˝
     REAL32 CoeffA2;
 	REAL32 CoeffA3;
 	REAL32 CoeffA4;
 	REAL32 CoeffA5;
 	REAL32 Counts;
-	REAL32 SpdRefInc;		// ÔøΩÔøΩÔøΩÔøΩÔøΩŸ∂»±‰ªØÔøΩÔøΩ
+	REAL32 SpdRefInc;		// ∏¯∂®ÀŸ∂»±‰ªØ¡ø
 	REAL32 SpdRefActulOld;
 	REAL32 SpdRefActulBak;
 
@@ -334,7 +324,7 @@ struct EncoderStruct
     UINT32      PwmoutAB_Cnt;
     UINT32      PwmoutAB_Cnt_old;
     UINT32      PwmoutAB_Crt_Cnt; // Áü´Ê≠£Êó∂ABÁºñÁ†ÅÂô®ÁöÑÊï∞ÂÄº
-
+    UINT16      RisingCnt;
     
     UINT8       PwmoutIRQn;
     exti_line_enum      PwmoutExtiLineN;
@@ -422,6 +412,7 @@ extern PUBLIC INT32 DataCollectGetValue(UINT16 Index);
 extern PUBLIC void ControlRunInit(void);
 extern PUBLIC void ControlRunExec(void);
 extern PUBLIC void TimerIsrExec(void);
+extern PUBLIC void I_Bus_FO(void);
 
 PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P);
 PUBLIC void RecordEdgeInfo(struct AxisCtrlStruct *P);

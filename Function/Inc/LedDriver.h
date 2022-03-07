@@ -153,6 +153,8 @@ typedef enum
 	LED_STATE_CHARGE_40_59  = 0X0D,
 	LED_STATE_CHARGE_60_79  = 0X0E,
 	LED_STATE_CHARGE_80_99  = 0X0F,
+	 LED_STATE_POWEROFF      = 0X10,
+    LED_STATE_POWERON       = 0X11,
 	LED_STATE_MAX
 }LedStateEnum;
 
@@ -200,11 +202,14 @@ typedef struct
 
 extern LedFsmStruct sLedFsm;
 
+extern PUBLIC void led_bar_driver( void );
 extern PUBLIC void LedDriverInit(void);
 extern PUBLIC void LedDriverExec(void);
 extern PUBLIC void LedFsmEventHandle(LedFsmStruct *pLedFsm, UINT8 event, LedStateEnum aimState, void *parm);
 extern PUBLIC void LedPowerOn(void);
 extern PUBLIC void LedPowerOff(void);
+extern PUBLIC void GetChargeState(UINT8 *recbuff);
+
 PUBLIC UINT8 GetBatteryLevelForLed(UINT8 BatteryLevel);
 
 void YDA138_MuteOff(void);

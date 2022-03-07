@@ -25,7 +25,7 @@ PRIVATE void SVPWMCal(struct CurrentLoopStruct *P);
 //PRIVATE REAL32 RampCtrl (REAL32 in, REAL32 out, REAL32 rampDelta);
 
 extern PUBLIC void ClearEncoderPulses(struct EncoderStruct *P, UINT16 AxisID);
-extern PUBLIC void CurrentSampleTimeCal(struct CurrentLoopStruct *P,UINT16 AxisID);
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -60,13 +60,23 @@ PUBLIC void CurrentLoopInit(struct AxisCtrlStruct *P)
 	}
 	else if((gMachineInfo.motorVersion == 1)||(gMachineInfo.motorVersion == 2))
 	{
-				pCur->M_RatedI = 5.5f;
-				gParam[P->AxisID].MotorRatedCurrent0x2209 = 5500;
+				pCur->M_RatedI = 5.0f;
+				gParam[P->AxisID].MotorRatedCurrent0x2209 = 5000;
 	}
 	else if(gMachineInfo.motorVersion == 7)
 	{
 			pCur->M_RatedI = 4.5f;
 			gParam[P->AxisID].MotorRatedCurrent0x2209 = 4500;
+	}
+	else if(gMachineInfo.motorVersion == 3)
+	{
+			pCur->M_RatedI = 6.0f;
+			gParam[P->AxisID].MotorRatedCurrent0x2209 = 6000;
+	}
+	else if(gMachineInfo.motorVersion == 5)
+	{
+			pCur->M_RatedI = 5.5f;
+			gParam[P->AxisID].MotorRatedCurrent0x2209 = 5500;
 	}
 	else
 	{
@@ -177,6 +187,9 @@ PUBLIC void CurrentLoopExec(struct AxisCtrlStruct *P)
 	{
 		pCur->IdKiPart = 0;
 		pCur->IqKiPart = 0;
+        pCur->VdRef = 0;
+        pCur->VqRef = 0;
+        pCur->IqRefBak = 0;
 	}
 
 	//Open loop VF control
@@ -199,8 +212,7 @@ PUBLIC void CurrentLoopExec(struct AxisCtrlStruct *P)
       
 	// svpwm
 	SVPWMCal(pCur);
-	// Cal ADC Sample Time
-	//CurrentSampleTimeCal(pCur,P->AxisID);
+
 }
 
 /***********************************************************************
@@ -243,6 +255,9 @@ PRIVATE void CurrentRefSelect(struct AxisCtrlStruct *P)
             // current reference filter
             if(P->sFilterCfg.bit.CurRefFilter)
                 pCur->IqRef = FilterIIR1LPFExec(&pCur->sTorFilter1, pCur->IqRef);
+        else
+            pCur->IqRef =  pCur->IqRef*0.6f+pCur->IqRefBak*0.4f;
+        pCur->IqRefBak = pCur->IqRef;
 		break;
 
 		case POS_CTRL :
@@ -527,8 +542,6 @@ PRIVATE void SinCosCal(struct CurrentLoopStruct *P)
 	}
 }
 
-
-#define DUTYLIMIT 9750
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -544,15 +557,13 @@ PRIVATE void SVPWMCal(struct CurrentLoopStruct *P)
 	Va = P->Vbeta;
 	Vb = (-P->Vbeta + C_FSqrt3 * P->Valfa) * C_F1D2;
 	Vc = (-P->Vbeta - C_FSqrt3 * P->Valfa) * C_F1D2;
-	P->SectorLast = P->Sector;
+
     /* 60 degrees sector determination */
 	Sector = 0;
 	if ( Va > 0 )  { Sector += 1 ;}
 	if ( Vb > 0 )  { Sector += 2 ;}
 	if ( Vc > 0 )  { Sector += 4 ;}
 
-
-	P->Sector = Sector;
 	X = (INT16)(2 * P->Vbeta * P->VDCinvTSQRT);
 	Y = (INT16)(P->Vbeta * P->VDCinvTSQRT + P->Valfa * P->VDCinvTCon0);
 	Z = (INT16)(P->Vbeta * P->VDCinvTSQRT - P->Valfa * P->VDCinvTCon0);
@@ -608,55 +619,6 @@ PRIVATE void SVPWMCal(struct CurrentLoopStruct *P)
 	Tb= Ta + T1;
 	Tc= Tb + T2;
 
-    switch(Sector)
-    {
-        case 1:
-            if(Ta >= DUTYLIMIT)
-						  Ta = DUTYLIMIT;
-						if(Tc >= DUTYLIMIT)
-						  Tc = DUTYLIMIT;
-            break;
-        case 2:
-            if(Ta >= DUTYLIMIT)
-							Ta = DUTYLIMIT;
-						if(Tb >= DUTYLIMIT)
-							Tb = DUTYLIMIT;
-            break;
-        case 3:
-            if(Tc >= DUTYLIMIT)
-							Tc = DUTYLIMIT;
-						if(Ta >= DUTYLIMIT)
-							Ta = DUTYLIMIT;
-            break;
-        case 4:
-            if(Tb >= DUTYLIMIT)
-							Tb = DUTYLIMIT;
-						if(Tc >= DUTYLIMIT)
-							Tc = DUTYLIMIT;
-            break;
-        case 5:
-            if(Tc >= DUTYLIMIT)
-							Tc = DUTYLIMIT;
-						if(Ta >= DUTYLIMIT)
-							Ta = DUTYLIMIT;;
-            break;
-        case 6:
-            if(Ta >= DUTYLIMIT)
-							Ta = DUTYLIMIT;
-					  if(Tc >= DUTYLIMIT)
-							Tc = DUTYLIMIT;
-            break;
-        default :
-					  if(Ta >= DUTYLIMIT)
-							Ta = DUTYLIMIT;
-						if(Tb >= DUTYLIMIT)
-							Tb = DUTYLIMIT;
-						if(Tc >= DUTYLIMIT)
-							Tc = DUTYLIMIT;
-            break;
-    }
-		
-	
 	switch( Sector )
 	{
 
