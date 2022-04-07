@@ -81,7 +81,6 @@ struct SoftwareVersionStruct
 #define MACHINE_INFO_WRITING  1
 #define MACHINE_INFO_SUCCESS  2
 #define MACHINE_INFO_FAULT    3
-#define MACHINE_INFO_CHECK    4
 
 typedef struct
 {
@@ -138,9 +137,9 @@ struct MachineInfoStruct
     UINT8   AudioVersion;  // Index 23 第四个字节
     
     UINT8   LoRaVersion; // Index 24
-    UINT8   BarCodeGunVersion;
-    UINT8   faceRecCameraVersion;
-    UINT8   slamwareVersion;
+    UINT8   BarCodeScanningGunVersion;
+    UINT8   FaceDetectCameraVersion;
+    UINT8   SlamwareVersion;
     
     UINT32  Odometer;//Index 25
     UINT32  CumulativeTime; //Index 26
@@ -149,28 +148,35 @@ struct MachineInfoStruct
     UINT16  MachineModel; // Index 27
     UINT8   MachineMainVersion;
     UINT8   MachineMinorVersion;
-    UINT8   NpuType;
-		UINT8   Matrix_micType;
-		UINT8   Host_CoreBoardType;
-		UINT8   HeadType;
-		
-		UINT8   LidarCommunicationType;
-		UINT8   LidarType;
-		UINT8   W4GVertion;
-		UINT8   CarbinDoorMotorType;
-		
-    UINT8  TrayBoardType;
-		UINT8  FunctionBoardType;
-		UINT8  ClassicBoardType;
-		UINT8  DoorBoardType;
-		
-		UINT8		LaserProjection;
-		UINT8   VedioOutput;
-		UINT8   DistributionAreaLight;
-		UINT8   res0;
-		
-		UINT8   PowerBoardType;
-		UINT8   resx[3];
+    
+    /*INSERT->2021.08.31 */
+    UINT8  NpuTpye;   // Index 28
+    UINT8  Matrixmic; 
+    UINT8  HostCoreBoardType;
+    UINT8  HeadType;
+    
+    UINT8  LidarCommunicateType;  // Index 29
+    UINT8  LidarType;
+    UINT8  Version4G;
+    UINT8  CarbinDoorMotorType;
+    
+    /*INSERT->2021.10.25 */
+    UINT8  TrayBoardType;  // Index 30 
+    UINT8  FunctionBoardType;
+    UINT8  ChassisBoardType;
+    UINT8  DoorBoardType;
+    
+    /*INSERT->2021.11.23 */
+    UINT8 LaserProjection;
+    UINT8 VedioOutput;
+    UINT8 DistributionAreaLight;
+    UINT8 res31_1;
+    
+    UINT8 PowerBoardType;
+    UINT8 res32_1;
+    UINT8 res32_2;
+    UINT8 res32_3;
+    
     UINT32  rsv[40];
     
     UINT16  EepromCRC;
@@ -179,8 +185,6 @@ struct MachineInfoStruct
     UINT16  RestoreDefault;
     UINT16  SaveMachineInfo;
     UINT16  MachineInfoSaveState;
-    UINT16  EEPROM_GoodBlock;
-    UINT16  EEPROM_BlockRetryCnt;
     UINT32  MotorVersionLast;   
 };
 
@@ -308,9 +312,6 @@ struct ParameterStruct
     INT16   ActualCurrent0x6078; 
     INT32   TargetPosition0x607A;
     INT32   TargetVelocity0x60FF;
-    
-    UINT16  EEPROM_GoodBlock;
-    UINT16  EEPROM_BlockRetryCnt;
 };
 
 
@@ -523,37 +524,46 @@ const OBJ_ENTRY ApplicationObjDic[] = {
 {NULL, NULL, 0x411B, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.LoRaVersion},
 {NULL, NULL, 0x411C, DEFTYPE_UNSIGNED32, 0x20, ACCESS_READWRITE, &gMachineInfo.Odometer},
 {NULL, NULL, 0x411D, DEFTYPE_UNSIGNED32, 0x20, ACCESS_READWRITE, &gMachineInfo.CumulativeTime},
-{NULL, NULL, 0x411E, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.BarCodeGunVersion},
-{NULL, NULL, 0x411F, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.faceRecCameraVersion},
-{NULL, NULL, 0x4120, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.slamwareVersion},
+
+/*INSERT->20200725*/
+{NULL, NULL, 0x411E, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.BarCodeScanningGunVersion},
+{NULL, NULL, 0x411F, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.FaceDetectCameraVersion},
+{NULL, NULL, 0x4120, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.SlamwareVersion},
 
 /*INSERT->20201019*/
 {NULL, NULL, 0x4121, DEFTYPE_UNSIGNED16,  0x10, ACCESS_READWRITE, &gMachineInfo.MachineModel},
 {NULL, NULL, 0x4122, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.MachineMainVersion},
 {NULL, NULL, 0x4123, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.MachineMinorVersion},
-{NULL, NULL, 0x4124, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.NpuType},
-{NULL, NULL, 0x4125, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.Matrix_micType},
-{NULL, NULL, 0x4126, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.Host_CoreBoardType},
+
+/*INSERT->20210831 Index 28*/ 
+{NULL, NULL, 0x4124, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.NpuTpye},
+{NULL, NULL, 0x4125, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.Matrixmic},
+{NULL, NULL, 0x4126, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.HostCoreBoardType},
 {NULL, NULL, 0x4127, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.HeadType},
-{NULL, NULL, 0x4128, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.LidarCommunicationType},
+
+/*INSERT->20210831 Index 29*/ 
+{NULL, NULL, 0x4128, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.LidarCommunicateType},
 {NULL, NULL, 0x4129, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.LidarType},
-{NULL, NULL, 0x412A, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.W4GVertion},
+{NULL, NULL, 0x412A, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.Version4G},
 {NULL, NULL, 0x412B, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.CarbinDoorMotorType},
 
+/*INSERT->20211025 Index 30*/ 
 {NULL, NULL, 0x412C, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.TrayBoardType},
 {NULL, NULL, 0x412D, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.FunctionBoardType},
-{NULL, NULL, 0x412E, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.ClassicBoardType},
+{NULL, NULL, 0x412E, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.ChassisBoardType},
 {NULL, NULL, 0x412F, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.DoorBoardType},
 
+/*INSERT->20211123 Index 31*/ 
 {NULL, NULL, 0x4130, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.LaserProjection},
 {NULL, NULL, 0x4131, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.VedioOutput},
 {NULL, NULL, 0x4132, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.DistributionAreaLight},
-{NULL, NULL, 0x4133, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res0},
+{NULL, NULL, 0x4133, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res31_1},
 
+/*INSERT->20211123 Index 32*/ 
 {NULL, NULL, 0x4134, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.PowerBoardType},
-{NULL, NULL, 0x4135, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.resx[0]},
-{NULL, NULL, 0x4136, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.resx[1]},
-{NULL, NULL, 0x4137, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.resx[2]},
+{NULL, NULL, 0x4135, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res32_1},
+{NULL, NULL, 0x4136, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res32_2},
+{NULL, NULL, 0x4137, DEFTYPE_UNSIGNED8,  0x08, ACCESS_READWRITE, &gMachineInfo.res32_3},
 
 {NULL, NULL, 0x603F, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ_ONLY, &gParam[0].ErrorCode0x603F},
 {NULL, NULL, 0x6040, DEFTYPE_UNSIGNED16, 0x10, ACCESS_READWRITE, &gParam[0].ControlWord0x6040},
@@ -611,7 +621,7 @@ const struct ParameterStruct gDefaultParam_Left[10] = {
 [2] = {0x80000000, 0x7FFFFFFF, 300, 12000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
 100, 80, 10, 100, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
 400, 10, 16384, 1, 0, 1000, 500, 0, 1, 3000, 12000,   // motor param
-3, 26000, 26000, 60000,           // motion mode
+3, 26000, 26000, 40000,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0, 0, 0, 0, 0, 0, 0, 0, 0,                 // assist param
@@ -621,7 +631,7 @@ const struct ParameterStruct gDefaultParam_Left[10] = {
 //Motor Type:3->ZL 6.5" 1024PRD
 [3] = {0x80000000, 0x7FFFFFFF, 300, 18000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
 100, 80, 10, 100, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
-400, 15, 4096, 1, 0, 1000, 500, 0, 0, 6000, 18000,   // motor param
+400, 15, 4096, 1, 0, 1000, 500, 0, 0, 3000, 18000,   // motor param
 3, 5366, 5366, 7665,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -639,9 +649,9 @@ const struct ParameterStruct gDefaultParam_Left[10] = {
 0,0,0,0,0,0,0,0,0,0   
 },
 //Motor Type:6->DXC 6.5" 1024PRD
-[6] = {0x80000000, 0x7FFFFFFF, 300, 18000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
-100, 80, 10, 100, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
-400, 15, 4096, 1, 0, 1000, 500, 0, 0, 3000, 18000,   // motor param
+[6] = {0x80000000, 0x7FFFFFFF, 300, 14000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
+100, 80, 10, 400, 7, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
+400, 15, 4096, 1, 0, 1000, 500, 0, 1, 3000, 14000,   // motor param
 3, 5366, 5366, 7665,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -649,11 +659,11 @@ const struct ParameterStruct gDefaultParam_Left[10] = {
 0,0,0,0,0,0,0,0,0,0   
 },
 
-//Motor Type:7->YaTeng 5.5" 4096PRD
+//Motor Type:7->YaTeng 5.5" 1024PRD
 [7] = {0x80000000, 0x7FFFFFFF, 300, 13500, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
-100, 60, 10, 80, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 10,       // motion config
-400, 13, 16384, 1, 0, 1000, 500, 0, 1, 4000, 13500,   // motor param
-3, 26000, 26000, 60000,            // motion mode
+100, 80, 10, 100, 3, 0x0F, 100, 20, 30, 50, 200, 10, 10, 10,       // motion config
+400, 13, 16384, 1, 0, 1000, 500, 0, 1, 3000, 13500,   // motor param
+3, 26060, 26060, 37228,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0, 0, 0, 0, 0, 0, 0, 0, 0,                 // assist param
@@ -662,7 +672,7 @@ const struct ParameterStruct gDefaultParam_Left[10] = {
 //Motor Type:8->YaTeng 6.5" 4096PRD
 [8]= {0x80000000, 0x7FFFFFFF, 300, 18000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
 100, 40, 8, 150, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 10,       // motion config
-400, 15, 16384, 1, 0, 1000, 500, 0, 0, 6000, 18000,   // motor param
+400, 15, 4096, 1, 0, 1000, 500, 0, 0, 6000, 18000,   // motor param
 3, 22000, 22000, 32000,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -677,7 +687,7 @@ const struct ParameterStruct gDefaultParam_Right[10] = {
 [1] = {0x80000000, 0x7FFFFFFF, 300, 12000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
 100, 80, 10, 100, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
 400, 10, 4096, 1, 0, 1000, 500, 0, 0, 3000, 12000,   // motor param
-3, 6516, 6516, 15000,           // motion mode
+3, 6516, 6516, 9308,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0, 0, 0, 0, 0, 0, 0, 0, 0,                 // assist param
@@ -698,7 +708,7 @@ const struct ParameterStruct gDefaultParam_Right[10] = {
 //Motor Type:3->ZL 6.5" 1024PRD
 [3] = {0x80000000, 0x7FFFFFFF, 300, 18000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
 100, 80, 10, 100, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
-400, 15, 4096, 1, 0, 1000, 500, 0, 1, 6000, 18000,   // motor param
+400, 15, 4096, 1, 0, 1000, 500, 0, 1, 5000, 18000,   // motor param
 3, 5366, 5366, 7665,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -716,9 +726,9 @@ const struct ParameterStruct gDefaultParam_Right[10] = {
 0,0,0,0,0,0,0,0,0,0   
 },
 //Motor Type:6->DXC 6.5" 1024PRD
-[6] = {0x80000000, 0x7FFFFFFF, 300, 18000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
-100, 80, 10, 100, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
-400, 15, 4096, 1, 0, 1000, 500, 0, 1, 3000, 18000,   // motor param
+[6] = {0x80000000, 0x7FFFFFFF, 300, 14000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
+100, 80, 10, 400, 7, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
+400, 15, 4096, 1, 0, 1000, 500, 0, 0, 3000, 14000,   // motor param
 3, 5366, 5366, 7665,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -728,18 +738,18 @@ const struct ParameterStruct gDefaultParam_Right[10] = {
 
 //Motor Type:7->Yateng 5.5" 4096PRD
 [7] = {0x80000000, 0x7FFFFFFF, 300, 13500, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
-100, 60, 10, 80, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
+100, 80, 10, 100, 3, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
 400, 13, 16384, 1, 0, 1000, 500, 0, 0, 4000, 13500,   // motor param
-3, 26000, 26000, 60000,           // motion mode
+3, 26060, 26060, 37228,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0, 0, 0, 0, 0, 0, 0, 0, 0,                 // assist param
 0,0,0,0,0,0,0,0,0,0   
 },
-//Motor Type:8->YaTeng 6.5" 4096PRD
+//Motor Type:8->YaTeng 6.5" 1024PRD
 [8]= {0x80000000, 0x7FFFFFFF, 300, 18000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
 100, 50, 8, 150, 10, 0x0F, 100, 20, 30, 50, 200, 10, 10, 10,       // motion config
-400, 15, 16384, 1, 0, 1000, 500, 0, 1, 6000, 18000,   // motor param
+400, 15, 16384, 1, 0, 1000, 500, 0, 1, 5000, 18000,   // motor param
 3, 22000, 22000, 32000,           // motion mode
 0,                                   // EepromCrc
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -751,12 +761,12 @@ const struct ParameterStruct gDefaultParam_Right[10] = {
 //Motor Data Saved In MachineInfo
 const struct MotorDataInMachineInfoStruct gMotor_basicData[10] = {
 //Motor Type:1->ZL 5.5" 1024PRD
-[1] = {0.14f, 0.439823f, 0.386f,     // R, L, D
+[1] = {0.14f, 0.439823f, 0.3855f,     // R, L, D
 1024, 4, 1, 0       // Line, factor, ratio, inv
 },
 
 //Motor Type:2->ZL 5.5" 4096PRD
-[2] = {0.14f, 0.439823f, 0.3272f,     // R, L, D
+[2] = {0.14f, 0.439823f, 0.386f,     // R, L, D
 4096, 4, 1, 0       // Line, factor, ratio, inv
 },
 
@@ -765,51 +775,41 @@ const struct MotorDataInMachineInfoStruct gMotor_basicData[10] = {
 1024, 4, 1, 0       // Line, factor, ratio, inv
 },
 //Motor Type:4->Maxwell 5.5" 1024PRD
-[4] = {0.14f, 0.439823f, 0.3272f,     // R, L, D
+[4] = {0.14f, 0.439823f, 0.3855f,     // R, L, D
 1024, 4, 1, 0       // Line, factor, ratio, inv
 },
 //Motor Type:6->DXC 6.5" 1024PRD
-[6] = {0.17f, 0.534071f, 0.409f,     // R, L, D
+[6] = {0.17f, 0.534071f, 0.403f,     // R, L, D
 1024, 4, 1, 0       // Line, factor, ratio, inv
 },
 
 //Motor Type:7->TaTeng 5.5" 4096PRD
-[7] = {0.14f, 0.439823f, 0.3272f,     // R, L, D
+[7] = {0.14f, 0.439823f, 0.3836f,     // R, L, D
 4096, 4, 1, 0       // Line, factor, ratio, inv
 },
-//yateng 6.5  4096
-[8] = {0.17f, 0.534071f, 0.409f,     // R, L, D
+//Motor Type:3->ZL 6.5" 1024PRD
+[8] = {0.173f, 0.534071f, 0.4003f,     // R, L, D
 4096, 4, 1, 0       // Line, factor, ratio, inv
 },
 };
 
 
 const struct MachineInfoStruct gDefaultMachineInfo = {
-0.14f, 0.439823f, 0.327200f,     // R, L, D
-4096, 4, 1, 0,                 // Line, factor, ratio, inv
+0.14f, 0.439823f, 0.3855f,     // R, L, D
+1024, 4, 1, 0,                 // Line, factor, ratio, inv
 2, 3,   //Tag Pcb Version
 2, 4,   //Chassis Pcb Version
 2,
-8,      //LDS version
-2,      // motorvertion
+7,      //LDS version
+1,
 0, 
 1,
 {2019, 5, 27},
 {2019, 5, 22},
 1,    //markerCameraVersion
 1,    //ESP32Version
-3,    //RGBDVersion
-10,    //machine type
-0,     //audio            23.4
-0,     //24.1
-0,     //24.2
-0,     //24.3
-0,     //24.4
-0,     //25
-0,     //26
-0,     //27 1-2
-0,     //27 3
-0,     //27 4
+0,    //RGBDVersion
+6,    //machine type
 };
 #endif // _OBJD_
 

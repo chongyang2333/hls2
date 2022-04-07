@@ -6,7 +6,7 @@
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether
+  * USER CODE END. Other portions of this file, whether 
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
@@ -75,7 +75,7 @@ typedef struct
 
 /**
  * \brief      initialize USART parameter struct with a default value
- * \prarm[in]  p_struct: the pointer of the specific struct
+ * \prarm[in]  p_struct: the pointer of the specific struct 
  * \param[out] none
  * \retval     none
 */
@@ -106,12 +106,12 @@ static void usart_gpio_init(uint32_t usart_periph)
 {
     if (usart_periph == USART2)
     {
-#define __USART2_Tx_PORT  GPIOD
-#define __USART2_Tx_GPIO  GPIO_PIN_8
-#define __USART2_Tx_AF    GPIO_AF_7
-#define __USART2_Rx_PORT  GPIOD
-#define __USART2_Rx_GPIO  GPIO_PIN_9
-#define __USART2_Rx_AF    GPIO_AF_7
+        #define __USART2_Tx_PORT  GPIOD
+        #define __USART2_Tx_GPIO  GPIO_PIN_8
+        #define __USART2_Tx_AF    GPIO_AF_7
+        #define __USART2_Rx_PORT  GPIOD
+        #define __USART2_Rx_GPIO  GPIO_PIN_9
+        #define __USART2_Rx_AF    GPIO_AF_7
 
         /* enable can clock */
         rcu_periph_clock_enable(RCU_USART2);
@@ -121,19 +121,19 @@ static void usart_gpio_init(uint32_t usart_periph)
         gpio_output_options_set(__USART2_Tx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __USART2_Tx_GPIO);
         gpio_mode_set(__USART2_Tx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __USART2_Tx_GPIO);
         gpio_af_set(__USART2_Tx_PORT, __USART2_Tx_AF, __USART2_Tx_GPIO);
-
+        
         gpio_output_options_set(__USART2_Rx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __USART2_Rx_GPIO);
         gpio_mode_set(__USART2_Rx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __USART2_Rx_GPIO);
         gpio_af_set(__USART2_Rx_PORT, __USART2_Rx_AF, __USART2_Rx_GPIO);
     }
     else if (usart_periph == USART1)
     {
-#define __USART1_Tx_PORT  GPIOD
-#define __USART1_Tx_GPIO  GPIO_PIN_5
-#define __USART1_Tx_AF    GPIO_AF_7
-#define __USART1_Rx_PORT  GPIOD
-#define __USART1_Rx_GPIO  GPIO_PIN_6
-#define __USART1_Rx_AF    GPIO_AF_7
+        #define __USART1_Tx_PORT  GPIOD
+        #define __USART1_Tx_GPIO  GPIO_PIN_5
+        #define __USART1_Tx_AF    GPIO_AF_7
+        #define __USART1_Rx_PORT  GPIOD
+        #define __USART1_Rx_GPIO  GPIO_PIN_6
+        #define __USART1_Rx_AF    GPIO_AF_7
 
         /* enable can clock */
         rcu_periph_clock_enable(RCU_USART1);
@@ -143,7 +143,7 @@ static void usart_gpio_init(uint32_t usart_periph)
         gpio_output_options_set(__USART1_Tx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __USART1_Tx_GPIO);
         gpio_mode_set(__USART1_Tx_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, __USART1_Tx_GPIO);
         gpio_af_set(__USART1_Tx_PORT, __USART1_Tx_AF, __USART1_Tx_GPIO);
-
+        
         gpio_output_options_set(__USART1_Rx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __USART1_Rx_GPIO);
         gpio_mode_set(__USART1_Rx_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, __USART1_Rx_GPIO);
         gpio_af_set(__USART1_Rx_PORT, __USART1_Rx_AF, __USART1_Rx_GPIO);
@@ -164,7 +164,7 @@ static void usart_interface_init(uint32_t usart_periph, usart_parameter_struct *
 
     /* configure usart baud rate */
     usart_baudrate_set(usart_periph, usart_parameter_init->baudval);
-
+    
     /* configure usart parity */
     usart_parity_config(usart_periph, usart_parameter_init->paritycfg);
 
@@ -179,7 +179,7 @@ static void usart_interface_init(uint32_t usart_periph, usart_parameter_struct *
 
     /* configure usart inverted */
     usart_invert_config(usart_periph, usart_parameter_init->invertpara);
-
+    
     /* configure usart oversample mode */
     usart_oversample_config(usart_periph, usart_parameter_init->oversamp);
 
@@ -220,27 +220,27 @@ static void usart_dma_init(uint32_t usart_periph)
     {
         /* Look up <<GD32F4xx_User_Manual>> 'Table 10-5. Peripheral requests to DMA0'
         and 'Table 10-6. Peripheral requests to DMA1'.
-          It is forbidden to simultaneously enable these two DMA channels with
+          It is forbidden to simultaneously enable these two DMA channels with 
         selecting the same peripheral request.
         */
-#define __USART2_TxDMA_PERIPH  DMA0
-#define __USART2_TxDMA_CHANNEL DMA_CH3
-#define __USART2_TxDMA_SUBPERI DMA_SUBPERI4
-#define __USART2_TxDMA_IRQn    DMA0_Channel3_IRQn
+        #define __USART2_TxDMA_PERIPH  DMA0
+        #define __USART2_TxDMA_CHANNEL DMA_CH3
+        #define __USART2_TxDMA_SUBPERI DMA_SUBPERI4
+        #define __USART2_TxDMA_IRQn    DMA0_Channel3_IRQn
 
-
-#define __USART2_RxDMA_PERIPH  DMA0
-#define __USART2_RxDMA_CHANNEL DMA_CH1
-#define __USART2_RxDMA_SUBPERI DMA_SUBPERI4
-#define __USART2_RxDMA_IRQn    DMA0_Channel1_IRQn
+        
+        #define __USART2_RxDMA_PERIPH  DMA0
+        #define __USART2_RxDMA_CHANNEL DMA_CH1
+        #define __USART2_RxDMA_SUBPERI DMA_SUBPERI4
+        #define __USART2_RxDMA_IRQn    DMA0_Channel1_IRQn
 
         /* enable DMA clock */
         rcu_periph_clock_enable(RCU_DMA0);
-
+        
         /*configure DMA interrupt*/
 //        nvic_irq_enable(__USART2_TxDMA_IRQn, 0, 0);
 //        nvic_irq_enable(__USART2_RxDMA_IRQn, 0, 1);
-
+        
         /* configure DMA channel(for USART tx) */
         dma_single_data_para_struct_init(&dma_parameter);
         dma_deinit(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
@@ -253,7 +253,7 @@ static void usart_dma_init(uint32_t usart_periph)
         dma_parameter.number              = 0U;
         dma_parameter.priority            = DMA_PRIORITY_HIGH;
         dma_single_data_mode_init(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL, &dma_parameter);
-
+        
         /* configure DMA mode */
         dma_circulation_disable(__USART2_TxDMA_PERIPH, __USART2_TxDMA_CHANNEL);
 
@@ -295,27 +295,27 @@ static void usart_dma_init(uint32_t usart_periph)
     {
         /* Look up <<GD32F4xx_User_Manual>> 'Table 10-5. Peripheral requests to DMA0'
         and 'Table 10-6. Peripheral requests to DMA1'.
-          It is forbidden to simultaneously enable these two DMA channels with
+          It is forbidden to simultaneously enable these two DMA channels with 
         selecting the same peripheral request.
         */
-#define __USART1_TxDMA_PERIPH  DMA0
-#define __USART1_TxDMA_CHANNEL DMA_CH6
-#define __USART1_TxDMA_SUBPERI DMA_SUBPERI4
-#define __USART1_TxDMA_IRQn    DMA0_Channel6_IRQn
+        #define __USART1_TxDMA_PERIPH  DMA0
+        #define __USART1_TxDMA_CHANNEL DMA_CH6
+        #define __USART1_TxDMA_SUBPERI DMA_SUBPERI4
+        #define __USART1_TxDMA_IRQn    DMA0_Channel6_IRQn
 
-
-#define __USART1_RxDMA_PERIPH  DMA0
-#define __USART1_RxDMA_CHANNEL DMA_CH5
-#define __USART1_RxDMA_SUBPERI DMA_SUBPERI4
-#define __USART1_RxDMA_IRQn    DMA0_Channel5_IRQn
+        
+        #define __USART1_RxDMA_PERIPH  DMA0
+        #define __USART1_RxDMA_CHANNEL DMA_CH5
+        #define __USART1_RxDMA_SUBPERI DMA_SUBPERI4
+        #define __USART1_RxDMA_IRQn    DMA0_Channel5_IRQn
 
         /* enable DMA clock */
         rcu_periph_clock_enable(RCU_DMA0);
-
+        
         /*configure DMA interrupt*/
 //        nvic_irq_enable(__USART2_TxDMA_IRQn, 0, 0);
 //        nvic_irq_enable(__USART2_RxDMA_IRQn, 0, 1);
-
+        
         /* configure DMA channel(for USART tx) */
         dma_single_data_para_struct_init(&dma_parameter);
         dma_deinit(__USART1_TxDMA_PERIPH, __USART1_TxDMA_CHANNEL);
@@ -328,7 +328,7 @@ static void usart_dma_init(uint32_t usart_periph)
         dma_parameter.number              = 0U;
         dma_parameter.priority            = DMA_PRIORITY_HIGH;
         dma_single_data_mode_init(__USART1_TxDMA_PERIPH, __USART1_TxDMA_CHANNEL, &dma_parameter);
-
+        
         /* configure DMA mode */
         dma_circulation_disable(__USART1_TxDMA_PERIPH, __USART1_TxDMA_CHANNEL);
 
@@ -384,7 +384,7 @@ __STATIC_INLINE FlagStatus usart_dma_done_get(uint32_t dma_periph, dma_channel_e
 //    else {
 //        return dma_flag_get(dma_periph, channelx, DMA_FLAG_FTF);
 //    }
-
+    
     return RESET;
 }
 
@@ -627,7 +627,7 @@ void MX_USART2_UART_Init(void)
 
     /* configure USART gpio */
     usart_gpio_init(USART1);
-
+    
     /* configure USART interface */
     usart_struct_para_init(&usart1_parameter);
     usart1_parameter.baudval         = 115200;
@@ -653,7 +653,7 @@ void MX_USART2_UART_Init(void)
     /* configure USART interrupt */
     usart_interrupt_enable(USART1, USART_INT_IDLE);
     nvic_irq_enable(USART1_IRQn, 4, 0);
-
+    
     /* start receive with dma methods */
     usart_receive_dma(USART1, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
 }
@@ -671,18 +671,18 @@ void MX_USART1_UART_Init(void)
     // huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
     // huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
     // huart1.AdvancedInit.OverrunDisable = (1<<12);
-
+    
     // if (HAL_UART_Init(&huart1) != HAL_OK)
     // {
     //     _Error_Handler(__FILE__, __LINE__);
     // }
-
+  
     // /* USART1 interrupt Init */
-    // __HAL_UART_ENABLE_IT(&huart1,UART_IT_RXNE);
+    // __HAL_UART_ENABLE_IT(&huart1,UART_IT_RXNE);  
     // HAL_NVIC_SetPriority(USART1_IRQn, 4, 0);
     // HAL_NVIC_EnableIRQ(USART1_IRQn);
 
-    // __HAL_UART_DISABLE_IT(&huart1,UART_IT_ERR | UART_IT_ORE);
+    // __HAL_UART_DISABLE_IT(&huart1,UART_IT_ERR | UART_IT_ORE); 
 
 }
 
@@ -694,7 +694,7 @@ void MX_USART3_UART_Init(void)
 
     /* configure USART gpio */
     usart_gpio_init(USART2);
-
+    
     /* configure USART interface */
     usart_struct_para_init(&usart2_parameter);
     usart2_parameter.baudval         = 115200;
@@ -720,7 +720,7 @@ void MX_USART3_UART_Init(void)
     /* configure USART interrupt */
     usart_interrupt_enable(USART2, USART_INT_IDLE);
     nvic_irq_enable(USART2_IRQn, 2, 0);
-
+    
     /* start receive with dma methods */
     usart_receive_dma(USART2, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
 }
@@ -745,153 +745,18 @@ void MX_USART3_UART_Init_Weak(void)
 //         _Error_Handler(__FILE__, __LINE__);
 //     }
 
-//     /* USART3 interrupt Init */
+//     /* USART3 interrupt Init */ 
 //     HAL_NVIC_SetPriority(USART3_IRQn, 5, 1);
 //     HAL_NVIC_EnableIRQ(USART3_IRQn);
 
-//     __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);
-
-// //	__HAL_UART_DISABLE_IT(&huart3,UART_IT_ERR | UART_IT_ORE);
-
+//     __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE); 
+	 
+// //	__HAL_UART_DISABLE_IT(&huart3,UART_IT_ERR | UART_IT_ORE); 
+	        
 //     HAL_UART_Receive_DMA(&huart3, sUartApp.RecvBuf, UART_RECV_MAX_NUM);
-
-
+    
+  
 }
-
-// void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
-// {
-
-//   GPIO_InitTypeDef GPIO_InitStruct;
-//   if(uartHandle->Instance==USART1)
-//   {
-//   /* USER CODE BEGIN USART1_MspInit 0 */
-
-//   /* USER CODE END USART1_MspInit 0 */
-//     /* USART1 clock enable */
-//     __HAL_RCC_USART1_CLK_ENABLE();
-
-//     /**USART1 GPIO Configuration
-//     PA9     ------> USART1_TX
-//     PA10     ------> USART1_RX
-//     */
-//     GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
-//     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-//     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-//   /* USER CODE BEGIN USART1_MspInit 1 */
-
-//   /* USER CODE END USART1_MspInit 1 */
-//   }
-//   else if(uartHandle->Instance==USART3)
-//   {
-//   /* USER CODE BEGIN USART3_MspInit 0 */
-
-//   /* USER CODE END USART3_MspInit 0 */
-//     /* USART3 clock enable */
-//     __HAL_RCC_USART3_CLK_ENABLE();
-
-//     /**USART3 GPIO Configuration
-//     PD8     ------> USART3_TX
-//     PD9     ------> USART3_RX
-//     */
-//     GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
-//     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-//     GPIO_InitStruct.Pull = GPIO_NOPULL;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//     GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-//     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-//     /* USART3 DMA Init */
-//     /* USART3_RX Init */
-//     hdma_usart3_rx.Instance = DMA1_Stream1;
-//     hdma_usart3_rx.Init.Channel = DMA_CHANNEL_4;
-//     hdma_usart3_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-//     hdma_usart3_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-//     hdma_usart3_rx.Init.MemInc = DMA_MINC_ENABLE;
-//     hdma_usart3_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-//     hdma_usart3_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-//     hdma_usart3_rx.Init.Mode = DMA_NORMAL;
-//     hdma_usart3_rx.Init.Priority = DMA_PRIORITY_LOW;
-//     hdma_usart3_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-//     if (HAL_DMA_Init(&hdma_usart3_rx) != HAL_OK)
-//     {
-//       _Error_Handler(__FILE__, __LINE__);
-//     }
-
-//     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart3_rx);
-
-//     /* USART3_TX Init */
-//     hdma_usart3_tx.Instance = DMA1_Stream3;
-//     hdma_usart3_tx.Init.Channel = DMA_CHANNEL_4;
-//     hdma_usart3_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-//     hdma_usart3_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-//     hdma_usart3_tx.Init.MemInc = DMA_MINC_ENABLE;
-//     hdma_usart3_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-//     hdma_usart3_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-//     hdma_usart3_tx.Init.Mode = DMA_NORMAL;
-//     hdma_usart3_tx.Init.Priority = DMA_PRIORITY_LOW;
-//     hdma_usart3_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-//     if (HAL_DMA_Init(&hdma_usart3_tx) != HAL_OK)
-//     {
-//       _Error_Handler(__FILE__, __LINE__);
-//     }
-
-//     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart3_tx);
-
-//   }
-
-// }
-
-// void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
-// {
-
-//   if(uartHandle->Instance==USART1)
-//   {
-//   /* USER CODE BEGIN USART1_MspDeInit 0 */
-
-//   /* USER CODE END USART1_MspDeInit 0 */
-//     /* Peripheral clock disable */
-//     __HAL_RCC_USART1_CLK_DISABLE();
-
-//     /**USART1 GPIO Configuration
-//     PA9     ------> USART1_TX
-//     PA10     ------> USART1_RX
-//     */
-//     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
-
-//   /* USER CODE BEGIN USART1_MspDeInit 1 */
-
-//   /* USER CODE END USART1_MspDeInit 1 */
-//   }
-//   else if(uartHandle->Instance==USART3)
-//   {
-//   /* USER CODE BEGIN USART3_MspDeInit 0 */
-
-//   /* USER CODE END USART3_MspDeInit 0 */
-//     /* Peripheral clock disable */
-//     __HAL_RCC_USART3_CLK_DISABLE();
-
-//     /**USART3 GPIO Configuration
-//     PD8     ------> USART3_TX
-//     PD9     ------> USART3_RX
-//     */
-//     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_8|GPIO_PIN_9);
-
-//   /* USART3 DMA DeInit */
-//     HAL_DMA_DeInit(uartHandle->hdmatx);
-
-//     /* USART3 interrupt Deinit */
-//     HAL_NVIC_DisableIRQ(USART3_IRQn);
-//   /* USER CODE BEGIN USART3_MspDeInit 1 */
-
-//   /* USER CODE END USART3_MspDeInit 1 */
-//   }
-
-// }
-
 
 /***********************************************************************
  * DESCRIPTION:This function handles USART3 global interrupt.
@@ -924,7 +789,7 @@ void USART1_IRQHandler(void)
 
     if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_IDLE)) {
 //        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_IDLE);
-
+        
         usart_receive_dma_abort(USART1);
         temp = USART_DATA(USART1);
         temp = usart_receive_dma_number_get(USART1);
@@ -994,7 +859,7 @@ void USART2_IRQHandler(void)
 
 //    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE)) {
 ////        usart_interrupt_flag_clear(USART2, USART_INT_FLAG_IDLE);
-//
+//        
 //        usart_receive_dma_abort(USART2);
 //        temp = USART_DATA(USART2);
 //        temp = usart_receive_dma_number_get(USART2);
@@ -1033,31 +898,31 @@ void USART2_IRQHandler(void)
 //    }
 }
 
-void USART3_IRQHandler_Weak(void)
+void USART3_IRQHandler_Weak(void)    
 {
     // uint32_t temp=0;
     // uint8_t *p=NULL;
-    // uint16_t size=0;
-
+    // uint16_t size=0;   
+     
     // // if occur ORE NF FE PE error, then clear
     // if(huart3.Instance->ISR & 0xF)
-    // {
+    // {    
     //     huart3.Instance->ICR = 0xF;
     // }
-
+    
     // HAL_UART_IRQHandler(&huart3);
-
+        
     // if((__HAL_UART_GET_FLAG(&huart3,UART_FLAG_IDLE) != RESET))
-    // {
-
-    //     __HAL_UART_CLEAR_IDLEFLAG(&huart3);
-    //     HAL_UART_DMAStop(&huart3);
-    //     temp = huart3.Instance->ISR;
-    //     temp = huart3.Instance->RDR;
-    //     temp  =  __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);
-
-    //     sUartApp.RecvBufNum +=  UART_RECV_MAX_NUM - temp;
-
+    // { 
+        
+    //     __HAL_UART_CLEAR_IDLEFLAG(&huart3);   
+    //     HAL_UART_DMAStop(&huart3);                     
+    //     temp = huart3.Instance->ISR;  
+    //     temp = huart3.Instance->RDR; 
+    //     temp  =  __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);  
+        
+    //     sUartApp.RecvBufNum +=  UART_RECV_MAX_NUM - temp; 
+     
     //     if( (0xAA == sUartApp.RecvBuf[0]) && (sUartApp.RecvBufNum > 0) )
     //     {
     //         if(sUartApp.RecvBufNum > 3)
@@ -1065,12 +930,12 @@ void USART3_IRQHandler_Weak(void)
     //             uint16_t FrameLen = sUartApp.RecvBuf[1] | (sUartApp.RecvBuf[2]<<8);
     //             if((FrameLen+1) <= sUartApp.RecvBufNum)
     //             {
-
-    //                 UartRecvDispatch(sUartApp.RecvBuf);
-
+                    
+    //                 UartRecvDispatch(sUartApp.RecvBuf);  
+                    
     //                 sUartApp.RecvBufNum = 0;
     //                 p = sUartApp.RecvBuf;
-    //                 size = UART_RECV_MAX_NUM;
+    //                 size = UART_RECV_MAX_NUM;                    
     //             }
     //             else
     //             {
@@ -1082,22 +947,22 @@ void USART3_IRQHandler_Weak(void)
     //         {
     //             p = sUartApp.RecvBuf + sUartApp.RecvBufNum;
     //             size = UART_RECV_MAX_NUM - sUartApp.RecvBufNum;
-    //         } // end if(sUartApp.RecvBufNum..
+    //         } // end if(sUartApp.RecvBufNum..  
     //     }
     //     else
     //     {
     //         sUartApp.RecvBufNum = 0;
     //         p = sUartApp.RecvBuf;
     //         size = UART_RECV_MAX_NUM;
-
+            
     //     } // end if((0xAA == sUartApp..
-
+           
     //     HAL_UART_Receive_DMA(&huart3, p, size);
-
+        
     // } // end if((__HAL_UART_GET_FLAG...
 
 }
-
+ 
 
 /***********************************************************************
  * DESCRIPTION:
@@ -1117,7 +982,7 @@ void UartSendData(uint8_t *buf, uint16_t size)
         }
     }
     usart_transmit_dma(USART1, buf, size);
-
+    
     StartTime = ReadTimeStampTimer();
     while (SET != usart_transmit_dma_done_get(USART1))
     {
@@ -1130,24 +995,24 @@ void UartSendData(uint8_t *buf, uint16_t size)
 
 void UartSendData_Weak(uint8_t * buf, uint16_t size)
 {
-    //   UINT32 StartTime = ReadTimeStampTimer();
-    // while(huart3.gState!=HAL_UART_STATE_READY)
-    //   {
-    //       if((ReadTimeStampTimer() - StartTime) > 27*5000000)  // 5s
-    //       {
-    //           break;
-    //       }
-    //   }
-    //   HAL_UART_Transmit_DMA(&huart3, buf, size);
-
-    //   StartTime = ReadTimeStampTimer();
-    //   while (HAL_DMA_GetState(&hdma_usart3_tx) != HAL_DMA_STATE_READY)
-    //   {
-    //       if((ReadTimeStampTimer() - StartTime) > 27*5000000)  // 5s
-    //       {
-    //           break;
-    //       }
-    //   }
+  //   UINT32 StartTime = ReadTimeStampTimer();
+	// while(huart3.gState!=HAL_UART_STATE_READY) 
+  //   {
+  //       if((ReadTimeStampTimer() - StartTime) > 27*5000000)  // 5s
+  //       {
+  //           break;
+  //       }
+  //   }
+  //   HAL_UART_Transmit_DMA(&huart3, buf, size);
+    
+  //   StartTime = ReadTimeStampTimer();
+  //   while (HAL_DMA_GetState(&hdma_usart3_tx) != HAL_DMA_STATE_READY)
+  //   {
+  //       if((ReadTimeStampTimer() - StartTime) > 27*5000000)  // 5s
+  //       {
+  //           break;
+  //       }
+  //   }
 
 }
 

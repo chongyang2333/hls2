@@ -47,7 +47,7 @@ struct AlarmBits  // bits   description
 	UINT32 MotorTempOver:1;
 	UINT32 MosTempOver:1;
     UINT32 VbusSSMosOpenCircuitFailure:1; // Mos for Soft Start Open Circuit Failure
-    UINT32 TactSwitchSet:1; //foot_Press Protect Key Press Down
+    UINT32 Rsv1:1;
     UINT32 PwmoutBreak:1;
     
 	UINT32 Rsv31:5;
@@ -62,7 +62,6 @@ union AlarmReg {
 struct AlarmStruct
 {
 	union AlarmReg  ErrReg;
-	union AlarmReg  ErrRegBak;
   
     REAL32  I2T_Setpoint;
     REAL32  I2T_accumulator;
@@ -77,7 +76,7 @@ struct AlarmStruct
     
     UINT16  VdcOverCnt;
     UINT16  VdcUnderCnt;
-	  UINT16  VdcDischargeFlag;
+    UINT16  VdcDischargeFlag;
     UINT16  SpdOverCnt;
     UINT16  SpdFollwCnt;
     UINT16  StallCnt;
@@ -91,7 +90,6 @@ struct AlarmStruct
 	UINT16  EmergencyStopRstCnt;
     UINT16  EmergencyStopSetCnt;
     
-    UINT16  TactSwitchSetCnt;
     UINT16  PhaseCurrentLimit;
 
 	UINT16  IuOverCnt;
@@ -102,12 +100,8 @@ struct AlarmStruct
 	REAL32  IvTotle;			 //  v相电流累加值
 	REAL32  IwTotle;			 //  w相电流累加值
 	REAL32  phaselose_time;		 //  缺相累加值检测时间
-	UINT16  phaselose_cnt;
-	UINT16  vdc_ov_step;
-	UINT16  I_Bus_FO_Cnt;
 	UINT16  PwmoutDisconnectCnt;
-	UINT16  PwmOnCnt;
-	 UINT16  PwmOffCnt;
+	UINT16  phaselose_cnt;
 };
 
 

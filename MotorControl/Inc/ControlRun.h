@@ -102,7 +102,7 @@ struct CurrentLoopStruct
     REAL32	IqFdb;               //  Iq Feedback
     REAL32	IdErr;               //  Id following error
     REAL32	IqErr;               //  Iq following error
-    REAL32	IValidFdb;           //  I Valid value Feedback  // ��Чֵ
+    REAL32	IValidFdb;           //  I Valid value Feedback  // ÓÐÐ§Öµ
 
     REAL32	Cp;                  //  current loop proportion gain
     REAL32	Ci;                  //  current loop intigration gain
@@ -137,9 +137,12 @@ struct CurrentLoopStruct
 	REAL32	Vbeta;               // beta-axis voltage
 
 	/* SVPWM Module */
+	INT16   Sector;              // SectorNum
+	INT16   SectorLast;
 	INT16	TaNumber;            // SVPWM output for timer compare value
 	INT16	TbNumber;            // SVPWM output for timer compare value
 	INT16	TcNumber;            // SVPWM output for timer compare value
+	INT16   TdNumber;            // ADC Sample Time
 	INT16	Tonmin;              // PWM on min value (timer counter)
 	INT16	Tonmax;              // PWM on max value (timer counter)
 	INT16	PWMPRD;              // PWM period value (timer counter)
@@ -158,15 +161,22 @@ struct CurrentLoopStruct
     
     REAL32  IF_CurRef;
 	REAL32  IF_DeltaAngle;
-	
-	REAL32  IqRefBak;
 
 	struct IIR1LPFStruct sTorFilter1;
 //	struct AverageFilter sIvalFilter1;
     struct FIR8Struct    sIqRefFilter;
   
 };
-
+//定义时间戳结构体 用于上下位机时钟同步
+typedef struct
+{
+	long long Time_Tamp_Now;
+	long long Time_Tamp_record;
+	UINT16    CorrectFlag;
+	UINT16    Time_10K_Cnt;
+	UINT32    Time_Zero;
+	UINT32    Time_Res;
+}TimeTamp_Def;
 
 /*------------------------- Speed Loop Struct ----------------------*/
 struct SpeedLoopStruct
@@ -191,9 +201,10 @@ struct SpeedLoopStruct
 
 	REAL32  AccMax;         // speed reference accerlation limit
 	REAL32  DecMax;         // speed reference decerlation limit
+
 	REAL32  AccMax2;
 	REAL32  DecMax2;
-
+	
 	REAL32  IncToRpmUnit;   // encoder pulse unit to RPM unit
 
 	REAL32  Jtotal;
@@ -205,17 +216,17 @@ struct SpeedLoopStruct
     REAL32  FilteredDisturComp;
     REAL32  DisturbanceComp;
     REAL32  SpdRefNoFilter;
-	REAL32  SpdRefActul;     // ʵ��s���߿��ƺ���ٶ�
+	REAL32  SpdRefActul;     // Êµ¼ÊsÇúÏß¿ØÖÆºóµÄËÙ¶È
 
-/*	REAL32 Acc;				// ���ٶ�
-	REAL32 SpdRefActul;     // ʵ��s���߿��ƺ���ٶ�
-	REAL32 CoeffA1;			// ����ʽϵ��
+/*	REAL32 Acc;				// ¼ÓËÙ¶È
+	REAL32 SpdRefActul;     // Êµ¼ÊsÇúÏß¿ØÖÆºóµÄËÙ¶È
+	REAL32 CoeffA1;			// ¶àÏîÊ½ÏµÊý
     REAL32 CoeffA2;
 	REAL32 CoeffA3;
 	REAL32 CoeffA4;
 	REAL32 CoeffA5;
 	REAL32 Counts;
-	REAL32 SpdRefInc;		// �����ٶȱ仯��
+	REAL32 SpdRefInc;		// ¸ø¶¨ËÙ¶È±ä»¯Á¿
 	REAL32 SpdRefActulOld;
 	REAL32 SpdRefActulBak;
 */	
@@ -226,14 +237,14 @@ struct SpeedLoopStruct
 };
 struct  CurveParaStruct
 {
-	REAL32 Acc;				// ���ٶ�
-	REAL32 CoeffA1;			// ����ʽϵ��
+	REAL32 Acc;				// ¼ÓËÙ¶È
+	REAL32 CoeffA1;			// ¶àÏîÊ½ÏµÊý
     REAL32 CoeffA2;
 	REAL32 CoeffA3;
 	REAL32 CoeffA4;
 	REAL32 CoeffA5;
 	REAL32 Counts;
-	REAL32 SpdRefInc;		// �����ٶȱ仯��
+	REAL32 SpdRefInc;		// ¸ø¶¨ËÙ¶È±ä»¯Á¿
 	REAL32 SpdRefActulOld;
 	REAL32 SpdRefActulBak;
 
@@ -301,7 +312,7 @@ struct EncoderStruct
     UINT16      HallStateLast;
     
     INT16       MotorDirection;     // 1 for positive, -1 for negagive
-    
+    UINT16      RisingCnt;
     //Purpose: Encoder Pwmout function
     UINT8       PwmoutNewMechAngle_SM;
     
@@ -323,8 +334,8 @@ struct EncoderStruct
     UINT32      PwmoutPPW;  // PPM: Positive Pulse Width
     UINT32      PwmoutAB_Cnt;
     UINT32      PwmoutAB_Cnt_old;
-    UINT32      PwmoutAB_Crt_Cnt; // 矫正时AB编码器的数值
-    UINT16      RisingCnt;
+    UINT32      PwmoutAB_Crt_Cnt; // çŸ«æ­£æ—¶ABç¼–ç å™¨çš„æ•°å€¼
+
     
     UINT8       PwmoutIRQn;
     exti_line_enum      PwmoutExtiLineN;
@@ -412,7 +423,6 @@ extern PUBLIC INT32 DataCollectGetValue(UINT16 Index);
 extern PUBLIC void ControlRunInit(void);
 extern PUBLIC void ControlRunExec(void);
 extern PUBLIC void TimerIsrExec(void);
-extern PUBLIC void I_Bus_FO(void);
 
 PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P);
 PUBLIC void RecordEdgeInfo(struct AxisCtrlStruct *P);

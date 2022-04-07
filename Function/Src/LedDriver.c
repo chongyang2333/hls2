@@ -17,17 +17,13 @@
 
 #include "LedDriver.h"
 #include "i2c.h"
-#include "delay.h"
 #include "CanApp.h"
 #include "PowerManager.h"
-#include "gpio.h"
 #include "delay.h"
 
-#define LED_LEFT	        0
-#define LED_RIGHT      	    1
-#define LED_BACK            2
-#define LED_LEFT_RIGHT 	    3
-#define LED_LEFT_RIGHT_BACK 4
+#define LED_LEFT	     	0
+#define LED_RIGHT      	1
+#define LED_LEFT_RIGHT 	2
 
 typedef struct
 {
@@ -52,24 +48,24 @@ PRIVATE void LedRGBPwmControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, UIN
 PRIVATE void LedRGBBlinkControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, UINT8 bluePwm, UINT8 gprFreq);
 PRIVATE void LedBreathePwmConfig(LedBreathePwmStruct* p, UINT16 timeBaseMs, UINT16 timeNumber, UINT8 pwmMax, UINT8 pwmMin, UINT8 stepUpDown);
 PRIVATE UINT8 GetBreathePwmValue(LedBreathePwmStruct* p);
-PRIVATE void chassis_led_color_extract(uint8_t bar_temp,uint8_t *buff,uint8_t r_color,uint8_t g_color,uint8_t b_color);
+
 PRIVATE void LedFsmInit(LedFsmStruct *pLedFsm, LedFsmTableStruct *pLedFsmTable, UINT8 stuMaxNum, LedStateEnum curState);
 
-static LedBreathePwmStruct sGreenBreathePwm[3] = {0,0,0};
-static LedBreathePwmStruct sRedBreathePwm[3]   = {0,0,0};
-static LedBreathePwmStruct sBlueBreathePwm[3]  = {0,0,0};
+static LedBreathePwmStruct sGreenBreathePwm = {0};
+static LedBreathePwmStruct sRedBreathePwm   = {0};
+static LedBreathePwmStruct sBlueBreathePwm  = {0};
 
-static  LedFsmTableStruct sLedFsmTable[] = {  
+static  LedFsmTableStruct sLedFsmTable[] = {
     { LED_EVENT_START_FINISH,   EVENT_START_FINISH_CUR_STATE_MASK,    EVENT_START_FINISH_NEXT_STATE_MASK,  	NULL},
-    { LED_EVENT_REMOTE_CONTROL, EVENT_REMOTE_CONTROL_CUR_STATE_MASK,  EVENT_REMOTE_CONTROL_NEXT_STATE_MASK, NULL},		
+    { LED_EVENT_REMOTE_CONTROL, EVENT_REMOTE_CONTROL_CUR_STATE_MASK,  EVENT_REMOTE_CONTROL_NEXT_STATE_MASK, NULL},
     { LED_EVENT_MCU_POWEROFF,   EVENT_MCU_POWEROFF_CUR_STATE_MASK,  	EVENT_MCU_POWEROFF_NEXT_STATE_MASK, 	NULL},
     { LED_EVENT_CHARGE_ING,     EVENT_CHARGE_ING_CUR_STATE_MASK,  		EVENT_CHARGE_ING_NEXT_STATE_MASK, 		NULL},
-    { LED_EVENT_CHARGE_OUT,     EVENT_CHARGE_OUT_CUR_STATE_MASK,  		EVENT_CHARGE_OUT_NEXT_STATE_MASK, 		NULL},    
+    { LED_EVENT_CHARGE_OUT,     EVENT_CHARGE_OUT_CUR_STATE_MASK,  		EVENT_CHARGE_OUT_NEXT_STATE_MASK, 		NULL},
 };
 
 LedFsmStruct sLedFsm;
 
-static t_Tlc59108fReg sTlc59108fReg={0};
+static t_Tlc59108fReg sTlc59108fReg= {0};
 
 static UINT8 TimeCnt = 0;
 /***********************************************************************
@@ -85,8 +81,8 @@ PRIVATE void I2C_LedDriver_ByteWrite(UINT8 WriteAddr, UINT8 WriteData)
 
 PRIVATE void I2C_LedDriver_ByteWrite_Weak(UINT8 WriteAddr, UINT8 WriteData)
 {
-	// HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData, 1, 1000);
-	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+    // HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, WriteAddr, I2C_MEMADD_SIZE_8BIT, &WriteData, 1, 1000);
+    // while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -102,8 +98,8 @@ PRIVATE void I2C_sTlc59108fAllRegUpDate(void)
 
 PRIVATE void I2C_sTlc59108fAllRegUpDate_Weak(void)
 {
-	// HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg,18,1000);
-	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+    // HAL_I2C_Mem_Write(&hi2c2, I2C2_LedDriverWrite, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg,18,1000);
+    // while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -119,8 +115,8 @@ PRIVATE void I2C_LedDriver_BufferRead(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumB
 
 PRIVATE void I2C_LedDriver_BufferRead_Weak(UINT8* pBuffer, UINT8 ReadAddr, UINT8 NumByteToRead)
 {
-	// HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead,1000);
-	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+    // HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, ReadAddr, I2C_MEMADD_SIZE_8BIT, pBuffer, NumByteToRead,1000);
+    // while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -136,8 +132,8 @@ PRIVATE void I2C_sTlc59108fAllRegRead(void)
 
 PRIVATE void I2C_sTlc59108fAllRegRead_Weak(void)
 {
-	// HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg, 18,1000);
-	// while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+    // HAL_I2C_Mem_Read(&hi2c2, I2C2_LedDriverRead, MODE1 + 0x80, I2C_MEMADD_SIZE_8BIT, (UINT8*)&sTlc59108fReg, 18,1000);
+    // while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 }
 
 /***********************************************************************
@@ -148,9 +144,7 @@ PRIVATE void I2C_sTlc59108fAllRegRead_Weak(void)
 ***********************************************************************/
 PRIVATE void LedRGBPwmControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, UINT8 bluePwm)
 {
-    switch(leftRight)
-    {
-    case LED_LEFT:
+    if(leftRight == LED_LEFT)
     {
         sTlc59108fReg.RegLEDOUT0.bit.LDR0  = 2;
         sTlc59108fReg.RegLEDOUT0.bit.LDR1  = 2;
@@ -158,8 +152,8 @@ PRIVATE void LedRGBPwmControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, UIN
         sTlc59108fReg.RegPWM0 = redPwm;
         sTlc59108fReg.RegPWM1 = greenPwm;
         sTlc59108fReg.RegPWM2 = bluePwm;
-    }break;
-    case LED_RIGHT:
+    }
+    else if(leftRight == LED_RIGHT)
     {
         sTlc59108fReg.RegLEDOUT1.bit.LDR5  = 2;
         sTlc59108fReg.RegLEDOUT1.bit.LDR6  = 2;
@@ -167,13 +161,8 @@ PRIVATE void LedRGBPwmControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, UIN
         sTlc59108fReg.RegPWM5 = redPwm;
         sTlc59108fReg.RegPWM6 = greenPwm;
         sTlc59108fReg.RegPWM7 = bluePwm;
-    }break;
-    case LED_BACK :
-    {
-        sTlc59108fReg.RegLEDOUT1.bit.LDR4  = 2;
-        sTlc59108fReg.RegPWM4 = 0xff - bluePwm;
-    }break;
-    case LED_LEFT_RIGHT :
+    }
+    else if(leftRight == LED_LEFT_RIGHT)
     {
         sTlc59108fReg.RegLEDOUT0.bit.LDR0  = 2;
         sTlc59108fReg.RegLEDOUT0.bit.LDR1  = 2;
@@ -187,29 +176,10 @@ PRIVATE void LedRGBPwmControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, UIN
         sTlc59108fReg.RegPWM5 = redPwm;
         sTlc59108fReg.RegPWM6 = greenPwm;
         sTlc59108fReg.RegPWM7 = bluePwm;
-
-    }break;
-    case LED_LEFT_RIGHT_BACK:
-    {
-        sTlc59108fReg.RegLEDOUT0.bit.LDR0  = 2;
-        sTlc59108fReg.RegLEDOUT0.bit.LDR1  = 2;
-        sTlc59108fReg.RegLEDOUT0.bit.LDR2  = 2;
-        sTlc59108fReg.RegPWM0 = redPwm;
-        sTlc59108fReg.RegPWM1 = greenPwm;
-        sTlc59108fReg.RegPWM2 = bluePwm;
-        sTlc59108fReg.RegLEDOUT1.bit.LDR5  = 2;
-        sTlc59108fReg.RegLEDOUT1.bit.LDR6  = 2;
-        sTlc59108fReg.RegLEDOUT1.bit.LDR7  = 2;
-        sTlc59108fReg.RegPWM5 = redPwm;
-        sTlc59108fReg.RegPWM6 = greenPwm;
-        sTlc59108fReg.RegPWM7 = bluePwm;
-        sTlc59108fReg.RegLEDOUT1.bit.LDR4  = 2;
-        sTlc59108fReg.RegPWM4 = 0xff -  bluePwm;
-    }break;
-    default:
+    }
+    else
     {
         return;
-    }break;
     }
 }
 
@@ -221,9 +191,7 @@ PRIVATE void LedRGBPwmControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, UIN
 ***********************************************************************/
 PRIVATE void LedRGBBlinkControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, UINT8 bluePwm, UINT8 gprFreq)
 {
-    switch(leftRight)
-    {
-    case LED_LEFT:
+    if(leftRight == LED_LEFT)
     {
         sTlc59108fReg.RegLEDOUT0.bit.LDR0  = 3;
         sTlc59108fReg.RegLEDOUT0.bit.LDR1  = 3;
@@ -231,8 +199,8 @@ PRIVATE void LedRGBBlinkControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, U
         sTlc59108fReg.RegPWM0 = redPwm;
         sTlc59108fReg.RegPWM1 = greenPwm;
         sTlc59108fReg.RegPWM2 = bluePwm;
-    }break;
-    case LED_RIGHT:
+    }
+    else if(leftRight == LED_RIGHT)
     {
         sTlc59108fReg.RegLEDOUT1.bit.LDR5  = 3;
         sTlc59108fReg.RegLEDOUT1.bit.LDR6  = 3;
@@ -240,29 +208,8 @@ PRIVATE void LedRGBBlinkControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, U
         sTlc59108fReg.RegPWM5 = redPwm;
         sTlc59108fReg.RegPWM6 = greenPwm;
         sTlc59108fReg.RegPWM7 = bluePwm;
-    }break;
-    case LED_LEFT_RIGHT :
-    {
-        sTlc59108fReg.RegLEDOUT0.bit.LDR0  = 3;
-        sTlc59108fReg.RegLEDOUT0.bit.LDR1  = 3;
-        sTlc59108fReg.RegLEDOUT0.bit.LDR2  = 3;
-        sTlc59108fReg.RegPWM0 = redPwm;
-        sTlc59108fReg.RegPWM1 = greenPwm;
-        sTlc59108fReg.RegPWM2 = bluePwm;
-        sTlc59108fReg.RegLEDOUT1.bit.LDR5  = 3;
-        sTlc59108fReg.RegLEDOUT1.bit.LDR6  = 3;
-        sTlc59108fReg.RegLEDOUT1.bit.LDR7  = 3;
-        sTlc59108fReg.RegPWM5 = redPwm;
-        sTlc59108fReg.RegPWM6 = greenPwm;
-        sTlc59108fReg.RegPWM7 = bluePwm;
-
-    }break;
-    case LED_BACK :
-    {
-        sTlc59108fReg.RegLEDOUT1.bit.LDR4  = 3;
-        sTlc59108fReg.RegPWM4 = bluePwm;
-    }break;
-    case LED_LEFT_RIGHT_BACK:
+    }
+    else if(leftRight == LED_LEFT_RIGHT)
     {
         sTlc59108fReg.RegLEDOUT0.bit.LDR0  = 3;
         sTlc59108fReg.RegLEDOUT0.bit.LDR1  = 3;
@@ -276,13 +223,10 @@ PRIVATE void LedRGBBlinkControl(UINT8 leftRight, UINT8 redPwm, UINT8 greenPwm, U
         sTlc59108fReg.RegPWM5 = redPwm;
         sTlc59108fReg.RegPWM6 = greenPwm;
         sTlc59108fReg.RegPWM7 = bluePwm;
-        sTlc59108fReg.RegLEDOUT1.bit.LDR4  = 3;
-        sTlc59108fReg.RegPWM4 = bluePwm;
-    }break;
-    default:
+    }
+    else
     {
         return;
-    }break;
     }
 
     sTlc59108fReg.RegMODE2.bit.DMBLNK  = 1;  			//Group control = blinking
@@ -372,19 +316,19 @@ PUBLIC void LedDriverInit(void)
 //RegLEDOUT1(Right)   bit  7:6         5:4         3:2         1:0      LDRx[1:0] = 00 → OFF; 01 or 10 or 11 → ON;
 //                         PWM7(RB)    PWM6(RG)    PWM5(RR)    PWM4(DO1)
 
-	sTlc59108fReg.RegMODE1.bit.OSC     = 0;
-	sTlc59108fReg.RegLEDOUT0.bit.LDR0  = 0;
-	sTlc59108fReg.RegLEDOUT0.bit.LDR1  = 0;
-	sTlc59108fReg.RegLEDOUT0.bit.LDR2  = 0;
-	sTlc59108fReg.RegLEDOUT0.bit.LDR3  = 0;
-	sTlc59108fReg.RegLEDOUT1.bit.LDR4  = 0;
-	sTlc59108fReg.RegLEDOUT1.bit.LDR5  = 0;
-	sTlc59108fReg.RegLEDOUT1.bit.LDR6  = 0;
-	sTlc59108fReg.RegLEDOUT1.bit.LDR7  = 0;		
-	I2C_sTlc59108fAllRegUpDate();
-    
-	
-	LedFsmInit(&sLedFsm, sLedFsmTable, sizeof(sLedFsmTable)/sizeof(LedFsmTableStruct), LED_STATE_START);
+    sTlc59108fReg.RegMODE1.bit.OSC     = 0;
+    sTlc59108fReg.RegLEDOUT0.bit.LDR0  = 0;
+    sTlc59108fReg.RegLEDOUT0.bit.LDR1  = 0;
+    sTlc59108fReg.RegLEDOUT0.bit.LDR2  = 0;
+    sTlc59108fReg.RegLEDOUT0.bit.LDR3  = 0;
+    sTlc59108fReg.RegLEDOUT1.bit.LDR4  = 0;
+    sTlc59108fReg.RegLEDOUT1.bit.LDR5  = 0;
+    sTlc59108fReg.RegLEDOUT1.bit.LDR6  = 0;
+    sTlc59108fReg.RegLEDOUT1.bit.LDR7  = 0;
+    I2C_sTlc59108fAllRegUpDate();
+
+
+    LedFsmInit(&sLedFsm, sLedFsmTable, sizeof(sLedFsmTable)/sizeof(LedFsmTableStruct), LED_STATE_START);
 }
 
 
@@ -397,8 +341,8 @@ PUBLIC void LedDriverInit(void)
 ***********************************************************************/
 PUBLIC void LedPowerOn()
 {
-		//LedFsmInit(&sLedFsm, sLedFsmTable, sizeof(sLedFsmTable)/sizeof(LedFsmTableStruct), LED_STATE_START);
-		sLedFsm.curState = LED_STATE_START;
+    //LedFsmInit(&sLedFsm, sLedFsmTable, sizeof(sLedFsmTable)/sizeof(LedFsmTableStruct), LED_STATE_START);
+    sLedFsm.curState = LED_STATE_START;
 }
 
 
@@ -411,7 +355,7 @@ PUBLIC void LedPowerOn()
 ***********************************************************************/
 extern PUBLIC void LedPowerOff(void)
 {
-		LedFsmEventHandle(&sLedFsm, LED_EVENT_MCU_POWEROFF, NULL, 0);
+    LedFsmEventHandle(&sLedFsm, LED_EVENT_MCU_POWEROFF, NULL, 0);
 }
 
 /***********************************************************************
@@ -437,10 +381,10 @@ PUBLIC void LedDriverExec(void)
         }
         break;
 
-    case LED_STATE_START: //上电初始化状态
+    case LED_STATE_START:
         if(sLedFsm.stateTransferFlag)//left and right show light blue, it blinks twice within 500ms
         {
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x32, 0x96); //pudu blue
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x32, 0x96);
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
@@ -452,19 +396,19 @@ PUBLIC void LedDriverExec(void)
         {
             if(TimeCnt == 5)
             {
-                LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x00, 0x00); //off 200ms
+                LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x00, 0x00);
                 I2C_sTlc59108fAllRegUpDate();
             }
 
             if(TimeCnt == 10)
             {
-                LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x32, 0x96);//on 200ms
+                LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x32, 0x96);
                 I2C_sTlc59108fAllRegUpDate();
             }
 
             if(TimeCnt == 15)
             {
-                LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x00, 0x00);//off 200ms
+                LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x00, 0x00);
                 I2C_sTlc59108fAllRegUpDate();
             }
 
@@ -475,14 +419,13 @@ PUBLIC void LedDriverExec(void)
         }
         break;
 
-    case LED_STATE_AWAIT://left and right show light pudu blue
+    case LED_STATE_AWAIT://left and right show light blue
         if(sLedFsm.stateTransferFlag)
         {
             LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x32, 0x96);
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
-            TimeCnt = 0;
         }
         break;
 
@@ -531,16 +474,16 @@ PUBLIC void LedDriverExec(void)
     case LED_STATE_ARRIVE://left and right show light blue with 3s breathing period
         if(sLedFsm.stateTransferFlag)
         {
-            LedBreathePwmConfig(&sGreenBreathePwm[0], 25, 60, 0x32, 0x00, 0);
-            LedBreathePwmConfig(&sBlueBreathePwm[0], 25, 60, 0x96, 0x00, 0);
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm[0]), GetBreathePwmValue(&sBlueBreathePwm[0]));
+            LedBreathePwmConfig(&sGreenBreathePwm, 25, 60, 0x32, 0x00, 0);
+            LedBreathePwmConfig(&sBlueBreathePwm, 25, 60, 0x96, 0x00, 0);
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm), GetBreathePwmValue(&sBlueBreathePwm));
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
         }
         else
         {
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm[0]), GetBreathePwmValue(&sBlueBreathePwm[0]));
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm), GetBreathePwmValue(&sBlueBreathePwm));
             I2C_sTlc59108fAllRegUpDate();
         }
         break;
@@ -548,15 +491,15 @@ PUBLIC void LedDriverExec(void)
     case LED_STATE_CHARGE_0_19://left and right show red with 7.5s breathing period
         if(sLedFsm.stateTransferFlag)
         {
-            LedBreathePwmConfig(&sRedBreathePwm[0], 25, 150, 0xFF, 0x00, 0);
-            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm[0]), 0x00, 0x00);
+            LedBreathePwmConfig(&sRedBreathePwm, 25, 150, 0xFF, 0x00, 0);
+            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm), 0x00, 0x00);
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
         }
         else
         {
-            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm[0]), 0x00, 0x00);
+            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm), 0x00, 0x00);
             I2C_sTlc59108fAllRegUpDate();
         }
         break;
@@ -564,17 +507,16 @@ PUBLIC void LedDriverExec(void)
     case LED_STATE_CHARGE_20_39://left and right show orange with 6s breathing period
         if(sLedFsm.stateTransferFlag)
         {
-            LedBreathePwmConfig(&sRedBreathePwm[0], 25, 120, 0xFF, 0x00, 0);
-            LedBreathePwmConfig(&sGreenBreathePwm[0], 25, 120, 0x40, 0x00, 0);
-            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm[0]), GetBreathePwmValue(&sGreenBreathePwm[0]), 0x00);
-            //LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm[0]), 0x00, 0x00);
+            LedBreathePwmConfig(&sRedBreathePwm, 25, 120, 0xD2, 0x00, 0);
+            LedBreathePwmConfig(&sGreenBreathePwm, 25, 120, 0x0A, 0x00, 0);
+            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm), GetBreathePwmValue(&sGreenBreathePwm), 0x00);
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
         }
         else
         {
-            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm[0]), GetBreathePwmValue(&sGreenBreathePwm[0]), 0x00);
+            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm), GetBreathePwmValue(&sGreenBreathePwm), 0x00);
             I2C_sTlc59108fAllRegUpDate();
         }
         break;
@@ -582,16 +524,16 @@ PUBLIC void LedDriverExec(void)
     case LED_STATE_CHARGE_40_59://left and right show yellow with 4.5s breathing period
         if(sLedFsm.stateTransferFlag)
         {
-            LedBreathePwmConfig(&sRedBreathePwm[0], 25, 90, 0xFF, 0x00, 0);
-            LedBreathePwmConfig(&sGreenBreathePwm[0], 25, 90, 0xB4, 0x00, 0);
-            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm[0]), GetBreathePwmValue(&sGreenBreathePwm[0]), 0x00);
+            LedBreathePwmConfig(&sRedBreathePwm, 25, 90, 0xD2, 0x00, 0);
+            LedBreathePwmConfig(&sGreenBreathePwm, 25, 90, 0x32, 0x00, 0);
+            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm), GetBreathePwmValue(&sGreenBreathePwm), 0x00);
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
         }
         else
         {
-            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm[0]), GetBreathePwmValue(&sGreenBreathePwm[0]), 0x00);
+            LedRGBPwmControl(LED_LEFT_RIGHT, GetBreathePwmValue(&sRedBreathePwm), GetBreathePwmValue(&sGreenBreathePwm), 0x00);
             I2C_sTlc59108fAllRegUpDate();
         }
         break;
@@ -599,15 +541,15 @@ PUBLIC void LedDriverExec(void)
     case LED_STATE_CHARGE_60_79://left and right show green with 3s breathing period
         if(sLedFsm.stateTransferFlag)
         {
-            LedBreathePwmConfig(&sGreenBreathePwm[0], 25, 60, 0xFF, 0x00, 0);
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm[0]), 0x00);
+            LedBreathePwmConfig(&sGreenBreathePwm, 25, 60, 0xFF, 0x00, 0);
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm), 0x00);
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
         }
         else
         {
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm[0]), 0x00);
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm), 0x00);
             I2C_sTlc59108fAllRegUpDate();
         }
         break;
@@ -615,16 +557,16 @@ PUBLIC void LedDriverExec(void)
     case LED_STATE_CHARGE_80_99://left and right show light blue with 1.5s breathing period
         if(sLedFsm.stateTransferFlag)
         {
-            LedBreathePwmConfig(&sGreenBreathePwm[0], 25, 30, 0x32, 0x00, 0); //pudu blue 00 32 96
-            LedBreathePwmConfig(&sBlueBreathePwm[0], 25, 30, 0x96, 0x00, 0);
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm[0]), GetBreathePwmValue(&sBlueBreathePwm[0]));
+            LedBreathePwmConfig(&sGreenBreathePwm, 25, 30, 0x32, 0x00, 0);
+            LedBreathePwmConfig(&sBlueBreathePwm, 25, 30, 0x96, 0x00, 0);
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm), GetBreathePwmValue(&sBlueBreathePwm));
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
         }
         else
         {
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm[0]), GetBreathePwmValue(&sBlueBreathePwm[0]));
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm), GetBreathePwmValue(&sBlueBreathePwm));
             I2C_sTlc59108fAllRegUpDate();
         }
         break;
@@ -632,15 +574,15 @@ PUBLIC void LedDriverExec(void)
     case LED_STATE_CHARGE_ING://left and right show green with 3s breathing period
         if(sLedFsm.stateTransferFlag)
         {
-            LedBreathePwmConfig(&sGreenBreathePwm[0], 25, 60, 0xFF, 0x00, 0);
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm[0]), 0x00);
+            LedBreathePwmConfig(&sGreenBreathePwm, 25, 60, 0xFF, 0x00, 0);
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm), 0x00);
             I2C_sTlc59108fAllRegUpDate();
 
             sLedFsm.stateTransferFlag = 0;
         }
         else
         {
-            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm[0]), 0x00);
+            LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, GetBreathePwmValue(&sGreenBreathePwm), 0x00);
             I2C_sTlc59108fAllRegUpDate();
         }
         break;
@@ -664,19 +606,6 @@ PUBLIC void LedDriverExec(void)
             sLedFsm.stateTransferFlag = 0;
         }
         break;
-    case LED_STATE_POWEROFF://left and right show red with 500ms blinking period
-        if(sLedFsm.stateTransferFlag)
-        {
-            if(sLedFsm.stateTransferFlag)
-            {
-                LedRGBPwmControl(LED_LEFT_RIGHT, 0x00, 0x00, 0x00);
-                I2C_sTlc59108fAllRegUpDate();
-                //ChassisLED_PowerOff();
-                sLedFsm.stateTransferFlag = 0;
-            }
-
-        }
-        break;
 
     default:
         break;
@@ -692,455 +621,138 @@ typedef struct {
     volatile int8_t b_color;
     volatile int8_t toggled;
     volatile uint8_t mode;
-    volatile uint16_t number;  // 这里用16位用于判断是否无限闪烁
+    volatile uint8_t dir;
     volatile uint32_t timer;
     volatile uint32_t arg;
 } LED_BAR_PARAM;
 
-LED_BAR_PARAM bar_param[3] =
+LED_BAR_PARAM bar_param[2] =
 {
-    {.r_color = 0, .g_color = 0, .b_color = 0, .toggled = 1, .mode = 0, .number = 0, .timer = 0, .arg = 0 },
-    {.r_color = 0, .g_color = 0, .b_color = 0, .toggled = 1, .mode = 0, .number = 0, .timer = 0, .arg = 0 },
-    {.r_color = 0, .g_color = 0, .b_color = 0, .toggled = 1, .mode = 0, .number = 0, .timer = 0, .arg = 0 }
+    {.r_color = 0, .g_color = 0, .b_color = 0, .toggled = 1, .mode = 0, .dir = 0, .timer = 0, .arg = 0 },
+    {.r_color = 0, .g_color = 0, .b_color = 0, .toggled = 1, .mode = 0, .dir = 0, .timer = 0, .arg = 0 }
 };
 
 void chassis_led_ctrl( uint8_t *buff )
 {
-    uint8_t lcolor = buff[2]; // 灯条颜色编号
-    uint8_t lmode = buff[3];  //控制模式
-    uint32_t larg = buff[6] | (buff[5]<<8); //时间 或灯条颜色
-    uint8_t num_flash = buff[4]; //次数或灯条颜色
-    uint8_t bar_id = buff[1]; //灯条编号
+    uint8_t lcolor = buff[2];
+    uint8_t lmode = buff[3];
+    uint32_t larg = buff[6] | (buff[5]<<8) | ( buff[4] << 16 );
+    uint8_t bar_id = buff[1];
     uint8_t idx = 0;
-    uint8_t bar_temp = 0; // 灯条重新编码 左侧灯条 位0，右侧灯条 位1，后侧灯条 位2；
 
-    // 编码灯条
-    if(bar_id == 12) // 全部灯条
-    {
-        bar_temp = 7;
-    }
-    else if(bar_id == 13) // 左侧灯条
-    {
-        bar_temp = 1;
-    }
-    else if(bar_id == 14) // 右侧灯条
-    {
-        bar_temp = 2;
-    }
-    else if(bar_id == 15) // 后侧灯条
-    {
-        bar_temp = 4;
-    }
-    else
+    if( bar_id != 13 && bar_id != 14 )
     {
         return;
     }
 
-    if( ReadChargeAppState() ) // 充电的时候不通过上位机控制
+    idx = bar_id - 13;
+    if( ReadChargeAppState() )
     {
         return;
     }
 
-    if( lcolor > 6 || lmode > 6 )// 指令错误
+    if( lcolor > 6 || lmode > 6 )
     {
         return;
     }
 
-    if( lcolor == 1) // 白色
+    if( lcolor == 1)
     {
-        chassis_led_color_extract(bar_temp,buff,0xff,0xff,0xff);
-
-    } else if( lcolor == 2 ) {  // 红色
-
-        chassis_led_color_extract(bar_temp,buff,0xff,0x00,0x00);
-
-    } else if( lcolor == 3 ) {  // 绿色
-
-        chassis_led_color_extract(bar_temp,buff,0x00,0xff,0x00);
-
-    } else if( lcolor == 4 ) {  // pudu蓝色
-
-        chassis_led_color_extract(bar_temp,buff,0x00,0x32,0x96);
-
-    } else if( lcolor == 5 ) {  // 橙色
-
-        chassis_led_color_extract(bar_temp,buff,0xff,0xa5,0x00);
-
-    } else if( lcolor == 6 ) {  // 黄色
-
-        chassis_led_color_extract(bar_temp,buff,0xff,0xff,0x00);
-
+        bar_param[idx].r_color = 0xFF;
+        bar_param[idx].g_color = 0xFF;
+        bar_param[idx].b_color = 0xFF;
+    } else if( lcolor == 2 ) {
+        bar_param[idx].r_color = 0xFF;
+        bar_param[idx].g_color = 0;
+        bar_param[idx].b_color = 0;
+    } else if( lcolor == 3 ) {
+        bar_param[idx].r_color = 0;
+        bar_param[idx].g_color = 0xFF;
+        bar_param[idx].b_color = 0;
+    } else if( lcolor == 4 ) {
+        bar_param[idx].r_color = 0;
+        bar_param[idx].g_color = 0;
+        bar_param[idx].b_color = 0xFF;
+    } else if( lcolor == 5 ) {
+        bar_param[idx].r_color = 0xFF;
+        bar_param[idx].g_color = 0xA5;
+        bar_param[idx].b_color = 0;
+    } else if( lcolor == 6 ) {
+        bar_param[idx].r_color = 0xFF;
+        bar_param[idx].g_color = 0xFF;
+        bar_param[idx].b_color = 0;
     }
-    else if(lcolor == 0 && lmode == 5)
+    bar_param[idx].mode = lmode;
+    bar_param[idx].arg = larg / 40;
+
+    if( bar_param[idx].mode == 5 )
     {
-        chassis_led_color_extract(bar_temp,buff,buff[4],buff[5],buff[6]);
+        bar_param[idx].r_color = buff[4];
+        bar_param[idx].g_color = buff[5];
+        bar_param[idx].b_color = buff[6];
+        bar_param[idx].mode = 1;
     }
-
-}
-/**
- * @brief  用于辅助底盘led控制函数，将can总线下行的数据解析到指定参数组中
- * @param[in|out]  bar_temp 重新编码的led编号，0位表示灯条1；1位表示灯条2；2位表示灯条3 ，buff,数据帧
-                   r_color，g_color，b_color ：颜色编码
- * @return      NULL
- */
-PRIVATE void chassis_led_color_extract(uint8_t bar_temp,uint8_t *buff,uint8_t r_color,uint8_t g_color,uint8_t b_color)
-{
-    if( (bar_temp & 0x01) == 0x01 ) //左侧灯条
+    if( bar_param[idx].mode == 1 || bar_param[idx].mode == 0 )
     {
-        bar_param[0].r_color = r_color;
-        bar_param[0].g_color = g_color;
-        bar_param[0].b_color = b_color;
-        bar_param[0].mode = buff[3];
-        if(bar_param[0].mode == 5)//CAN发送RGB模式
-        {
-            bar_param[0].number = 0;
-        }
-        else
-        {
-            bar_param[0].arg = (buff[6] | (buff[5]<<8))/50; //周期
-            bar_param[0].number =  buff[4]*2 + 1; //次数
-        }
-        bar_param[0].toggled = 0;
-
-        if(bar_param[0].number == 0x1)
-        {
-            bar_param[0].number = 0x8000; // 闪烁次数寄存器的第15位为连续闪烁模式
-        }
-        bar_param[0].timer = 0;
-
-    }
-    else
-    {
+        bar_param[idx].toggled = 0;
     }
 
-    if( (bar_temp & 0x02) == 0x02 )//右侧灯条
-    {
-        bar_param[1].r_color = r_color;
-        bar_param[1].g_color = g_color;
-        bar_param[1].b_color = b_color;
-        bar_param[1].mode = buff[3];
-        if(bar_param[1].mode == 5)
-        {
-            bar_param[1].number = 0;
-        }
-        else
-        {
-            bar_param[1].arg = (buff[6] | (buff[5]<<8))/50;
-            bar_param[1].number =  buff[4]*2 + 1;
-        }
-        bar_param[1].toggled = 0;
-
-        if(bar_param[1].number == 0x01)
-        {
-            bar_param[1].number = 0x8000; // 闪烁次数寄存器的第15位为连续闪烁模式
-        }
-        bar_param[1].timer = 0;
-    }
-    else
-    {
-    }
-
-    // 灯带3 是单色灯，只有单蓝色才会点亮，否则全部熄灭
-    if( (bar_temp & 0x04) == 0x04 )
-    {
-        if( b_color == 0xff && r_color == 0x00 && g_color == 0x00 )
-        {
-            bar_param[2].r_color = 0x00;
-            bar_param[2].g_color = 0x00;
-            bar_param[2].b_color = 0xff;  // 原理图逻辑是反的，00 才是亮的
-            bar_param[2].mode = buff[3];
-            if(bar_param[2].mode == 5)
-            {
-                bar_param[2].number = 0;
-            }
-            else
-            {
-                bar_param[2].arg = (buff[6] | (buff[5]<<8))/50;
-                bar_param[2].number =  buff[4]*2+1;
-            }
-            bar_param[2].toggled = 0;
-            if(bar_param[2].number == 0x01)
-            {
-                bar_param[2].number = 0x8000; // 闪烁次数寄存器的第15位为连续闪烁模式
-            }
-            bar_param[2].timer = 0;
-
-        }
-        else
-        {
-            bar_param[2].r_color = 0x00;
-            bar_param[2].g_color = 0x00;
-            bar_param[2].b_color = 0x00;
-            bar_param[2].mode = 0x00;
-            bar_param[2].arg = 0x00;
-            bar_param[2].number = 0x00;
-            bar_param[2].toggled = 0;
-        }
-    }
-    else
-    {
-    }
 }
 
 void led_bar_driver( void )
 {
     uint8_t bar = 0;
-    if( ReadChargeAppState() ) // 充电的时候不通过上位机控制
-    {
-        return;
-    }
-    bar_param[0].timer++; // 25ms
-    bar_param[1].timer++;
-    bar_param[2].timer++;
-    //左侧灯条
-    if( bar_param[0].mode == 2 || bar_param[0].mode == 4)  // 闪亮模式，通过 求余以及除法 计算
-    {
-        if(( bar_param[0].timer % bar_param[0].arg ) == 0 && ( ( bar_param[0].timer / bar_param[0].arg ) % 2 ) == 0 && bar_param[0].number > 0) // 闪烁完成常亮
-        {
-            if(bar_param[0].number != 1) //该周期将要减为0的时候不再向灯条内写入数据
-            {
-                LedRGBPwmControl(LED_LEFT, bar_param[0].r_color, bar_param[0].g_color, bar_param[0].b_color);
-                I2C_sTlc59108fAllRegUpDate();
-            }
-            if(bar_param[0].number != 0x8000) // 无限次闪烁
-            {
-                bar_param[0].number --;
-            }
-        }
-        else if(( bar_param[0].timer % bar_param[0].arg ) == 0 && ( ( bar_param[0].timer / bar_param[0].arg ) % 2 ) == 1 && bar_param[0].number > 0 )
-        {   // 闪烁完成长灭
-            if(bar_param[0].number != 1)
-            {
-                LedRGBPwmControl(LED_LEFT, 0, 0, 0);
-                I2C_sTlc59108fAllRegUpDate();
-            }
-            if(bar_param[0].number != 0x8000) // 无限次闪烁
-            {
-                bar_param[0].number --;
-            }
-        }
-        if(bar_param[0].number == 0 && bar_param[0].toggled == 0) // 闪烁完成，并且判断是否被触发过
-        {
-            if( bar_param[0].mode == 2 ) // 闪烁完成之后熄灭
-            {
-                LedRGBPwmControl(LED_LEFT, 0, 0, 0);
-                I2C_sTlc59108fAllRegUpDate();
-                bar_param[0].toggled = 1;
-            }
-            else if( bar_param[0].mode == 4)
-            {   // 闪烁完成之后点亮
-                LedRGBPwmControl(LED_LEFT, bar_param[0].r_color, bar_param[0].g_color, bar_param[0].b_color);
-                I2C_sTlc59108fAllRegUpDate();
-                bar_param[0].toggled = 1;
-            }
-        }
 
-    }
-    else if( bar_param[0].mode == 0 && bar_param[0].toggled == 0 )
+    bar_param[0].timer++;
+    bar_param[1].timer++;
+
+
+    if( bar_param[0].mode == 2)
     {
+        if(( bar_param[0].timer % bar_param[0].arg ) == 0 && bar_param[0].dir == 0)
+        {
+            LedRGBPwmControl(LED_LEFT, bar_param[0].r_color, bar_param[0].g_color, bar_param[0].b_color);
+            I2C_sTlc59108fAllRegUpDate();
+            bar_param[0].dir = 1;
+        } else if( ( bar_param[0].timer % bar_param[0].arg ) == 0 && bar_param[0].dir == 1 ) {
+            LedRGBPwmControl(LED_LEFT, 0, 0, 0);
+            I2C_sTlc59108fAllRegUpDate();
+            bar_param[0].dir = 0;
+        }
+    } else if( bar_param[0].mode == 0 && bar_param[0].toggled == 0 ) {
         LedRGBPwmControl(LED_LEFT, 0, 0, 0);
         I2C_sTlc59108fAllRegUpDate();
         bar_param[0].toggled = 1;
-    }
-    else if (( bar_param[0].mode == 1 || bar_param[0].mode == 5) && bar_param[0].toggled == 0 )
-    {
+    } else if ( bar_param[0].mode == 1 && bar_param[0].toggled == 0 ) {
         LedRGBPwmControl(LED_LEFT, bar_param[0].r_color, bar_param[0].g_color, bar_param[0].b_color);
         I2C_sTlc59108fAllRegUpDate();
         bar_param[0].toggled = 1;
     }
-    else if(bar_param[0].mode == 3) // 呼吸灯模式
+
+    if( bar_param[1].mode == 2)
     {
-        if(bar_param[0].toggled == 0)
+        if(( bar_param[1].timer % bar_param[1].arg ) == 0 && bar_param[1].dir == 0)
         {
-            LedBreathePwmConfig(&sGreenBreathePwm[0], 25, bar_param[0].arg, bar_param[0].g_color, 0x00, 0);
-            LedBreathePwmConfig(&sBlueBreathePwm[0], 25, bar_param[0].arg,  bar_param[0].b_color, 0x00, 0);
-            LedBreathePwmConfig(&sRedBreathePwm[0], 25, bar_param[0].arg,  bar_param[0].r_color, 0x00, 0);
-            bar_param[0].toggled = 1;
-        }
-        else
-        {
-        }
-        if(sBlueBreathePwm[0].pwmStepCnt == sBlueBreathePwm[0].timeNumber && bar_param[0].number != 0 && bar_param[0].number != 0x8000  )
-        {
-            bar_param[0].number --;
-        }
-        if(bar_param[0].number > 1)
-        {
-            LedRGBPwmControl(LED_LEFT, GetBreathePwmValue(&sRedBreathePwm[0]),GetBreathePwmValue(&sGreenBreathePwm[0]),GetBreathePwmValue(&sBlueBreathePwm[0]));
+            LedRGBPwmControl(LED_RIGHT, bar_param[1].r_color, bar_param[1].g_color, bar_param[1].b_color);
             I2C_sTlc59108fAllRegUpDate();
-        }
-        else if(bar_param[0].number > 0)
-        {
-            LedRGBPwmControl(LED_LEFT,0,0,0);
+            bar_param[1].dir = 1;
+        } else if( ( bar_param[1].timer % bar_param[1].arg ) == 0 && bar_param[1].dir == 1 ) {
+            LedRGBPwmControl(LED_RIGHT, 0, 0, 0);
             I2C_sTlc59108fAllRegUpDate();
+            bar_param[1].dir = 0;
         }
-    }
-    // 右侧灯条
-    if( bar_param[1].mode == 2 || bar_param[1].mode == 4)  // 闪亮模式，通过 求余以及除法 计算
-    {
-        if(( bar_param[1].timer % bar_param[1].arg ) == 0 && ( ( bar_param[1].timer / bar_param[1].arg ) % 2 ) == 0 && bar_param[1].number > 0) // 闪烁完成常亮
-        {
-            if(bar_param[1].number != 1) //该周期将要减为0的时候不再向灯条内写入数据
-            {
-                LedRGBPwmControl(LED_RIGHT, bar_param[1].r_color, bar_param[1].g_color, bar_param[1].b_color);
-                I2C_sTlc59108fAllRegUpDate();
-            }
-            if(bar_param[1].number != 0x8000) // 无限次闪烁
-            {
-                bar_param[1].number --;
-            }
-        }
-        else if(( bar_param[1].timer % bar_param[1].arg ) == 0 && ( ( bar_param[1].timer / bar_param[1].arg ) % 2 ) == 1 && bar_param[1].number > 0 )
-        {   // 闪烁完成长灭
-            if(bar_param[1].number != 1)
-            {
-                LedRGBPwmControl(LED_RIGHT, 0, 0, 0);
-                I2C_sTlc59108fAllRegUpDate();
-            }
-            if(bar_param[1].number != 0x8000) // 无限次闪烁
-            {
-                bar_param[1].number --;
-            }
-        }
-        if(bar_param[1].number == 0 && bar_param[1].toggled == 0) // 闪烁完成，并且判断是否被触发过
-        {
-            if( bar_param[1].mode == 2 ) // 闪烁完成之后熄灭
-            {
-                LedRGBPwmControl(LED_RIGHT, 0, 0, 0);
-                I2C_sTlc59108fAllRegUpDate();
-                bar_param[1].toggled = 1;
-            }
-            else if( bar_param[1].mode == 4)
-            {   // 闪烁完成之后点亮
-                LedRGBPwmControl(LED_RIGHT, bar_param[1].r_color, bar_param[1].g_color, bar_param[1].b_color);
-                I2C_sTlc59108fAllRegUpDate();
-                bar_param[1].toggled = 1;
-            }
-        }
-    }
-    else if( bar_param[1].mode == 0 && bar_param[1].toggled == 0 )
-    {
+    } else if( bar_param[1].mode == 0 && bar_param[1].toggled == 0 ) {
         LedRGBPwmControl(LED_RIGHT, 0, 0, 0);
         I2C_sTlc59108fAllRegUpDate();
         bar_param[1].toggled = 1;
-    }
-    else if (( bar_param[1].mode == 1 || bar_param[1].mode == 5) && (bar_param[1].toggled == 0 ))
-    {
+    } else if ( bar_param[1].mode == 1 && bar_param[1].toggled == 0 ) {
         LedRGBPwmControl(LED_RIGHT, bar_param[1].r_color, bar_param[1].g_color, bar_param[1].b_color);
         I2C_sTlc59108fAllRegUpDate();
         bar_param[1].toggled = 1;
     }
-    else if(bar_param[1].mode == 3) // 呼吸灯模式
-    {
-        if(bar_param[1].toggled == 0)
-        {
-            LedBreathePwmConfig(&sGreenBreathePwm[1], 25, bar_param[1].arg, bar_param[1].g_color, 0x00, 0);
-            LedBreathePwmConfig(&sBlueBreathePwm[1], 25, bar_param[1].arg,  bar_param[1].b_color, 0x00, 0);
-            LedBreathePwmConfig(&sRedBreathePwm[1], 25, bar_param[1].arg,  bar_param[1].r_color, 0x00, 0);
-            bar_param[1].toggled = 1;
-        }
-        else
-        {
-        }
-        if(sBlueBreathePwm[1].pwmStepCnt == sBlueBreathePwm[1].timeNumber && bar_param[1].number != 0 && bar_param[1].number != 0x8000 )
-        {
-            bar_param[1].number --;
-        }
-        if(bar_param[1].number > 1)
-        {
-            LedRGBPwmControl(LED_RIGHT, GetBreathePwmValue(&sRedBreathePwm[1]),GetBreathePwmValue(&sGreenBreathePwm[1]),GetBreathePwmValue(&sBlueBreathePwm[1]));
-            I2C_sTlc59108fAllRegUpDate();
-        }
-        else if(bar_param[1].number > 0)
-        {
-            LedRGBPwmControl(LED_RIGHT,0,0,0);
-            I2C_sTlc59108fAllRegUpDate();
-        }
-    }
-    //后侧灯条
-    if( bar_param[2].mode == 2)
-    {
-        if(( bar_param[2].timer % bar_param[2].arg ) == 0 && ( ( bar_param[2].timer / bar_param[2].arg ) % 2 ) == 0 && bar_param[2].number > 0) // 闪烁完成常亮
-        {
-            if(bar_param[2].number != 1) //该周期将要减为0的时候不再向灯条内写入数据
-            {
-                LedRGBPwmControl(LED_BACK, bar_param[2].r_color, bar_param[2].g_color, bar_param[2].b_color);
-                I2C_sTlc59108fAllRegUpDate();
-            }
-            if(bar_param[2].number != 0x8000) // 无限次闪烁
-            {
-                bar_param[2].number --;
-            }
-        }
-        else if(( bar_param[2].timer % bar_param[2].arg ) == 0 && ( ( bar_param[2].timer / bar_param[2].arg ) % 2 ) == 1 && (bar_param[2].number > 0 ))
-        {   // 闪烁完成长灭
-            if(bar_param[2].number != 1)
-            {
-                LedRGBPwmControl(LED_BACK, 0, 0, 0);
-                I2C_sTlc59108fAllRegUpDate();
-            }
-            if(bar_param[2].number != 0x8000) // 无限次闪烁
-            {
-                bar_param[2].number --;
-            }
-        }
-        if(bar_param[2].number == 0 && bar_param[2].toggled == 0) // 闪烁完成，并且判断是否被触发过
-        {
-            if( bar_param[2].mode == 2 ) // 闪烁完成之后熄灭
-            {
-                LedRGBPwmControl(LED_BACK, 0, 0, 0);
-                I2C_sTlc59108fAllRegUpDate();
-                bar_param[2].toggled = 1;
-            }
-            else if( bar_param[2].mode == 4)
-            {   // 闪烁完成之后点亮
-                LedRGBPwmControl(LED_BACK, bar_param[2].r_color, bar_param[2].g_color, bar_param[2].b_color);
-                I2C_sTlc59108fAllRegUpDate();
-                bar_param[2].toggled = 1;
-            }
-        }
-    }
-    else if( bar_param[2].mode == 0 && bar_param[2].toggled == 0 )
-    {
-        LedRGBPwmControl(LED_BACK, 0, 0, 0);
-        I2C_sTlc59108fAllRegUpDate();
-        bar_param[2].toggled = 1;
-    }
-    else if (( bar_param[2].mode == 1 || bar_param[2].mode == 5) && bar_param[2].toggled == 0 )
-    {
-        LedRGBPwmControl(LED_BACK, bar_param[2].r_color, bar_param[2].g_color, bar_param[2].b_color);
-        I2C_sTlc59108fAllRegUpDate();
-        bar_param[2].toggled = 1;
-    }
-    else if(bar_param[2].mode == 3) // 呼吸灯模式
-    {
-        if(bar_param[2].toggled == 0)
-        {
-//            LedBreathePwmConfig(&sGreenBreathePwm[2], 25, bar_param[2].arg, bar_param[2].g_color, 0x00, 0);
-            LedBreathePwmConfig(&sBlueBreathePwm[2], 25, bar_param[2].arg,  bar_param[2].b_color, 0x00, 0);
-//            LedBreathePwmConfig(&sRedBreathePwm[2], 25, bar_param[2].arg,  bar_param[2].r_color, 0x00, 0);
-            bar_param[2].toggled = 1;
-        }
-        else
-        {
-        }
-        if(sBlueBreathePwm[2].pwmStepCnt == sBlueBreathePwm[2].timeNumber && bar_param[2].number != 0 && bar_param[2].number != 0x8000  )
-        {
-            bar_param[2].number --;
-        }
-        if(bar_param[2].number > 1)
-        {
-            LedRGBPwmControl(LED_BACK, GetBreathePwmValue(&sRedBreathePwm[2]),GetBreathePwmValue(&sGreenBreathePwm[2]),GetBreathePwmValue(&sBlueBreathePwm[2]));
-            I2C_sTlc59108fAllRegUpDate();
-        }
-        else if(bar_param[2].number > 0)
-        {
-            LedRGBPwmControl(LED_BACK,0,0,0);
-            I2C_sTlc59108fAllRegUpDate();
-        }
 
-    }
 }
+
 
 /***********************************************************************
  * DESCRIPTION: Handle LedFsm event
@@ -1283,55 +895,4 @@ PUBLIC UINT8 GetBatteryLevelForLed(UINT8 BatteryLevel)
         break;
     }
     return ucRetVal;
-}
-extern PUBLIC UINT32 ReadTimeStampTimer(void);
-extern struct PowerManagerStruct sPowerManager;
-PUBLIC void GetChargeState(uint8_t *recbuff)
-{
-    UINT8 chargestate = recbuff[1];
-    UINT8 soc = recbuff[3];
-    static UINT32 timeold = 0;
-    UINT32 timenow = ReadTimeStampTimer();
-	
-		if(recbuff[1] == 11)//充电桩充电
-		{
-				sPowerManager.sChargeInfo.ChargeMode = 2;
-		}
-		else if(recbuff[1] == 1)
-		{
-				sPowerManager.sChargeInfo.ChargeMode = 1;
-		}
-		else
-		{
-				sPowerManager.sChargeInfo.ChargeMode = 0;
-		}
-    if((timenow-timeold)<27000000)//1s
-    {
-        return ;
-    }
-    else
-    {
-        timeold = timenow;
-    }
-    //根据充电状态，切换灯带状态
-    if ((recbuff[1]==1)||(recbuff[1]==11))
-    {
-        //插上充电后，即显示充电呼吸效果
-        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_ING, GetBatteryLevelForLed(recbuff[3]), NULL);
-        sPowerManager.sChargeInfo.ChargeAppState = CHARGING;
-    }
-    else if(((recbuff[1] >= 5)&&(recbuff[1] <= 10))||(recbuff[1] >= 14))//电池故障增加了
-    {
-        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
-        //当出现故障时，接收上位机控制，提示红色闪烁故障灯
-        LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, LED_STATE_ERROR, NULL);
-        sPowerManager.sChargeInfo.ChargeAppState = POWER_ALARM;
-    }
-    else //if(recbuff[1] == 0) // 未充电
-    {
-        //拔掉充电器后，进入正常的蓝色待机状态
-        LedFsmEventHandle(&sLedFsm, LED_EVENT_CHARGE_OUT, LED_STATE_AWAIT, NULL);
-        sPowerManager.sChargeInfo.ChargeAppState = NOT_CHARGED;
-    }
-    gSensorData.BatteryLevel0x400D = recbuff[4];
 }

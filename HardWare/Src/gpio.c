@@ -41,7 +41,6 @@
 #include "gpio.h"
 #include "gd_hal.h"
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /*----------------------------------------------------------------------------*/
@@ -68,6 +67,13 @@
      PD0   ------> CAN1_RX
      PD1   ------> CAN1_TX
 */
+
+/***********************************************************************
+ * DESCRIPTION:GPIO定义初始化
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 UINT8 MX_GPIO_Init(void)
 {
     UINT8 TmpChar = 0;
@@ -78,129 +84,122 @@ UINT8 MX_GPIO_Init(void)
     rcu_periph_clock_enable(RCU_GPIOD);
     rcu_periph_clock_enable(RCU_GPIOE);
 
-
-
     /*Configure Left HALL GPIO pins PD7::HA  PB6:HB  PB7:HC */
     gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_7);
     gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_6);
     gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_7);
+	
     /*Configure Right HALL GPIO pins :PC12:HA  PC10:HB  PC11:HC */
     gpio_mode_set(GPIOC,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_12);
     gpio_mode_set(GPIOC,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_10);
     gpio_mode_set(GPIOC,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
 
+		/* PB12 电机老化 */
+    gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_12);
 
-    /*Configure GPIO pins : PD3 :DRVE_PW_EN(12V)*/
-    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_3);
-    gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_3);
-
+    /*Configure GPIO pins : PE5 :DRVE_PW_EN(12V)*/
+    gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_5);
+    gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_5);
     DrvPwDisable();
-
-//     /*Configure GPIO pins : PC3 :MOTOR POWER ENABLE, PA15:MOTOR POWER BUFF ENABLE*/
-    gpio_mode_set(GPIOA,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_15);
-    gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);
+   
+    /*Configure GPIO pins:PD10:MOTOR POWER BUFF ENABLE*/
+    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_10);
+    gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_10);
     VbusBufferDisable();
-
-    gpio_mode_set(GPIOC,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_3);
-    gpio_output_options_set(GPIOC,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_3);
-
+		
+    //PE15:MOTOR POWER ENABLE
+    gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_15);
+    gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);
     VbusDisable();
-//    /*Configure GPIO pins : PD4 :SYS_12V_EN (12V)*/
-//    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_4);
-//    gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_4);
-//
-//     /*Configure GPIO pins : PD9 :SYS_24V_EN (24V)*/
-//     gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_9);
-//     gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_9);
-//     PadPowerOn();
-
-//     /*Configure GPIO pins : PC2 : RST_ACS711 */
-    gpio_mode_set(GPIOC,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_2);
-    gpio_output_options_set(GPIOC,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_2);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET);
-
-//     /*Configure GPIO pins : PD4 :BEMF DISCHARGE */
-
-    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_4);
-    gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_4);
-//     // disable BEMF discharge by default
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_RESET);
-
-//     /*Configure GPIO pins : PE0 PE1 :led1,2 */
+		
+	  /*Configure GPIO pins : PA9 : RST_ACS711 */
+    gpio_mode_set(GPIOA,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_9);
+    gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_9);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+		
+    /*Configure GPIO pins : PE0 PE1 :led1,2 */
     gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_0);
     gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_0);
     gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_1);
-    gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_1);
-
-//     /*Configure GPIO pins : PC13 :CAN_LED  PC14: STM32 heartbeat led*/
+    gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_1);		
+		
+    /*Configure GPIO pins : PC13 :CAN_LED  PC14: STM32 heartbeat led*/
     gpio_mode_set(GPIOC,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_13);
     gpio_output_options_set(GPIOC,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_13);
     gpio_mode_set(GPIOC,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_14);
     gpio_output_options_set(GPIOC,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_14);
 
-//     /*Configure GPIO pins : PB3 : DC Voltage State */
-    gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_3);
-
-    /*DIAGNOSTIC_PWM  PA6*/
-    gpio_mode_set(GPIOA,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_6);
-    gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_6);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
-
-//     /*Configure GPIO pins : PB2:L_IU_FO, PE7 : L_IV_FO */
-    gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_2);
-    gpio_mode_set(GPIOE,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_7);
-
-//     /*Configure GPIO pins : PA10 : SAFE_IN1  PA11 : SAFE_IN2*/
-    gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_10);
-    gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
-
-//     /*Configure GPIO pins : PE14 : R_IU_FO */
+    /*Configure GPIO pins : PD3 : EXOLIDARPW */
+    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_3);
+    gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_3);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET);
+	
+    /*Configure GPIO pins : PE4 : DC Voltage State */
+    gpio_mode_set(GPIOE,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_4);
+		
+		/*DIAGNOSTIC_PWM  PA10*/
+    gpio_mode_set(GPIOA,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_10);
+    gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_10);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
+		
+		/*Configure GPIO pins  PE14 : SAFE_IN1*/
     gpio_mode_set(GPIOE,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_14);
 
-//     /*Configure GPIO pins : PE15 : R_IV_FO */
-    gpio_mode_set(GPIOE,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_15);
-
-//     /*Configure GPIO pins : PD2 : IBUS_FO */
+    /*Configure GPIO pins : PD2 : IBUS_FO */
     gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_2);
 
-//      /*Configure GPIO pins : PB9 PB8: EEPROM SDA SCL */
+    /*Configure GPIO pins : PB9 PB8: EEPROM SDA SCL */
     gpio_mode_set(GPIOB,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_8);
     gpio_output_options_set(GPIOB,GPIO_OTYPE_OD,GPIO_OSPEED_50MHZ,GPIO_PIN_8);
     gpio_mode_set(GPIOB,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_9);
     gpio_output_options_set(GPIOB,GPIO_OTYPE_OD,GPIO_OSPEED_50MHZ,GPIO_PIN_9);
-
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);		
+		
+    /*Configure GPIO pins : PE2 PE6: SDA2 SCL2 */
+    gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_2);
+    gpio_output_options_set(GPIOE,GPIO_OTYPE_OD,GPIO_OSPEED_2MHZ,GPIO_PIN_2);
+    gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_6);
+    gpio_output_options_set(GPIOE,GPIO_OTYPE_OD,GPIO_OSPEED_2MHZ,GPIO_PIN_6);    
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
+		 
+    //PB3 : LOGO 使能
+    gpio_mode_set(GPIOB,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_3);
+    gpio_output_options_set(GPIOB,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_3);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_SET);
+		
+		//PD15 : LOGO PWM
+    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_15);
+    gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
+			 
+		/*Configure GPIO pins : PB15 : MUSIC ENABLE*/
+    gpio_mode_set(MUSIC_ENABLE_PORT,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,MUSIC_ENABLE_PIN);
+    gpio_output_options_set(MUSIC_ENABLE_PORT,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,MUSIC_ENABLE_PIN);
+    MusicPwDisable();
 
-//     /*Configure GPIO pins : PA12, KEY_IN_DET */
-    gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_12);
-
-//     /*Configure GPIO pins : PC15 : Tlc59108 RSTn*/
-    gpio_mode_set(GPIOC,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_15);
-    gpio_output_options_set(GPIOC,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
-
-    /*PB12  PB13 PD9 PD11  DI1 DI2  DI3  DI4*/
-    gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_12);
-    gpio_mode_set(GPIOB,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_13);
-    //gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_9);
-    //gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
-
-    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_9);
-    gpio_output_options_set(GPIOD,GPIO_OTYPE_OD,GPIO_OSPEED_50MHZ,GPIO_PIN_9);
-    gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
-    gpio_output_options_set(GPIOD,GPIO_OTYPE_OD,GPIO_OSPEED_50MHZ,GPIO_PIN_11);
-
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_SET);
-    /* RK3399_STM32F7_SYNC */
-    gpio_mode_set(GPIOC,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_9);
-
-//     /*Configure GPIO pins : PD14:S1 PD15:S2：ApplicationMode*/
-    gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_14);
-    gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_15);
-    TmpChar = ReadApplicationMode();
-
+    /*Configure GPIO pins : PB14 : MUTE*/
+    gpio_mode_set(MUSIC_MUTE_PORT,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,MUSIC_MUTE_PIN);
+    gpio_output_options_set(MUSIC_MUTE_PORT,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,MUSIC_MUTE_PIN);
+    MuteEnable(); 
+			 		 
+    /*Configure GPIO pins : PB13 : 外部3.3V*/
+    gpio_mode_set(GPIOB,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_13);
+    gpio_output_options_set(GPIOB,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_13);			 
+			 
+    /*PD9 : HEAD-FO*/
+    gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_9);			 
+		 
+    /*Configure GPIO pins : PA15 : RK3399 WEAK IO*/
+    gpio_mode_set(GPIOA,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_15);
+    gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);		 
+		 
+    /* PE7 ：RK3399_SYNC */
+    gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_7);
+    gpio_output_options_set(GPIOE,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_7);
+		 
+      
 #ifdef USING_ENCODER_EXTI
     /*Configure GPIO pin : PA0-->LEFT MOTOR PWMOUT */
 
@@ -220,24 +219,18 @@ UINT8 MX_GPIO_Init(void)
     exti_interrupt_flag_clear(EXTI_3);
 #endif
 
-// //    /*Configure GPIO pin : PF4 */
-// //    GPIO_InitStruct.Pin = GPIO_PIN_4;
-// //    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-// //    GPIO_InitStruct.Pull = GPIO_NOPULL;
-// //    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
-
-// //    /* EXTI interrupt init*/
-// //    HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
-
-//     /*Configure GPIO pins : Pd11 :CHARGE_EN */
-//       gpio_mode_set(GPIOD,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO_PIN_11);
-//       gpio_output_options_set(GPIOD,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_11);
+    TmpChar = ReadApplicationMode();
     DisableCharge(TmpChar);
 
     return TmpChar;
 }
 
-
+/***********************************************************************
+ * DESCRIPTION:电池IIC初始化
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void battery_I2C_GPIO_Init(void)
 {
     /* enable gpio clock */
@@ -255,119 +248,216 @@ void battery_I2C_GPIO_Init(void)
     gpio_bit_write(__I2C_SDA_PORT, __I2C_SDA_GPIO, SET);
 }
 
-// Battery module: SDA
+/***********************************************************************
+ * DESCRIPTION: Battery IIC module: SDA
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void Battery_SDA_WritePin(uint8_t PinState)
 {
     gpio_bit_write(__I2C_SDA_PORT, __I2C_SDA_GPIO, (bit_status)PinState);
 }
 
-// Battery module: SCL
+/***********************************************************************
+ * DESCRIPTION: Battery IIC module: SCL
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void Battery_SCL_WritePin(uint8_t PinState)
 {
     gpio_bit_write(__I2C_SCL_PORT, __I2C_SCL_GPIO, (bit_status)PinState);
 }
 
-// Battery module: SDA Read
+/***********************************************************************
+ * DESCRIPTION: Battery IIC module: SDA READ
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 uint8_t Battery_SDA_ReadPin(void)
 {
     return HAL_GPIO_ReadPin(__I2C_SDA_PORT, __I2C_SDA_GPIO);
 }
 
-// Battery module: SCL Read
+/***********************************************************************
+ * DESCRIPTION: Battery IIC module: SCL READ
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 uint8_t Battery_SCL_ReadPin(void)
 {
     return HAL_GPIO_ReadPin(__I2C_SCL_PORT, __I2C_SCL_GPIO);
 }
 
-// Enable Back Electromotive Force Discharge
-void BEMF_DischargeOn(void)
-{
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
-}
-
-// Disable Back Electromotive Force Discharge
-void BEMF_DischargeOff(void)
-{
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_RESET);
-}
-
-// Enable Vbus Buffer Voltage
+/***********************************************************************
+ * DESCRIPTION: Enable Vbus Buffer Voltage
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void VbusEnable(void)
 {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_SET);
 }
 
-// Disable Vbus Buffer Voltage
+/***********************************************************************
+ * DESCRIPTION: Disable Vbus Buffer Voltage
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void VbusDisable(void)
 {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_RESET);
 }
 
-// Read Vbus Enable State
+/***********************************************************************
+ * DESCRIPTION: Read Vbus Enable State
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 UINT8 ReadVbusEnableState(void)
 {
     return HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4);
 }
 
-// Enable DC Voltage Buffer
+/***********************************************************************
+ * DESCRIPTION: Enable DC Voltage Buffer
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void VbusBufferEnable(void)
 {
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET);    
 }
 
-// Disable DC Voltage Buffer
+
+/***********************************************************************
+ * DESCRIPTION: Disable DC Voltage Buffer
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void VbusBufferDisable(void)
 {
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);  
 }
 
-// Enable DC Voltage Buffer
+/***********************************************************************
+ * DESCRIPTION: Enable DC Voltage Buffer
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void DrvPwEnable(void)
+{
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);    
+}
+
+/***********************************************************************
+ * DESCRIPTION: Disable DC Voltage Buffer
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void DrvPwDisable(void)
+{
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);  
+}
+
+/***********************************************************************
+ * DESCRIPTION: turn off EXO lidar power
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void EXOLidarPowerOff(void)
 {
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_RESET);
 }
 
-// Disable DC Voltage Buffer
-void DrvPwDisable(void)
+/***********************************************************************
+ * DESCRIPTION: turn on EXOlidar power
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void EXOLidarPowerOn(void)
 {
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET );
 }
 
-// turn off lidar power
+/***********************************************************************
+ * DESCRIPTION: turn off  lidar power
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void LidarPowerOff(void)
 {
-    //HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_RESET);
 }
 
-// turn on lidar power
+/***********************************************************************
+ * DESCRIPTION: turn on lidar power 
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void LidarPowerOn(void)
 {
-    //HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET );
 }
 
-// Read Lidar power State
+/***********************************************************************
+ * DESCRIPTION: Read Lidar power State
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 uint8_t ReadLidarPowerState(void)
 {
     uint8_t state;
 
-    state = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_4);
+    state = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_3);
     state = !state;
 
     return state;
 }
 
-// turn off mcu power
+/***********************************************************************
+ * DESCRIPTION: turn off mcu power
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void McuPowerOff(void)
 {
     //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
 }
 
-// turn on mcu power
+/***********************************************************************
+ * DESCRIPTION: turn on mcu power
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void McuPowerOn(void)
 {
     //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);
 }
 
+/***********************************************************************
+ * DESCRIPTION: EnableCharge
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PRIVATE UINT8 ChargeMosState = 0;
 void EnableCharge(UINT8 ApplicationMode)
 {
@@ -382,6 +472,12 @@ void EnableCharge(UINT8 ApplicationMode)
 //    }
 }
 
+/***********************************************************************
+ * DESCRIPTION: DisableCharge
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void DisableCharge(UINT8 ApplicationMode)
 {
     ChargeMosState = 0;
@@ -391,106 +487,217 @@ void DisableCharge(UINT8 ApplicationMode)
 //    }
 //    else
 //    {
- //   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_RESET);
+//   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_RESET);
 //    }
 }
 
-
+/***********************************************************************
+ * DESCRIPTION: ReadChargeMosState
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PUBLIC UINT8 ReadChargeMosState(void)
 {
     return ChargeMosState;
 }
 
 
-// Read Key State
-//����:1 , �ɿ�:0
+/***********************************************************************
+ * DESCRIPTION: Read Key State
+ *
+ * RETURNS:1按下 0释放
+ *
+***********************************************************************/
 uint8_t ReadKeyInPinState(void)
 {
     return HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);
 }
 
-// Read Charge State
+/***********************************************************************
+ * DESCRIPTION: Read Charge State
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 uint8_t ReadChargeInPinState(void)
 {
     //return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3);
 }
 
-PUBLIC void PadPowerOnInit(UINT8 PowerEn)
-{
-}
-// turn on pad power
+
+/***********************************************************************
+* DESCRIPTION: 打开上位机电源
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void PadPowerOn(void)
 {
    // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_SET);
 }
 
-// turn off pad power
+/***********************************************************************
+* DESCRIPTION: 关闭上位机电源
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void PadPowerOff(void)
 {
     //HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_RESET);
 }
 
-// turn on Disinfection Module power  没用
+/***********************************************************************
+* DESCRIPTION: 打开消毒模块电源
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void DisinfectionModulePowerOn(void)
 {
    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);
 }
 
-// turn off Disinfection Module power  没用
+/***********************************************************************
+* DESCRIPTION: 关闭消毒模块电源
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void DisinfectionModulePowerOff(void)
 {
     //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
 }
 
-// Read pad power State
+/***********************************************************************
+* DESCRIPTION: 读取上位机电源状态
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 uint8_t ReadPadPowerState(void)
 {
     //return HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_9);
 }
 
-// Read Rk3399 Heart State
+/***********************************************************************
+* DESCRIPTION: ReadRk3399HeartState
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 uint8_t ReadRk3399HeartState(void)
 {
     return 0;
 }
 
+/***********************************************************************
+* DESCRIPTION: 电机老化开关状态
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 UINT16 VeneerAgingTestState(void)
 {
 //	return HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_14) + HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_6);
     return 0;
 }
 
-// Enable Music Power
+/***********************************************************************
+* DESCRIPTION: Enable Music Power
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void MusicPwEnable(void)
 {
-    HAL_GPIO_WritePin(MUSIC_ENABLE_PORT, MUSIC_ENABLE_PIN,GPIO_PIN_RESET );
+    HAL_GPIO_WritePin(MUSIC_ENABLE_PORT, MUSIC_ENABLE_PIN,GPIO_PIN_SET );
 }
 
-// Disable MUSIC Power
+/***********************************************************************
+* DESCRIPTION: Disable Music Power
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void MusicPwDisable(void)
 {
-    HAL_GPIO_WritePin(MUSIC_ENABLE_PORT, MUSIC_ENABLE_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(MUSIC_ENABLE_PORT, MUSIC_ENABLE_PIN, GPIO_PIN_RESET);
 }
 
-uint8_t ReadBatteryCoverState(void)
+/***********************************************************************
+* DESCRIPTION: Enable EXT3.3V Power 低电平有效
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void ExtVEnable(void)
 {
-    return 0;//
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13,GPIO_PIN_RESET );
 }
 
-// Enable MUTE
+/***********************************************************************
+* DESCRIPTION: Disable EXT3.3 Power 高电平有效
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void ExtVDisable(void)
+{
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+}
+
+/***********************************************************************
+* DESCRIPTION: Enable MUTE
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void MuteEnable(void)
-{
-    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_SET );
-}
-
-
-// Disable MUTE
-void MuteDisable(void)
 {
     HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_RESET );
 }
 
-// Read Application Mode
+/***********************************************************************
+* DESCRIPTION: Disable MUTE
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void MuteDisable(void)
+{
+    HAL_GPIO_WritePin(MUSIC_MUTE_PORT, MUSIC_MUTE_PIN, GPIO_PIN_SET );
+}
+
+/***********************************************************************
+* DESCRIPTION: Enable LOGO PW
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void LOGOEnable(void)
+{
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET );
+}
+
+/***********************************************************************
+* DESCRIPTION: Disable LOGO PW
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void LOGODisable(void)
+{
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET );
+}
+
+/***********************************************************************
+* DESCRIPTION: Read Application Mode
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PUBLIC UINT8 ReadApplicationMode(void)
 {
     UINT8 TmpChar = 0;

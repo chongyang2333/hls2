@@ -28,10 +28,10 @@ PRIVATE REAL32 RampCtrl (REAL32 in, REAL32 out, REAL32 rampDelta);
 PUBLIC void PositionLoopInit(struct AxisCtrlStruct *P)
 {
     struct PositionLoopStruct *pPos = &P->sPosLoop;
-    
+
     pPos->Acc = 1;
-	pPos->PosErrMax = 5000;
-	pPos->Pp = 0.05f;
+    pPos->PosErrMax = 5000;
+    pPos->Pp = 0.05f;
 }
 
 /***********************************************************************
@@ -42,43 +42,43 @@ PUBLIC void PositionLoopInit(struct AxisCtrlStruct *P)
 ***********************************************************************/
 PUBLIC void PositionLoopExec(struct AxisCtrlStruct *P)
 {
-	INT32 Tmp;
-	REAL32 Tmp2;
+    INT32 Tmp;
+    REAL32 Tmp2;
     struct PositionLoopStruct *pPos = &P->sPosLoop;
-    
+
     if (0 == P->BootStrapCapChargeFlag)
     {
         //Reference source select
         PositionRefSelect(P);
     }
-    
-	// update position feedback
-	pPos->PosFdb = P->sEncoder.MultiTurn*P->sEncoder.PulseMax + P->sEncoder.SingleTurn;
-    
-	// position error
-	pPos->PosErr = pPos->PosRefLit - pPos->PosFdb;
-    
+
+    // update position feedback
+    pPos->PosFdb = P->sEncoder.MultiTurn*P->sEncoder.PulseMax + P->sEncoder.SingleTurn;
+
+    // position error
+    pPos->PosErr = pPos->PosRefLit - pPos->PosFdb;
+
     if(pPos->PosErr > pPos->PosErrMax)
     {
         pPos->PosErr = pPos->PosErrMax;
     }
 
-	if(1 == pPos->SpdFFSelect)
-	{
-		Tmp = pPos->PosRefLit - pPos->PosRefOld;
-		Tmp2 = Tmp*POSITION_FRQ*P->sSpdLoop.IncToRpmUnit;
-		pPos->SpdFF = FilterIIR1LPFExec(&pPos->sPosRefFilter, Tmp2);
-	}
-	else if(2 == pPos->SpdFFSelect)
-	{
+    if(1 == pPos->SpdFFSelect)
+    {
+        Tmp = pPos->PosRefLit - pPos->PosRefOld;
+        Tmp2 = Tmp*POSITION_FRQ*P->sSpdLoop.IncToRpmUnit;
+        pPos->SpdFF = FilterIIR1LPFExec(&pPos->sPosRefFilter, Tmp2);
+    }
+    else if(2 == pPos->SpdFFSelect)
+    {
 
-	}
-	else
-	{
-		pPos->SpdFF = 0.0f;
-	}
+    }
+    else
+    {
+        pPos->SpdFF = 0.0f;
+    }
 
-	pPos->Output = pPos->PosErr* pPos->Pp + pPos->SpdFF* pPos->SpdFFGain;
+    pPos->Output = pPos->PosErr* pPos->Pp + pPos->SpdFF* pPos->SpdFFGain;
 
 }
 
@@ -90,34 +90,34 @@ PUBLIC void PositionLoopExec(struct AxisCtrlStruct *P)
 ***********************************************************************/
 PRIVATE void PositionRefSelect(struct AxisCtrlStruct *P)
 {
- //   struct PositionLoopStruct *pPos = &P->sPosLoop;
-    
-	switch(P->CtrlMode)
-	{
-		case VF_CTRL:
+//   struct PositionLoopStruct *pPos = &P->sPosLoop;
 
-		break;
+    switch(P->CtrlMode)
+    {
+    case VF_CTRL:
 
-		case CUR_CTRL :
+        break;
 
-		break;
+    case CUR_CTRL :
 
-		case SPD_CTRL :
+        break;
 
-		break;
+    case SPD_CTRL :
 
-		case POS_CTRL :
-            P->sPosLoop.PosRefLit = RampCtrl(P->sPosLoop.PosRef, P->sPosLoop.PosRefLit, P->sPosLoop.Acc);
+        break;
 
-		break;
+    case POS_CTRL :
+        P->sPosLoop.PosRefLit = RampCtrl(P->sPosLoop.PosRef, P->sPosLoop.PosRefLit, P->sPosLoop.Acc);
 
-		case FF_CTRL :
+        break;
 
-		break;
+    case FF_CTRL :
 
-		default:
-		break;
-	}
+        break;
+
+    default:
+        break;
+    }
 }
 
 /***********************************************************************

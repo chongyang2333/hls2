@@ -7,15 +7,16 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "gd32f4xx.h"
+//#include "stm32f7xx_hal.h"
+#include "UserDataTypes.h"
 
 typedef struct{
 
-        void        (*SDA_SetPinDir )( uint8_t Dir );
-        void        (*SCL_SetPinDir )( uint8_t Dir );
-				void        (*SDA_WritePin)(uint8_t PinState);
-        void        (*SCL_WritePin)(uint8_t PinState);
-        uint8_t     (*SDA_ReadPinState)(void);
+        void        (*SDA_SetPinDir )( UINT8 Dir );
+        void        (*SCL_SetPinDir )( UINT8 Dir );
+				void        (*SDA_WritePin)(UINT8 PinState);
+        void        (*SCL_WritePin)(UINT8 PinState);
+        UINT8       (*SDA_ReadPinState)(void);
 }GpioIICStruct;
 
 
@@ -24,8 +25,8 @@ void gpioiic_stop(GpioIICStruct* GpioIIC);
 void gpioiic_ack(GpioIICStruct* GpioIIC);
 void gpioiic_noack(GpioIICStruct* GpioIIC);
 _Bool gpioiic_waitack(GpioIICStruct* GpioIIC);
-void gpioiic_WriteByte(GpioIICStruct* GpioIIC, uint8_t txd);
-uint8_t gpioiic_ReadByte(GpioIICStruct* GpioIIC);
+void gpioiic_WriteByte(GpioIICStruct* GpioIIC, UINT8 txd);
+UINT8 gpioiic_ReadByte(GpioIICStruct* GpioIIC);
 
 #ifdef __cplusplus
 }

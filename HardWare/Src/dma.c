@@ -6,7 +6,7 @@
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether
+  * USER CODE END. Other portions of this file, whether 
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
@@ -51,23 +51,23 @@
 
 /* USER CODE END 1 */
 
-/**
+/** 
   * Enable DMA controller clock
   */
-
-void MX_DMA_Init(void)
+  
+void MX_DMA_Init(void) 
 {
 }
 
-void MX_DMA_Init_Weak(void)
+void MX_DMA_Init_Weak(void) 
 {
-    /* DMA controller clock enable */
-    // __HAL_RCC_DMA1_CLK_ENABLE();
+  /* DMA controller clock enable */
+  // __HAL_RCC_DMA1_CLK_ENABLE();
 
-    // /* DMA interrupt init */
-    // /* DMA1_Stream3_IRQn interrupt configuration */
-    // HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 4, 2);
-    // HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  // /* DMA interrupt init */
+  // /* DMA1_Stream3_IRQn interrupt configuration */
+  // HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 4, 2);
+  // HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
 }
 

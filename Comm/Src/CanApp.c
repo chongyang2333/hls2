@@ -22,7 +22,6 @@
 #include "BootloaderInfo.h"
 #include "gpio.h"
 #include "HardApi.h"
-
 #include "LedDriver.h"
 #include "MachineAdditionalInfo.h"
 #include "gd_hal.h"
@@ -34,56 +33,41 @@
 
 extern struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 extern const struct ParameterStruct gDefaultParam_Left[10];
-extern struct PowerManagerStruct sPowerManager;
-
-struct CanAppStruct  sMyCan={0};
-    
-// extern CAN_HandleTypeDef hcan1;
-// CAN_TxHeaderTypeDef   Can_TxHeader;
-// CAN_RxHeaderTypeDef   Can_RxHeader;
-
+extern TimeTamp_Def TimeTamp;
 extern ST_VersionStruct NowSoftWareVersion;
+extern BootLoaderInfo bootloaderInfo;
 extern UINT16 IST8310_Cfg;
+struct CanAppStruct  sMyCan={0};
 
 can_receive_message_struct receive_message;
 can_trasnmit_message_struct transmit_message;
-
+UINT8 g_CanTxEnable = 0;
 /*------------------------- Protype Functions --------------------------*/
-
 PRIVATE void PcRequestHandle(UINT8 *pData);
 PRIVATE void CanSendSoftwareVersion(void);
 PRIVATE void CanSendMachineInfo(UINT8 *pData);
 PRIVATE void CanSendMachineInfoWriteStatus(void);
 PRIVATE void CanSendMachineInfoCrcState(void);
-
 PRIVATE void can_tx(UINT8 *pData);
 PRIVATE void can_tx_machineinfo(UINT8 *pData);
 PRIVATE void CanSetTimeStamp(UINT8 *pData);
 PRIVATE void CanSetMotion(UINT8 *pData);
 PRIVATE void CanModifyMachineInfo(const UINT8 *pData);
-void StorageMessage(CAN_RX_Message* pstCanRxMessage,BootLoaderInfo* pstBootLoaderInfo);
 PRIVATE void CanLedExec(void);
 PRIVATE void can_tx_no_block(UINT8 *pData);
 PRIVATE UINT8 GetSelfId(void);
-
 PRIVATE UINT8 BCC_CheckSum(const UINT8 *buf,UINT8 len);
 PRIVATE void CanSendData(UINT8 txd[8], UINT8 len);
-extern BootLoaderInfo bootloaderInfo;
-UINT8 g_CanTxEnable = 0;
-
 PRIVATE void CMDGetSoftWareVersionTreatmentFromRam(CAN_RX_Message* CanRxMessage,ST_VersionStruct* st_ram_version);
 PRIVATE void CMDGetSoftWareVersionTreatmentFromBootloaderInfo(CAN_RX_Message* CanRxMessage,BootLoaderInfo* pst_bootLoaderInfo);
 PRIVATE void CarpetModeSet(UINT8 *pData);
 PRIVATE void CanSendAcc(UINT8 AccType);
 PRIVATE void CanSetAcc(UINT8 *pData);
-PRIVATE void LockMotorFlagSet(UINT8 cmd);
-PRIVATE void SendLockMotorStatus(UINT8 status);
-PRIVATE void SetMagicThreshold(UINT8 *pData);
-PRIVATE void SafeLockMotorFlagSet(UINT8 cmd);
-PRIVATE void SendSafeLockMotorStatus(UINT8 status);
-
-PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage);
 PRIVATE void SendIST8310_Cfg(void);
+PRIVATE void SetMagicThreshold(UINT8 *pData);
+PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage);
+
+void StorageMessage(CAN_RX_Message* pstCanRxMessage,BootLoaderInfo* pstBootLoaderInfo);
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -92,178 +76,48 @@ PRIVATE void SendIST8310_Cfg(void);
 ***********************************************************************/
 PUBLIC void CanAppInit(void)
 {
-    UINT16 Tmp = gParam[0].CanLostErrTime0x200A*4/100;
-    
+    UINT16 Tmp = gParam[0].CanLostErrTime0x200A*4/100;   
     if(Tmp<4) Tmp =0;
     
     sMyCan.CanLostMaxNum = Tmp;
     sMyCan.CanRxTxState = 0;
-    sMyCan.CanLockCmd = 0;
-    sMyCan.CanLockCnt = 0;
-		sMyCan.ChargeCnt = 0;
-		sMyCan.SafeLock = 0;
-		sMyCan.Magic_Enable = 0;
-	  sMyCan.MagicThreshold_left = 500;
-	  sMyCan.MagicThreshold_Right = 500;
+	  sMyCan.Magic_Enable = 0;
 }
 
 
-
 /***********************************************************************
- * DESCRIPTION:  40HZ
+ * DESCRIPTION:  40HZ CAN任务
  *
  * RETURNS:
  *
 ***********************************************************************/
 PUBLIC void CanAppExec(void)
 {
-//    if(sMyCan.PcInitDone && sMyCan.PcCloseLoopEn)
     if(sMyCan.PcCloseLoopEn)
     {
         sMyCan.CanLostCnt++;
-        sMyCan.CanLockCmd = 0;
-        sMyCan.CanLockCnt = 0;
     }
     else
     {
         sMyCan.CanLostCnt = 0;
-        if(sMyCan.CanLostErr == 1)
-        {
-            sMyCan.CanLostErr = 0;
-        }
-				//lock motor
-        if((sAxis[0].sAlarm.ErrReg.all == 0)&&(sAxis[1].sAlarm.ErrReg.all == 0))
-        {
-						if(sMyCan.SafeLock == 1)
-						{
-								gParam[0].ControlWord0x6040 = 0xF;
-                gParam[1].ControlWord0x6040 = 0xF;
-                gParam[0].TargetVelocity0x60FF = 0;
-                gParam[1].TargetVelocity0x60FF = 0;
-						}
-            else if(sMyCan.CanLockCmd == 1)
-            {
-                if(sMyCan.CanLockCnt++>=5)//125ms ä¸Šé”
-                {
-                    gParam[0].ControlWord0x6040 = 0xF;
-                    gParam[1].ControlWord0x6040 = 0xF;
-                    gParam[0].TargetVelocity0x60FF = 0;
-                    gParam[1].TargetVelocity0x60FF = 0;
-                    sMyCan.CanLockCmd = 0;
-                    sMyCan.CanLockCnt = 0;
-                }
-            }
-						else if(g_CanTxEnable == 0)
-						{
-								if(sPowerManager.sChargeInfo.ChargeMode ==2 )
-								{
-										if(sMyCan.ChargeCnt < 5) // 100ms  åœ¨è¿™é‡Œä¸»è¦æ˜¯ç»™ä¸€ä¸ªå‘å‰çš„è¶‹åŠ¿ï¼Œå‰è¿›å‘½ä»¤ç”±APKèµ·æ¥äº†å‘é€
-										{
-												gParam[0].ControlWord0x6040 = 0xF;
-												gParam[1].ControlWord0x6040 = 0xF;
-												if(gParam[0].EncoderPPR0x2202 == 16384)
-												{
-														gParam[0].TargetVelocity0x60FF = -4000; //0.1m/s
-														gParam[1].TargetVelocity0x60FF = -4000;
-												}
-												else
-												{
-														gParam[0].TargetVelocity0x60FF = -1000; //0.1m/s
-														gParam[1].TargetVelocity0x60FF = -1000;
-												}
-										}
-										else
-										{
-												gParam[0].TargetVelocity0x60FF = 0;
-												gParam[1].TargetVelocity0x60FF = 0;
-												sMyCan.ChargeCnt = 6;
-										}
-										sMyCan.ChargeCnt++;
-								}
-								else 
-								{
-										if((sMyCan.ChargeCnt>5)&&(sMyCan.ChargeCnt<80))// 2s
-										{
-													sMyCan.ChargeCnt++;
-													if(sMyCan.ChargeCnt == 80)
-													{
-														gParam[0].ControlWord0x6040 = 0x6;
-														gParam[1].ControlWord0x6040 = 0x6;
-														gParam[0].TargetVelocity0x60FF = 0;
-														gParam[1].TargetVelocity0x60FF = 0;
-														sMyCan.ChargeCnt  = 0;
-													}
-										}
-								}
-						}
-						#if 0
-						else if((sPowerManager.sChargeInfo.ChargeMode ==2 )&&(g_CanTxEnable == 0))
-						{
-								if(sMyCan.ChargeCnt < 5) // 100ms  åœ¨è¿™é‡Œä¸»è¦æ˜¯ç»™ä¸€ä¸ªå‘å‰çš„è¶‹åŠ¿ï¼Œå‰è¿›å‘½ä»¤ç”±APKèµ·æ¥äº†å‘é€
-								{
-										gParam[0].ControlWord0x6040 = 0xF;
-										gParam[1].ControlWord0x6040 = 0xF;
-										if(gParam[0].EncoderPPR0x2202 == 16384)
-										{
-												gParam[0].TargetVelocity0x60FF = -3727; //0.1m/s
-												gParam[1].TargetVelocity0x60FF = -3727;
-										}
-										else
-										{
-												gParam[0].TargetVelocity0x60FF = -932; //0.1m/s
-												gParam[1].TargetVelocity0x60FF = -932;
-										}
-								}
-								else
-								{
-										gParam[0].TargetVelocity0x60FF = 0;
-										gParam[1].TargetVelocity0x60FF = 0;
-										sMyCan.ChargeCnt = 6;
-								}
-								sMyCan.ChargeCnt++;
-						}
-						#endif
-						else if(sMyCan.SafeLock == 2)
-						{
-								gParam[0].ControlWord0x6040 = 0x6;
-                gParam[1].ControlWord0x6040 = 0x6;
-								sMyCan.SafeLock = 0;
-						}
-            else if(sMyCan.CanLockCmd == 2)//è§£é”
-            {
-
-                gParam[0].ControlWord0x6040 = 0x6;
-                gParam[1].ControlWord0x6040 = 0x6;
-                sMyCan.CanLockCmd = 0;
-                sMyCan.CanLockCnt = 0;
-            }
-						
-        }
-        else
-        {
-            sMyCan.CanLockCnt = 0;
-            sMyCan.CanLockCmd = 0;
-        }
     }
-    if(sMyCan.CanLostCnt > sMyCan.CanLostMaxNum && sMyCan.CanLostMaxNum !=0)
+    
+    if(sMyCan.CanLostCnt > sMyCan.CanLostMaxNum && sMyCan.CanLostMaxNum !=0)  
     {
-        if(sMyCan.CanLostErr == 1)//ç¬¬äºŒæ¬¡å‡ºçŽ°æŠ¥æ•…éšœ
-            sMyCan.CanLostErr = 2;
-        else if(sMyCan.CanLostErr == 0)//ç¬¬ä¸€æ¬¡å‡ºçŽ°CanCmdlost,é™é€Ÿ50%
-        {
-            sMyCan.CanLostErr = 1;
-            sMyCan.CanLostCnt = 0;
-            gParam[0].TargetVelocity0x60FF = 	gParam[0].TargetVelocity0x60FF>>1;
-            gParam[1].TargetVelocity0x60FF = 	gParam[1].TargetVelocity0x60FF>>1;
-        }
+        sMyCan.CanLostErr = 1;
     }
-
+    
     CanLedExec();
 }
 
+//void chassis_led_ctrl( uint8_t *buff );
 
-void chassis_led_ctrl( uint8_t *buff );
-
+/***********************************************************************
+ * DESCRIPTION:  获取CAN报文
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage)
 {
     can_struct_para_init(CAN_RX_MESSAGE_STRUCT, &receive_message);
@@ -279,15 +133,15 @@ PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage)
     {
         memset(CanRxMessage->RxData, 0x00, 8);
     }
-
 }
 
 PRIVATE void CAN_GetRxMessage_Weak(CAN_RX_Message CanRxMessage)
 {
 //	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &Can_RxHeader, &CanRxMessage.RxData[0]);//数组参数传递？
 }
+
 /***********************************************************************
- * DESCRIPTION:
+ * DESCRIPTION:报文解析
  *
  * RETURNS:
  *
@@ -296,14 +150,10 @@ const unsigned char ucF_IAPorApp = EN_RUN_IN_APP;
 PUBLIC void CanAppDispatch(void)
 {
     UINT8  CmdType;
-		
-		CAN_RX_Message CanRxMessage;
+	  CAN_RX_Message CanRxMessage;
     CAN_GetRxMessage(&CanRxMessage);
 
-	CmdType = CanRxMessage.RxData[0];
-
-    if((receive_message.rx_sfid == 0x20)||(receive_message.rx_sfid == 0x40)) //0x20电源管理板查询回复  0x40比亚迪电池
-      return;
+	  CmdType = CanRxMessage.RxData[0];
 
     switch(CmdType)
     {
@@ -330,18 +180,14 @@ PUBLIC void CanAppDispatch(void)
 						{
 							CanSetMotion(CanRxMessage.RxData);
 						}
-                        else
-                        {
-                            sMyCan.PcCloseLoopEn = 0;
-                        }                        
+            else
+            {
+              sMyCan.PcCloseLoopEn = 0;
+            }                        
 						sMyCan.CanLostCnt = 0;
-				if(sMyCan.CanLostErr == 1)
-		        {
-		            sMyCan.CanLostErr = 0;
-		        }
         break;
         
-        case 0x41 : // clear error
+        case 0x41 :     // clear error
             if(CanRxMessage.RxData[1] == 0x01)
             {
                 gParam[0].ControlWord0x6040 = 0x86;
@@ -349,11 +195,11 @@ PUBLIC void CanAppDispatch(void)
             }
         break;
             
-        case 0x45 : // Set Carpet Mode
+        case 0x45 :    // Set Carpet Mode
             CarpetModeSet(CanRxMessage.RxData);
         break;      
 
-        case 0x48: //Set Acc Data
+        case 0x48:    //Set Acc Data
             CanSetAcc(CanRxMessage.RxData);
         break;
         
@@ -377,74 +223,55 @@ PUBLIC void CanAppDispatch(void)
         case 0x5F:
             if(CanRxMessage.RxData[6]==CAN_SLAVE_ID|| CanRxMessage.RxData[6]==0X02)
             {
-				RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
+				        RTC_BKP_Write(EN_RESET_TYPE_BKP_ADDR,EN_RESET_TYPE_SOFT);
                 HAL_NVIC_SystemReset();
             }
         break;
-		case 0x73:
-	        GetChargeState(CanRxMessage.RxData);
-	        break;			
+						
         case 0x75:
- 			if( ReadChargeAppState()) // 充电的时候不通过上位机控制
-	        {
-	            break;
-	        }
 					LedFsmEventHandle(&sLedFsm, LED_EVENT_REMOTE_CONTROL, (LedStateEnum)CanRxMessage.RxData[1], NULL);
 					CanSendLedStateFb(sLedFsm.curState);
         break;
         
         case 0x90:
-           if(( CanRxMessage.RxData[1] >= 12 )&&(CanRxMessage.RxData[1] <= 14))
-	        {
-	            chassis_led_ctrl( CanRxMessage.RxData );
-	        }
-	        break;
+            if( CanRxMessage.RxData[1] == 13 || CanRxMessage.RxData[1] == 14 )
+            {
+                //chassis_led_ctrl( CanRxMessage.RxData );
+            }
+            break;
+				
         case 0x77:	
             LdsPowerCtrl(CanRxMessage.RxData[1], CanRxMessage.RxData[2]);
             CanSendLidarStateFb(ReadLidarPowerState());					
             break;	
         
-       case 0xB0:
-        FrameHeader0xB0Parser(&CanRxMessage.RxData[0]);
-        break;
-
         case 0x83:	
             DisinfectionModulePowerCtrl(CanRxMessage.RxData[1]);
             CanSendDisinfectionModuleStateFb(CanRxMessage.RxData[1]);					
             break;
-		case 0xAC: //æ ¡æ­£é˜²è·Œè½åœ°ç£è®¡é˜ˆå?¼å’Œä½¿èƒ½
-				SetMagicThreshold(&CanRxMessage.RxData[0]);
-				break;
-		case 0xA8: //lock motor
-			if(receive_message.rx_sfid!=0x7FF)
-			{
-					break;
-			}
-	        LockMotorFlagSet(CanRxMessage.RxData[1]);
-	        SendLockMotorStatus(CanRxMessage.RxData[1]);
-        break;
-		case 0xAD:
-			if(receive_message.rx_sfid!=0x7FF)
-			{
-					break;
-			}
-	        SafeLockMotorFlagSet(CanRxMessage.RxData[1]);
-	        SendSafeLockMotorStatus(CanRxMessage.RxData[1]);
-			break;
-		case 0xAF:
-			{
-				if(CanRxMessage.RxData[1] == 1)
-				{
-					SendIST8310_Cfg();	
-				}
-				break;
-			}
+				case 0xAC: //防跌落使能和数据阈值设置
+						SetMagicThreshold(&CanRxMessage.RxData[0]);
+						break;
+        
+		    case 0xAF: //磁条感应传感器配置问题
+		    {
+			     if(CanRxMessage.RxData[1] == 1)
+			     {
+				      SendIST8310_Cfg();	
+			     }
+			     break;
+		    }
         default:
             break;
     }
-
 }
 
+/***********************************************************************
+ * DESCRIPTION:IAP相关报文处理
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void IAPCmdTreatment(CAN_RX_Message* pstCanRxMessage)
 {
     UINT8 ucCanCmdType,ucCanCmdId;   
@@ -496,10 +323,15 @@ void IAPCmdTreatment(CAN_RX_Message* pstCanRxMessage)
 			break;
 		
 		}
-    }
+   }
 }
 
-
+/***********************************************************************
+ * DESCRIPTION:和校验结果
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 UINT8 CompareCheckSum(UINT8 data1,UINT8 data2)
 {
 #ifdef	EN_NO_CHECK_SUM
@@ -516,6 +348,12 @@ UINT8 CompareCheckSum(UINT8 data1,UINT8 data2)
 #endif
 }
 
+/***********************************************************************
+ * DESCRIPTION:CRC校验结果
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 UINT8 CompareCRC(UINT8 data1,UINT8 data2)
 {
 #ifdef	EN_NO_CHECK_CRC
@@ -532,6 +370,12 @@ UINT8 CompareCRC(UINT8 data1,UINT8 data2)
 #endif
 }
 
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void StorageMessage(CAN_RX_Message* pstCanRxMessage,BootLoaderInfo* pstBootLoaderInfo)
 {
 	UINT8 i;
@@ -540,20 +384,30 @@ void StorageMessage(CAN_RX_Message* pstCanRxMessage,BootLoaderInfo* pstBootLoade
 		pstBootLoaderInfo->CANMessage[i] = pstCanRxMessage->RxData[i];
 	}
 }
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void CMDCheckIapOrAppTreatment(CAN_RX_Message* CanRxMessage)
 {
 	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
 	if( CompareCheckSum(CheckSumCalc,CanRxMessage->RxData[7]))
-	{
-		
+	{		
 		CanRxMessage->RxData[3] = ucF_IAPorApp;
 		CMDResponseRegular(CanRxMessage);
 				
 	}
 }
 
-
-				
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void CMDSoftWareTreatment(CAN_RX_Message* CanRxMessage)
 {
 	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);	
@@ -565,13 +419,17 @@ void CMDSoftWareTreatment(CAN_RX_Message* CanRxMessage)
 		CMDResponseRegular(CanRxMessage);
 		g_CanTxEnable = 0;
 		delay_ms(10);
-        DisableInterrupt();
+		DisableInterupt();
         EnableFirmwareUpdate();
 	}
 }
 
-
-
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PRIVATE void CMDGetSoftWareVersionTreatmentFromRam(CAN_RX_Message* CanRxMessage,ST_VersionStruct* st_ram_version)
 {
 		UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
@@ -584,6 +442,12 @@ PRIVATE void CMDGetSoftWareVersionTreatmentFromRam(CAN_RX_Message* CanRxMessage,
 		}
 }
 
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PRIVATE void CMDGetSoftWareVersionTreatmentFromBootloaderInfo(CAN_RX_Message* CanRxMessage,BootLoaderInfo* pst_bootLoaderInfo)
 {
 		UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
@@ -596,11 +460,17 @@ PRIVATE void CMDGetSoftWareVersionTreatmentFromBootloaderInfo(CAN_RX_Message* Ca
 		}
 }
 
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void CMDOpenOrCloseCanTreatment(CAN_RX_Message* CanRxMessage)
 {
-	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
-	if( CompareCheckSum(CheckSumCalc,CanRxMessage->RxData[7]))
-	{
+//	UINT8 CheckSumCalc = GetCheckSum8(&CanRxMessage->RxData[0],7);
+//	if( CompareCheckSum(CheckSumCalc,CanRxMessage->RxData[7]))
+//	{
 		CMDResponseRegular(CanRxMessage);
 		if(CanRxMessage->RxData[3])
 		{
@@ -610,10 +480,15 @@ void CMDOpenOrCloseCanTreatment(CAN_RX_Message* CanRxMessage)
 		{
 			g_CanTxEnable = 0;
 		}
-	}
+//	}
 }
 
-
+/***********************************************************************
+ * DESCRIPTION: CRC计算
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 UINT16 GetCRC_16_Cal(UINT8 *data,UINT8 num)//八位数组，个数
 {
 		UINT8 i,j,con1,con2;
@@ -643,6 +518,12 @@ UINT16 GetCRC_16_Cal(UINT8 *data,UINT8 num)//八位数组，个数
 		return CrcR;
 }
 
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void CmdReadFlashTreatment(CAN_RX_Message* CanRxMessage)
 {
 	UINT32 addr = 0;
@@ -674,7 +555,6 @@ void CmdReadFlashTreatment(CAN_RX_Message* CanRxMessage)
 	}
 }
 
-
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -696,7 +576,12 @@ PUBLIC void JumpAppFb(UINT8 RstType)
 	can_tx_no_block(&data[0]);
 }
 
-
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 UINT8 GetCheckSum8(UINT8* pData,UINT8 len)
 {
 	UINT8 i;
@@ -709,6 +594,12 @@ UINT8 GetCheckSum8(UINT8* pData,UINT8 len)
 	return sum;
 }
 
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void CMDResponseRegular(CAN_RX_Message* pCanRxMessage)
 {
 	UINT8 len = 8;
@@ -797,14 +688,13 @@ PUBLIC void CanSendSpdFdb(INT16 LeftSpdInc, INT16 RightSpdInc)
     
     _40hzCnt++;
         
-    datasend[0] = 0x01;  //表示电机速度数据上传
+    datasend[0] = 0x01;                       //表示电机速度数据上传
     datasend[1] = (LeftSpdInc>>8)&0XFF;
     datasend[2] = (LeftSpdInc)&0XFF;
     datasend[3] = (RightSpdInc>>8)&0XFF;
     datasend[4] = (RightSpdInc)&0XFF;
-    //datasend[5] = 0x00;
-	datasend[5] = sMyCan.CanLostCnt;
-    datasend[6] = _40hzCnt;   //序号
+	  datasend[5] = sMyCan.CanLostCnt;
+    datasend[6] = _40hzCnt;                   //序号
     datasend[7] = BCC_CheckSum(datasend,7);   //校验码
     can_tx(datasend);		   
 }
@@ -826,12 +716,18 @@ PUBLIC void CanSendErrorCode(UINT16 LeftErr, UINT16 RightErr)
     datasend[2] = (LeftErr)&0XFF;
     datasend[3] = (RightErr>>8)&0XFF;
     datasend[4] = (RightErr)&0XFF;
-    datasend[5] = sAxis[0].sAlarm.I_Bus_FO_Cnt&0xff;
-    datasend[6] = ErrCodeCnt++;   //序号
+    datasend[5] = 0x00;
+    datasend[6] = ErrCodeCnt++;               //序号
     datasend[7] = BCC_CheckSum(datasend,7);   //校验码
     can_tx(datasend);	   
 }
 
+/***********************************************************************
+ * DESCRIPTION:发送故障信息
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PUBLIC void CanSendErrorCodeHigh(UINT16 LeftErr, UINT16 RightErr)
 {
     PRIVATE UINT8 ErrCodeCnt=0;
@@ -843,8 +739,8 @@ PUBLIC void CanSendErrorCodeHigh(UINT16 LeftErr, UINT16 RightErr)
     datasend[2] = (LeftErr)&0XFF;
     datasend[3] = (RightErr>>8)&0XFF;
     datasend[4] = (RightErr)&0XFF;
-    datasend[5] = sAxis[1].sAlarm.I_Bus_FO_Cnt&0xff;
-    datasend[6] = ErrCodeCnt++;   //序号
+    datasend[5] = 0x00;
+    datasend[6] = ErrCodeCnt++;               //序号
     datasend[7] = BCC_CheckSum(datasend,7);   //校验码
     can_tx(datasend);	   
 }
@@ -919,7 +815,7 @@ PUBLIC void CanSendLog2Left(UINT16 LeftBusCurrent, INT16 LeftIq, INT16 LeftMosTe
     
     datasend[5] = LeftMosTemp;
     datasend[6] = LeftMotorTemp;
-    datasend[7] = 0;//(CAN1->ESR>>24)&0xff;
+    datasend[7] = 0x00;
     can_tx(datasend);    
 }
 
@@ -957,7 +853,8 @@ PUBLIC void CanSendSupplyChargeVI_Info(UINT16 ChargeVoltage, INT16 ChargeCur, UI
 }
 
 /***********************************************************************
- * DESCRIPTION:发送电池当前的温度，和充电满所需要的时间。temperature——温度（单位1度）；所需时间（单位秒）。
+ * DESCRIPTION:发送电池当前的温度，和充电满所需要的时间。
+ *              temperature——温度（单位1度）；所需时间（单位秒）。
  *
  * RETURNS:
  *
@@ -976,6 +873,12 @@ PUBLIC void CanSendBatteryChargeExInfo(UINT16 temperature)
     can_tx(datasend);    
 }
 
+/***********************************************************************
+ * DESCRIPTION:发送充电相关信息
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PUBLIC void CanSendBatteryChargeInfo(UINT8 ChargerState, UINT8 batteryLevelRaw, UINT8 batteryLevelOptimized, UINT16 batteryVoltage)
 {
     UINT8 datasend[8] = {0};
@@ -1025,7 +928,7 @@ PUBLIC void CanSendLog2Right(UINT16 RightBusCurrent, INT16 RightIq, INT16 RightM
    
     datasend[5] = RightMosTemp;
     datasend[6] = RightMotorTemp;
-    datasend[7] = 0;//(CAN1->ESR>>16)&0xff;
+    datasend[7] = 0x00;
     can_tx(datasend);    
 }
 
@@ -1060,19 +963,6 @@ PUBLIC void CanSendGyro(INT16 *gyro, INT16 *accel)
 //    can_tx(datasend);
 }
 
-PUBLIC void CanSendMagXYZ(INT16 *P,UINT8 addr)
-{
-		UINT8 datasend[8]={0};
-    datasend[0] = addr;
-    datasend[1] = P[0]>>8;
-    datasend[2] = P[0]&0xff;
-    datasend[3] = P[1]>>8;
-    datasend[4] = P[1]&0xff;
-    datasend[5] = P[2]>>8;
-    datasend[6] = P[2]&0xff;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx(datasend);
-}
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -1186,6 +1076,53 @@ PUBLIC void CanSendBatteryInfo(UINT8 index, UINT32 data)
 }
 
 /***********************************************************************
+ * DESCRIPTION:发送磁条感应传感器相关数据
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PUBLIC void CanSendMagXYZ(INT16 *P,UINT8 addr)
+{
+		UINT8 datasend[8]={0};
+    datasend[0] = addr;
+    datasend[1] = P[0]>>8;
+    datasend[2] = P[0]&0xff;
+    datasend[3] = P[1]>>8;
+    datasend[4] = P[1]&0xff;
+    datasend[5] = P[2]>>8;
+    datasend[6] = P[2]&0xff;
+    datasend[7] = BCC_CheckSum(datasend,7);
+    can_tx(datasend);
+}
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void SetMagicThreshold(UINT8 *pData)
+{
+		UINT16 temp;
+		if(pData[1] == 1)
+		{
+				sMyCan.Magic_Enable = 1;
+		}
+		else
+		{
+				sMyCan.Magic_Enable = 0;
+		}
+		temp = (pData[2]<<8)|pData[3];
+		if(temp<300)
+			temp = 300;
+		sMyCan.MagicThreshold_left = temp;
+		temp = ((pData[4]<<8)|pData[5]);
+		if(temp<300)
+			temp = 300;
+		sMyCan.MagicThreshold_Right = temp;
+}
+
+/***********************************************************************
  * DESCRIPTION:
  *
  * RETURNS:
@@ -1253,7 +1190,6 @@ PRIVATE void CanSendSoftwareVersion(void)
     datasend[6] = CAN_SLAVE_ID;
     datasend[7] = BCC_CheckSum(datasend,7);	
     can_tx(datasend);	
-
 }
 
 /***********************************************************************
@@ -1280,6 +1216,7 @@ PRIVATE void CanSendMachineInfo(UINT8 *pData)
 
     can_tx_machineinfo(datasend);
 }
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -1330,7 +1267,12 @@ PRIVATE void CanSendMachineInfoCrcState(void)
 ***********************************************************************/
 PRIVATE void can_tx(UINT8 *pData)
 {
-    if (!g_CanTxEnable || sMyCan.CanBreakErr)
+    if (!ReadPadPowerState() || sMyCan.CanBreakErr)
+    {
+        return;
+    }
+
+    if (!g_CanTxEnable)
     {
         return;
     }
@@ -1366,7 +1308,12 @@ PRIVATE void can_tx(UINT8 *pData)
 ***********************************************************************/
 PRIVATE void can_tx_machineinfo(UINT8 *pData)
 {
-   if( !g_CanTxEnable || sMyCan.CanBreakErr )
+    if (!ReadPadPowerState() || sMyCan.CanBreakErr)
+    {
+        return;
+    }
+
+    if (!g_CanTxEnable)
     {
         return;
     }
@@ -1437,10 +1384,9 @@ PRIVATE void can_tx_weak(UINT8 *pData)
  * RETURNS:
  *
 ***********************************************************************/
-
 PRIVATE void can_tx_no_block(UINT8 *pData)
 {
-    if( sMyCan.CanBreakErr)
+    if (!ReadPadPowerState() || sMyCan.CanBreakErr) 
     {
         return;
     }
@@ -1467,6 +1413,12 @@ PRIVATE void can_tx_no_block(UINT8 *pData)
     sMyCan.CanRxTxState |= 0x01;
 }
 
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PRIVATE void can_tx_no_block_weak(UINT8 *pData)
 {
 //    uint32_t TxMailbox=0;
@@ -1656,13 +1608,7 @@ PUBLIC UINT8 BCC_CheckSum(const UINT8 *buf,UINT8 len)
  *
 ***********************************************************************/
 PRIVATE void CanLedExec(void)
-{
-//    if(!sMyCan.PcInitDone)
-//    {
-//        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-//        return;
-//    }
-    
+{    
     /*Can Rx & Tx State Instruction*/
     static UINT8 schTickCnt = 0;
     #define MAX_SCH_NUM 25
@@ -1773,56 +1719,6 @@ PRIVATE UINT8 GetSelfId(void)
  * RETURNS:
  *
 ***********************************************************************/
-PUBLIC void CanLowPowerConsumeMode(UINT8 lowPowerConsumeMode)
-{
-    UINT8 datasend[8];
-
-    if (lowPowerConsumeMode)
-    {
-        datasend[1] = 0x04;
-    }
-    else
-    {
-        datasend[1] = 0x06;
-    }
-
-    datasend[0] = 0xB0;
-    datasend[2] = 2;
-    datasend[3] = lowPowerConsumeMode;
-    datasend[4] = 0x00;
-    datasend[5] = 0x00;
-    datasend[6] = 0x00;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx_no_block(datasend);
-}
-PUBLIC void CanUploadLowPoweroffEvent(void)
-{
-    UINT8 datasend[8];
-
-    datasend[0] = 0xB0;
-    datasend[1] = 0x07;
-    datasend[2] = 0x00;
-    datasend[3] = 0x00;
-    datasend[4] = 0x00;
-    datasend[5] = 0x00;
-    datasend[6] = 0x00;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx_no_block(datasend);
-}
-PUBLIC void CanUploadKeyPoweroffEvent(void)
-{
-    UINT8 datasend[8];
-
-    datasend[0] = 0xB0;
-    datasend[1] = 0x01;
-    datasend[2] = 0x00;
-    datasend[3] = 0x00;
-    datasend[4] = 0x00;
-    datasend[5] = 0x00;
-    datasend[6] = 0x00;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx_no_block(datasend);
-}
 PRIVATE void CanSendAcc(UINT8 AccType)
 {
     volatile UINT32 TmpLong  = 0;
@@ -1863,100 +1759,69 @@ PRIVATE void CanSendAcc(UINT8 AccType)
     datasend[7] = BCC_CheckSum(datasend,7);
     can_tx(datasend);
 }
-PRIVATE void SetMagicThreshold(UINT8 *pData)
-{
-		UINT16 temp;
-		if(pData[1] == 1)
-		{
-				sMyCan.Magic_Enable = 1;
-		}
-		else
-		{
-				sMyCan.Magic_Enable = 0;
-		}
-		temp = (pData[2]<<8)|pData[3];
-		if(temp<500)
-			temp = 500;
-		sMyCan.MagicThreshold_left = temp;
-		temp = ((pData[4]<<8)|pData[5]);
-		if(temp<500)
-			temp = 500;
-		sMyCan.MagicThreshold_Right = temp;
-}
-PRIVATE void LockMotorFlagSet(UINT8 cmd)
-{
-    if(cmd == 1)
-    {
-        sMyCan.CanLockCmd = 1;
-    }
-    else
-    {
-        sMyCan.CanLockCmd = 2;
-    }
-}
-PRIVATE void SendLockMotorStatus(UINT8 status)
-{
-    UINT8 datasend[8];
-    if((status == 1)&&(sAxis[1].sAlarm.ErrReg.all==0)&&(sAxis[0].sAlarm.ErrReg.all==0))
-    {
-        datasend[1] = 1;
-    }
-    else
-    {
-        datasend[1] = 0;
-    }
-    datasend[0] = 0xA9;
-    datasend[2] = 0x0;
-    datasend[3] = 0x0;
-    datasend[4] = 0x0;
-    datasend[5] = 0x0;
-    datasend[6] = 0x0;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx(datasend);
-}
 
-PRIVATE void SafeLockMotorFlagSet(UINT8 cmd)
-{
-    if(cmd == 1)
-    {
-				sMyCan.SafeLock = 1;
-    }
-    else
-    {
-				sMyCan.SafeLock = 2;
-    }
-}
-PRIVATE void SendSafeLockMotorStatus(UINT8 status)
-{
-    UINT8 datasend[8];
-    if((status == 1)&&(sAxis[1].sAlarm.ErrReg.all==0)&&(sAxis[0].sAlarm.ErrReg.all==0))
-    {
-        datasend[1] = 1;
-    }
-    else
-    {
-        datasend[1] = 0;
-    }
-    datasend[0] = 0xAE;
-    datasend[2] = 0x0;
-    datasend[3] = 0x0;
-    datasend[4] = 0x0;
-    datasend[5] = 0x0;
-    datasend[6] = 0x0;
-    datasend[7] = BCC_CheckSum(datasend,7);
-    can_tx(datasend);
-}
+/***********************************************************************
+ * DESCRIPTION:发送磁条感应传感器配置信息
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PRIVATE void SendIST8310_Cfg(void)
 {
 	 UINT8 datasend[8];
     
-	datasend[0] = 0xAF;
+	  datasend[0] = 0xAF;
     datasend[1] = IST8310_Cfg;
-		datasend[2] = 0x0;
+    datasend[2] = 0x0;
     datasend[3] = 0x0;
     datasend[4] = 0x0;
-    datasend[5] = 0x0;
+		datasend[5] = 0x0;
     datasend[6] = 0x2;
     datasend[7] = BCC_CheckSum(datasend,7);
     can_tx(datasend);
+}
+
+/***********************************************************************
+ * DESCRIPTION:发送时间戳信息
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PUBLIC void Send_Int_TimeTamp(void)
+{
+	 UINT8 datasend[8];
+	 if(TimeTamp.CorrectFlag == 1)
+	 {
+			 datasend[0] = 0xc9;
+			 datasend[1] = (TimeTamp.Time_Tamp_record>>40)&0xff;
+			 datasend[2] = (TimeTamp.Time_Tamp_record>>32)&0xff;
+			 datasend[3] = (TimeTamp.Time_Tamp_record>>24)&0xff;
+			 datasend[4] = (TimeTamp.Time_Tamp_record>>16)&0xff;
+			 datasend[5] = (TimeTamp.Time_Tamp_record>>8)&0xff;
+			 datasend[6] = TimeTamp.Time_Tamp_record&0xff;
+			 datasend[7] = BCC_CheckSum(datasend,7);
+		   TimeTamp.CorrectFlag = 0;
+			 can_tx(datasend);
+	 }
+}
+
+/***********************************************************************
+ * DESCRIPTION:发送时间戳信息
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PUBLIC void CanSendTimeTamp(UINT8 CanID)
+{
+	 UINT8 datasend[8];
+	 long long timetemp = TimeTamp.Time_Tamp_Now;
+	 datasend[0] = CanID;
+	 datasend[1] = (timetemp>>40)&0xff;
+	 datasend[2] = (timetemp>>32)&0xff;
+	 datasend[3] = (timetemp>>24)&0xff;
+	 datasend[4] = (timetemp>>16)&0xff;
+	 datasend[5] = (timetemp>>8)&0xff;
+	 datasend[6] = timetemp&0xff;
+	 datasend[7] = BCC_CheckSum(datasend,7);
+	 can_tx(datasend);
 }

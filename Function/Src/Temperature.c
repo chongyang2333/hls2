@@ -103,7 +103,7 @@ PUBLIC void TemperatureInit(void)
 
 
 /***********************************************************************
- * DESCRIPTION: 
+ * DESCRIPTION:
  *
  * RETURNS:
  *
@@ -114,14 +114,12 @@ PUBLIC void TemperatureExec(void)
     UINT16 RightMosAdc = 0;
     UINT16 leftMotorAdc = 0;
     UINT16 rightMotorAdc = 0;
-   
+
 
     GetMosAdc(&LeftMosAdc, &RightMosAdc);
-    //gParam[0].MosTemp0x230B = ReadMosTemperature(LeftMosAdc);
-    //gParam[1].MosTemp0x230B = ReadMosTemperature(RightMosAdc);
-    gParam[0].MosTemp0x230B = 25;
-    gParam[1].MosTemp0x230B = 25;
-    
+    gParam[0].MosTemp0x230B = ReadMosTemperature(LeftMosAdc);
+    gParam[1].MosTemp0x230B = ReadMosTemperature(RightMosAdc);
+
 //    GetMotorAdc(&leftMotorAdc, &rightMotorAdc);
 //    gParam[0].MotorTemp0x230C = ReadMotorTemperature(leftMotorAdc);
 //    gParam[1].MotorTemp0x230C = ReadMotorTemperature(rightMotorAdc);
@@ -130,7 +128,7 @@ PUBLIC void TemperatureExec(void)
 }
 
 /***********************************************************************
- * DESCRIPTION: 
+ * DESCRIPTION:
  *
  * RETURNS:
  *
@@ -142,30 +140,23 @@ PRIVATE INT16 ReadMosTemperature(UINT16 AdcValue)
     INT16  MidVal = 0;
     INT16  Temperature = 0;
 
-    if (AdcValue < MosTempAdcTable[TempMax])
-    {
-        TempMin = TempMax;
-    }
-    else
-    {
     while(AdcValue >= MosTempAdcTable[TempMax] )
     {
-            MidVal = (TempMax + TempMin) / 2;
+        MidVal = (TempMax + TempMin) / 2;
 
-            if((MidVal == TempMin) || (MidVal == TempMax))
-            {
-                Temperature = (TempMin-4)*5;
-                return Temperature;
-            }
+        if((MidVal == TempMin) || (MidVal == TempMax))
+        {
+            Temperature = (TempMin-4)*5;
+            return Temperature;
+        }
 
-            if(AdcValue >= MosTempAdcTable[MidVal])
-            {
-                    TempMax = MidVal;
-            }
-            else
-            {
-                    TempMin = MidVal;
-            }
+        if(AdcValue >= MosTempAdcTable[MidVal])
+        {
+            TempMax = MidVal;
+        }
+        else
+        {
+            TempMin = MidVal;
         }
     }
 
@@ -174,7 +165,7 @@ PRIVATE INT16 ReadMosTemperature(UINT16 AdcValue)
 }
 
 /***********************************************************************
- * DESCRIPTION: 
+ * DESCRIPTION:
  *
  * RETURNS:
  *
@@ -186,30 +177,23 @@ PRIVATE INT16 ReadMotorTemperature(UINT16 AdcValue)
     INT16  MidVal = 0;
     INT16  Temperature = 0;
 
-    if (AdcValue < MotorTempAdcTable[TempMax])
-    {
-        TempMin = TempMax;
-    }
-    else
-    {
     while(AdcValue >= MotorTempAdcTable[TempMax] )
     {
-            MidVal = (TempMax + TempMin) / 2;
+        MidVal = (TempMax + TempMin) / 2;
 
-            if((MidVal == TempMin) || (MidVal == TempMax))
-            {
-                Temperature = (TempMin-4)*5;
-                return Temperature;
-            }
+        if((MidVal == TempMin) || (MidVal == TempMax))
+        {
+            Temperature = (TempMin-4)*5;
+            return Temperature;
+        }
 
-            if(AdcValue >= MotorTempAdcTable[MidVal])
-            {
-            	TempMax = MidVal;
-            }
-            else
-            {
-            	TempMin = MidVal;
-            }
+        if(AdcValue >= MotorTempAdcTable[MidVal])
+        {
+            TempMax = MidVal;
+        }
+        else
+        {
+            TempMin = MidVal;
         }
     }
 

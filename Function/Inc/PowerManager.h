@@ -21,28 +21,14 @@
 enum KeyEvent
 {
     NULL_KEY_EVENT,
-    LONG_PRESS,     //2s
-    LONGLONG_PRESS, //10s
-    SHORT_PRESS,
-    RELEASED
+    LONG_PRESS,
+    SHORT_PRESS
 };
 
 enum KeyState
 {
     KEY_UP,
     KEY_DOWN
-};
-
-enum HeartState
-{
-    OFFLINE,
-    ONLINE
-};
-
-enum BatteryCoverState
-{
-    COVERED,
-    NOT_COVERED
 };
 
 enum RstState
@@ -98,11 +84,8 @@ enum PowerOnOffManageState
 {
     POWERON_INIT = 0,
     NORMAL_POWERON = 1,
-    PAD_POWEROFF = 2,
-    POWEROFF_UPLOAD = 3,
-    POWEROFF_UPLOAD_ACKED = 4,
-    POWEROFF_UPLOAD_ACK_TIMEOUT = 5,
-    POWEROFF = 6
+    CHARGE_POWERON = 2,
+    POWEROFF = 3
 };
 
 
@@ -218,8 +201,6 @@ struct ChargeManageStruct
     struct CheckStruct              sChargerCheck;
     enum MosfetState                eChargeMosState;
     enum ChargeManageState          ChargeAppState;
-	
-		UINT8                           ChargeMode; // 0无  1：手动   2：充电桩
 };
 
 /*Battery manage System IC type*/
@@ -233,7 +214,8 @@ enum BatteryManageSystemType
     GSA7S140 = 5,
     GSA7S141 = 6,    
     GF_7S6P = 7,
-    GF_7S8P = 8
+    GF_7S8P = 8,
+    DESAY_7S8P = 9
 };
 
 struct BatteryLifeTimeDataBlock
@@ -335,8 +317,6 @@ struct BatteryInfoStruct
 /*Board Power On or Off Manage Data Type Definite*/
 struct BoardPowerOnOffStruct
 {
-    UINT8                           LowPowerConsumeMode;
-    UINT8                           PoweroffUploadAckFlag;
     UINT8                           VbusSoftStartFlag;  //0:Unknow 1:success 2:fail
     UINT8                           VbusSoftStartEn;    //0:Disable 1:enable    
     
@@ -349,17 +329,12 @@ struct BoardPowerOnOffStruct
 struct PowerManagerStruct
 {
     UINT32                          uTick;
-    UINT32                          uPowerOffKeyPressTimestamp;
-    UINT32                          uPoweroffCmdFeedbackTimestamp;
 
     enum PowerManageState           ePMState;
     enum RstState                   eSysRstState;
     enum KeyEvent                   ePowerKeyEvent;
     enum KeyState                   ePowerKeyState;
     enum KeyState                   ePowerKeyStateLast;
-    enum HeartState                 eRk3399HeartState;
-    enum BatteryCoverState          eBatteryCoverState;
-    UINT8                           BatteryCoverLeadtoPoweroffSet;
     
     struct BatteryInfoStruct        sBatteryInfo;
     struct ChargeManageStruct       sChargeInfo;
@@ -372,7 +347,6 @@ PUBLIC void PowerManagerExec(void);
 PUBLIC void BatteryInfoReadLoop(void);
 PUBLIC void LdsPowerCtrl(UINT8 En, UINT8 Speed);
 PUBLIC UINT8 ReadChargeAppState(void);
-PUBLIC void FrameHeader0xB0Parser(UINT8 data[8]);
 PUBLIC void DisinfectionModulePowerCtrl(UINT8 En);
 PUBLIC void SetVbusPower(UINT8 State);
 PUBLIC void VbusSoftStartNoBlock(REAL32 VbusAdcValue);

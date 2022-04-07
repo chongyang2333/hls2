@@ -6,7 +6,7 @@
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether
+  * USER CODE END. Other portions of this file, whether 
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
@@ -61,7 +61,7 @@ static void can_networking_init(uint32_t can_periph)
 {
     can_parameter_struct            can_parameter;
     can_filter_parameter_struct     can_filter;
-
+    
     /* reset CAN */
     can_deinit(can_periph);
 
@@ -97,7 +97,7 @@ static void can_networking_init(uint32_t can_periph)
     can_filter.filter_list_high   = 0xFFFF;
     can_filter.filter_list_low    = 0xFFFF;
     can_filter.filter_mask_high   = 0x0000;
-    can_filter.filter_mask_low    = 0x0000;
+    can_filter.filter_mask_low    = 0x0000;  
     can_filter.filter_fifo_number = CAN_FIFO1;
     can_filter.filter_enable      = ENABLE;
     can_filter_init(&can_filter);
@@ -113,12 +113,12 @@ static void can_gpio_init(uint32_t can_periph)
 {
     if (can_periph == CAN0)
     {
-#define __CAN0_Rx_PORT  GPIOD
-#define __CAN0_Rx_GPIO  GPIO_PIN_0
-#define __CAN0_Rx_AF    GPIO_AF_9
-#define __CAN0_Tx_PORT  GPIOD
-#define __CAN0_Tx_GPIO  GPIO_PIN_1
-#define __CAN0_Tx_AF    GPIO_AF_9
+        #define __CAN0_Rx_PORT  GPIOD
+        #define __CAN0_Rx_GPIO  GPIO_PIN_0
+        #define __CAN0_Rx_AF    GPIO_AF_9
+        #define __CAN0_Tx_PORT  GPIOD
+        #define __CAN0_Tx_GPIO  GPIO_PIN_1
+        #define __CAN0_Tx_AF    GPIO_AF_9
 
         /* enable can clock */
         rcu_periph_clock_enable(RCU_CAN0);
@@ -128,7 +128,7 @@ static void can_gpio_init(uint32_t can_periph)
         gpio_output_options_set(__CAN0_Rx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __CAN0_Rx_GPIO);
         gpio_mode_set(__CAN0_Rx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __CAN0_Rx_GPIO);
         gpio_af_set(__CAN0_Rx_PORT, __CAN0_Rx_AF, __CAN0_Rx_GPIO);
-
+        
         gpio_output_options_set(__CAN0_Tx_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, __CAN0_Tx_GPIO);
         gpio_mode_set(__CAN0_Tx_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, __CAN0_Tx_GPIO);
         gpio_af_set(__CAN0_Tx_PORT, __CAN0_Tx_AF, __CAN0_Tx_GPIO);
@@ -164,8 +164,8 @@ void MX_CAN1_Init(void)
 void MX_CAN1_Init_Weak(void)
 {
 //     CAN_FilterTypeDef  sFilterConfig;
-
-
+ 
+    
 //     hcan1.Instance = CAN1;
 // //    hcan1.Init.Prescaler = 18;   // 54M/18 =3M
 // //    hcan1.Init.Mode = CAN_MODE_NORMAL;
@@ -177,14 +177,14 @@ void MX_CAN1_Init_Weak(void)
 //     hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
 //     hcan1.Init.TimeSeg1 = CAN_BS1_14TQ;       // baud rate = 18M/(SJW+BS1+BS2) = 18M/18 = 1000K
 //     hcan1.Init.TimeSeg2 = CAN_BS2_3TQ;       // (SJW+BS1)/(SJW+BS1+BS2) = (15)/(18) =83.3%
-
-//     /* for canopen */
+ 
+//     /* for canopen */    
 // //    hcan1.Instance = CAN1;
 // //    hcan1.Init.Prescaler = 6;   // 54M/6 =9M
 // //    hcan1.Init.Mode = CAN_MODE_NORMAL;
 // //    hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;  // baud rate = 9M/(SJW+BS1+BS2)
 // //    hcan1.Init.TimeSeg1 = CAN_BS1_6TQ;       // baud rate = 9M/(1+6+2)
-// //    hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
+// //    hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;       
 //     hcan1.Init.TimeTriggeredMode = DISABLE;
 //     hcan1.Init.AutoBusOff = ENABLE;
 //     hcan1.Init.AutoWakeUp = DISABLE;
@@ -195,7 +195,7 @@ void MX_CAN1_Init_Weak(void)
 //     {
 //         _Error_Handler(__FILE__, __LINE__);
 //     }
-
+    
 //       /*##-2- Configure the CAN Filter ###########################################*/
 //     sFilterConfig.FilterBank = 1;
 //     sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
@@ -207,26 +207,26 @@ void MX_CAN1_Init_Weak(void)
 //     sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
 //     sFilterConfig.FilterActivation = ENABLE;
 //     sFilterConfig.SlaveStartFilterBank = 14;
-
+  
 //     if(HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
 //     {
 //         /* Filter configuration Error */
 //         _Error_Handler(__FILE__, __LINE__);
 //     }
-
-
+ 
+    
 //     /* CAN1 interrupt Init */
 //     HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 3, 0);
 //     HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
-
+    
 //     __HAL_CAN_ENABLE_IT(&hcan1,CAN_IT_RX_FIFO0_MSG_PENDING);
-
+    
 //     /*Start the CAN peripheral */
 //     if (HAL_CAN_Start(&hcan1) != HAL_OK)
 //     {
 //         /* Start Error */
 //         _Error_Handler(__FILE__, __LINE__);
-//     }
+//     }  
 
     delay_ms(10);
     JumpAppFb(GetResetType());
@@ -242,9 +242,9 @@ void MX_CAN1_Init_Weak(void)
 //         /* CAN1 clock enable */
 //         __HAL_RCC_CAN1_CLK_ENABLE();
 
-//         /**CAN1 GPIO Configuration
+//         /**CAN1 GPIO Configuration    
 //         PD0     ------> CAN1_RX
-//         PD1     ------> CAN1_TX
+//         PD1     ------> CAN1_TX 
 //         */
 //         GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
 //         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -262,17 +262,17 @@ void MX_CAN1_Init_Weak(void)
 //   {
 //     /* Peripheral clock disable */
 //     __HAL_RCC_CAN1_CLK_DISABLE();
-
-//     /**CAN1 GPIO Configuration
+  
+//     /**CAN1 GPIO Configuration    
 //     PD0     ------> CAN1_RX
-//     PD1     ------> CAN1_TX
+//     PD1     ------> CAN1_TX 
 //     */
 //     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_0|GPIO_PIN_1);
 
 //     /* CAN1 interrupt Deinit */
 //     HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
 //   }
-// }
+// } 
 
 
 

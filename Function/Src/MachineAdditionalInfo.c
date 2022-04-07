@@ -4,8 +4,8 @@ funciton:
 auther:
 ***************************************************************************************************/
 /***************************************************************************************************
-                             
-***************************************************************************************************/ 
+
+***************************************************************************************************/
 #define  __MACHINE_ADDITIONAL_INFO_C__
 #include <stdlib.h>
 #include "gd32f4xx.h"
@@ -24,44 +24,50 @@ auther:
 unsigned long OdometerMark;
 unsigned long OdometerCounter;
 unsigned long CumulativeTimeBase;
-STRUCT_WHEEL_MILEAGE   WheelsMileage[2]; 
+
+STRUCT_WHEEL_MILEAGE   WheelsMileage[2];
 STRUCT_ADDITIONAL_INFO MachineAddInfo;
 STRUCT_ADDITIONAL_INFO_HEADER MachineAddHeader;
 STRUCT_ADDITIONAL_INFO_ACCESS MachineAddAccess;
-extern struct PowerManagerStruct sPowerManager;
-/***************************************************************************************************
 
-***************************************************************************************************/
+extern struct PowerManagerStruct sPowerManager;
 extern uint8_t ReadChargeInPinState(void);
-/*==================================================================================================
-Table:
-Function:
-==================================================================================================*/
-const STRUCT_ADDITIONAL_INFO_HEADER MachineAddHeaderDefault = 
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+const STRUCT_ADDITIONAL_INFO_HEADER MachineAddHeaderDefault =
 {
     .InfoSize = sizeof( STRUCT_ADDITIONAL_INFO ),
     .InfoAddress = MACHINE_ADD_INFO_ADDR + sizeof( STRUCT_ADDITIONAL_INFO_HEADER ),
 };
-/*==================================================================================================
-Table:
-Function:
-==================================================================================================*/
-const STRUCT_ADDITIONAL_INFO MachineAddInfoDefault = 
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+const STRUCT_ADDITIONAL_INFO MachineAddInfoDefault =
 {
     .Odometer = { .ItemSize = sizeof( STRUCT_ADDITIONAL_INFO_ITEM ), .Keyword = "Odometer", },
     .CumulativeTime = { .ItemSize = sizeof( STRUCT_ADDITIONAL_INFO_ITEM ), .Keyword = "Cumu. Time", },
 };
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void CalculateWheelMileage( STRUCT_WHEEL_MILEAGE *pWheel, double WheelPerimeter, unsigned int PlusCntPerCircle )
 {
     double Mileage;
     unsigned long Value;
-    
+
     if( !pWheel || ( 0 == PlusCntPerCircle ) || ( ( WheelPerimeter > -1e-6 ) && ( WheelPerimeter < 1e-6 ) ) )
     {
         return;
@@ -73,27 +79,28 @@ void CalculateWheelMileage( STRUCT_WHEEL_MILEAGE *pWheel, double WheelPerimeter,
         Value = pWheel->EnconderPlusCnt / PlusCntPerCircle;
         pWheel->EnconderPlusCnt %= PlusCntPerCircle;
         Mileage = Value * WheelPerimeter / 4;
-        pWheel->Mileage += Mileage; 
+        pWheel->Mileage += Mileage;
     }
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void UpdateWheelEncoderPlusCount( STRUCT_WHEEL_MILEAGE *pWheel, signed int DeltaPlusCnt )
 {
     if( !pWheel )
     {
         return;
     }
-    
+
     if( DeltaPlusCnt < 0 )
     {
         DeltaPlusCnt = -DeltaPlusCnt;
     }
-    
+
     /*1rpm = 4096Inc/60*40tick = 1.7Inc/tick;  1tick = 25ms*/
     /*remove encoder jetter err*/
     if (DeltaPlusCnt < 3)
@@ -103,12 +110,13 @@ void UpdateWheelEncoderPlusCount( STRUCT_WHEEL_MILEAGE *pWheel, signed int Delta
 
     pWheel->EnconderPlusCnt += DeltaPlusCnt;
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void CumulativeTimeCount( void )
 {
     static unsigned char ChargeState = 0;
@@ -158,18 +166,19 @@ void CumulativeTimeCount( void )
             }
         }
     }
-    
+
     if( ( 1 == ChargeState ) && ( DISCONNECT == sPowerManager.sChargeInfo.eChargerConnectState ) )
     {
         CumulativeTimeBase++;
     }
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 unsigned char SaveMachineAddInfoHeader( void )
 {
     int i;
@@ -200,12 +209,13 @@ unsigned char SaveMachineAddInfoHeader( void )
         return( 0 );
     }
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 unsigned char CheckMachineAddInfoHeader( void )
 {
     int i;
@@ -217,12 +227,12 @@ unsigned char CheckMachineAddInfoHeader( void )
     for( i = 0; i < PARAM_BLOCK_NUM; i++, Address += MACHINE_ADD_INFO_REDUNDANCY_OFFSET )
     {
         int n;
-        
+
         /*read add. info header*/
         for( n = 0; n < 3; n++ )
         {
             STRUCT_ADDITIONAL_INFO_HEADER Header;
-            
+
             EEPROM_Serial_Read( Address, (  unsigned char * )&Header, sizeof( Header ) );
             if( GetCRC16( ( unsigned char * )&Header, sizeof( Header ) - sizeof( Header.HeaderCRC ) ) == Header.HeaderCRC )
             {
@@ -241,12 +251,13 @@ unsigned char CheckMachineAddInfoHeader( void )
         return( FALSE );
     }
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 unsigned char SaveMachineAddInfo( void )
 {
     int i;
@@ -267,12 +278,13 @@ unsigned char SaveMachineAddInfo( void )
 
     return( TRUE );
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 unsigned char LoadMachineAddInfo( void )
 {
     int i;
@@ -291,7 +303,7 @@ unsigned char LoadMachineAddInfo( void )
         for( int n = 0; n < 3; n++ )
         {
             STRUCT_ADDITIONAL_INFO_HEADER Header;
-            
+
             EEPROM_Serial_Read( Address, (  unsigned char * )&Header, sizeof( Header ) );
             if( GetCRC16( ( unsigned char * )&Header, sizeof( Header ) - sizeof( Header.HeaderCRC ) ) == Header.HeaderCRC )
             {
@@ -327,12 +339,12 @@ unsigned char LoadMachineAddInfo( void )
                 BlockCRC = *( ( unsigned short * )&pBuff[MachineAddHeader.InfoSize - sizeof( MachineAddInfo.BlockCRC )] );
                 if( GetCRC16( pBuff, MachineAddHeader.InfoSize - sizeof( MachineAddInfo.BlockCRC ) ) == BlockCRC )
                 {
-					MachineAddInfo = *( ( STRUCT_ADDITIONAL_INFO * )pBuff );
+                    MachineAddInfo = *( ( STRUCT_ADDITIONAL_INFO * )pBuff );
                     MachineAddAccess.GoodInfoBlock |= 1 << i;
                     break;
                 }
             }
-    
+
             if( 0 != MachineAddAccess.GoodInfoBlock )
             {
                 break;
@@ -341,7 +353,7 @@ unsigned char LoadMachineAddInfo( void )
     }
 
     free( pBuff );
-    
+
     if( 0 == MachineAddAccess.GoodInfoBlock )
     {
         MachineAddAccess.IsInfoInvalid = TRUE;
@@ -352,12 +364,13 @@ unsigned char LoadMachineAddInfo( void )
         return( TRUE );
     }
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 unsigned char CheckMachineAddInfo( void )
 {
     int i;
@@ -387,7 +400,7 @@ unsigned char CheckMachineAddInfo( void )
     }
 
     free( pInfo );
-    
+
     if( 0 == Flag )
     {
         return( FALSE );
@@ -397,12 +410,13 @@ unsigned char CheckMachineAddInfo( void )
         return( TRUE );
     }
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 unsigned char IsMachineAddInfoSaveOK( void )
 {
     if( INFO_ACCESS_NONE == MachineAddAccess.Status )
@@ -414,46 +428,50 @@ unsigned char IsMachineAddInfoSaveOK( void )
         return( FALSE );
     }
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void ResetOdometer( void )
 {
     MachineAddAccess.Status = INFO_ACCESS_RESET_ODOMETER;
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void ResetCumulativeTime( void )
 {
     MachineAddAccess.Status = INFO_ACCESS_RESET_TIME;
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void EnableMachineAddInfoSave( void )
 {
     MachineAddAccess.Status = INFO_ACCESS_SAVE;
 }
-/*==================================================================================================
-Name:
-Work:
-Input:
-Output:
-==================================================================================================*/
+
+/***********************************************************************
+ * DESCRIPTION:
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 void MachineAddInfoProcess( void )
 {
     int i;
-    
+
     if( INFO_ACCESS_WRITE_HEADER == MachineAddAccess.Status )
     {
         i = SaveMachineAddInfoHeader();
@@ -531,14 +549,14 @@ void MachineAddInfoProcess( void )
             MachineAddInfo.CumulativeTime.Value = gMachineInfo.CumulativeTime ;
             MachineAddAccess.Status = INFO_ACCESS_SAVE;
         }
-        
-        if( MachineAddAccess.IsInfoInvalid || ( CumulativeTimeBase >= MACHINE_CUMULATIVE_TIME_PERIOD ) || 
-            ( OdometerCounter >= MACHINE_ODOMETER_RECORD_UNIT ) || ( INFO_ACCESS_SAVE == MachineAddAccess.Status ) ||
-            ( INFO_ACCESS_RESET_TIME == MachineAddAccess.Status ) || ( INFO_ACCESS_RESET_ODOMETER == MachineAddAccess.Status ) ||
-            ( sizeof( MachineAddInfo ) != MachineAddHeader.InfoSize ) )
+
+        if( MachineAddAccess.IsInfoInvalid || ( CumulativeTimeBase >= MACHINE_CUMULATIVE_TIME_PERIOD ) ||
+                ( OdometerCounter >= MACHINE_ODOMETER_RECORD_UNIT ) || ( INFO_ACCESS_SAVE == MachineAddAccess.Status ) ||
+                ( INFO_ACCESS_RESET_TIME == MachineAddAccess.Status ) || ( INFO_ACCESS_RESET_ODOMETER == MachineAddAccess.Status ) ||
+                ( sizeof( MachineAddInfo ) != MachineAddHeader.InfoSize ) )
         {
             DI();
-            if( INFO_ACCESS_RESET_ODOMETER != MachineAddAccess.Status ) 
+            if( INFO_ACCESS_RESET_ODOMETER != MachineAddAccess.Status )
             {
                 MachineAddInfo.Odometer.Value += OdometerCounter;
                 OdometerCounter = 0;
@@ -560,7 +578,7 @@ void MachineAddInfoProcess( void )
                 MachineAddInfo.CumulativeTime.Value = 0;
                 CumulativeTimeBase = 0;
             }
-            gMachineInfo.CumulativeTime = MachineAddInfo.CumulativeTime.Value;   
+            gMachineInfo.CumulativeTime = MachineAddInfo.CumulativeTime.Value;
             EI();
             MachineAddAccess.BlockRetryCnt = 0;
             MachineAddAccess.HeaderRetryCnt = 0;

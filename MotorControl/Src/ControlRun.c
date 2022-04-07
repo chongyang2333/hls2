@@ -31,6 +31,7 @@
 #include "LedDriver.h"
 #include "gpio.h"
 #include "MachineAdditionalInfo.h"
+#include "gd_hal.h"
 #include "ISTMagic.h"
 #include "math.h"
 
@@ -44,35 +45,34 @@ extern PUBLIC void SpeedLoopInit(struct AxisCtrlStruct *P);
 extern PUBLIC void SpeedLoopExec(struct AxisCtrlStruct *P);
 extern PUBLIC void PositionLoopInit(struct AxisCtrlStruct *P);
 extern PUBLIC void PositionLoopExec(struct AxisCtrlStruct *P);
-
 extern PUBLIC void EncoderInit(struct AxisCtrlStruct *P);
 extern PUBLIC void GetEncoderPulse(struct EncoderStruct *P, UINT16 AxisID);
 extern PUBLIC void AbsEncoderReadStart(void);
 extern PUBLIC void EncoderParUpdate(struct EncoderStruct *P);
-
+extern PUBLIC void SpeakerOnExec(void);
 extern PUBLIC void AlarmInit(struct AxisCtrlStruct *P);
 extern PUBLIC void AlarmExec(struct AxisCtrlStruct *P);
 extern PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P);
 extern PUBLIC void ClearCanBreakAlarm(void);
-
 extern PUBLIC void InnerCtrlExec(struct AxisCtrlStruct *P);
-
 extern PUBLIC void VeneerAgingTest(void);
+extern PUBLIC void GetPhaseCurrentReal(struct AxisCtrlStruct *P);
 
-PRIVATE void SpeedSetAvoidFalling(void);
-
+TimeTamp_Def TimeTamp = {0};
 struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 struct SchedulerStruct sScheduler;
-UINT16  ErrCode_Send_Flag = 0;
+
+extern UINT8 alarm_level ;
+extern UINT8 alarm_levelBak;
+UINT16 alarm_cnt = 0;
+
 PRIVATE void CanFdbMcInfoExec(void);
 PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime);
 PRIVATE void MotionParamUpdateExec(void);
 PRIVATE void ParamFdbUpdate(void);
+PRIVATE void SpeedSetAvoidFalling(void);
 
-UINT16  New_Err_Flag = 0;
-extern UINT8 alarm_level ;
-extern UINT8 alarm_levelBak; 
-UINT16 alarm_cnt = 0;
+
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -81,94 +81,144 @@ UINT16 alarm_cnt = 0;
 ***********************************************************************/
 PUBLIC void ControlRunInit(void)
 {
-    for(int i=0;i<MAX_AXIS_NUM;i++)
+    for(int i=0; i<MAX_AXIS_NUM; i++)
     {
         sAxis[i].AxisID = i;
-        
+
         sAxis[i].BootStrapCapChargeEn = sAxis[i].BootStrapCapChargeFlag = 0;
         sAxis[i].BootStrapCapChargeTime = 10;  //1ms
 
         sAxis[i].StarSealProtectFlag = 0;
-		sAxis[i].StarSealProtectEn = 0;
-        sAxis[i].StarSealProtectTime = 1000;//100ms//100;  //10ms        
-        
+        sAxis[i].StarSealProtectEn = 0;
+        sAxis[i].StarSealProtectTime = 1000;//100ms//100;  //10ms
+
         EncoderInit(&sAxis[i]);
         CurrentLoopInit(&sAxis[i]);
         SpeedLoopInit(&sAxis[i]);
         PositionLoopInit(&sAxis[i]);
         AlarmInit(&sAxis[i]);
-        
+
         sAxis[i].sFilterCfg.all = gParam[i].FilterConfig0x2105;
-    }    
+
+        TimeTamp.Time_Zero = ReadTimeStampTimer();
+    }
 }
+
+/***********************************************************************
+ * DESCRIPTION: 时钟同步翻转脉冲
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+void TimeTamp_Cal(void)
+{
+    UINT32 Time_temp1 = ReadTimeStampTimer();
+    UINT32 Time_temp2 = 0;
+    UINT32 Time_temp3 = 0;
+
+    Time_temp2 = Time_temp1 + TimeTamp.Time_Res - TimeTamp.Time_Zero;
+    Time_temp3 = Time_temp2 / 100000;    //ms
+	
+    if(Time_temp3 > 0)
+    {
+        TimeTamp.Time_Res = Time_temp2 % 100000;
+        TimeTamp.Time_Tamp_Now = TimeTamp.Time_Tamp_Now + Time_temp3;//ms
+        TimeTamp.Time_Zero = Time_temp1;
+    }
+    //generate pulse
+    if(TimeTamp.Time_10K_Cnt == 0)
+    {
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_SET);
+        TimeTamp.Time_Tamp_record = TimeTamp.Time_Tamp_Now;
+        TimeTamp.CorrectFlag = 1;
+    }
+    else if(TimeTamp.Time_10K_Cnt == 5000)
+    {
+        //reset
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_RESET);
+    }
+    TimeTamp.Time_10K_Cnt++;
+    if(TimeTamp.Time_10K_Cnt >= 10000)
+    {
+        TimeTamp.Time_10K_Cnt = 0;
+    }
+}
+
+/***********************************************************************
+ * DESCRIPTION:防跌落
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PRIVATE void SpeedSetAvoidFalling(void)
 {
-	if(alarm_levelBak == 0)
-	{
-		alarm_levelBak = alarm_level;
-	}
-	if(alarm_levelBak == 0)
-	{
-		alarm_cnt = 0;
-		sAxis[0].sSpdLoop.AccMax = sAxis[0].sSpdLoop.AccMax2; // ??
-		sAxis[0].sSpdLoop.DecMax = sAxis[0].sSpdLoop.DecMax2;
-		sAxis[1].sSpdLoop.AccMax = sAxis[1].sSpdLoop.AccMax2;
-		sAxis[1].sSpdLoop.DecMax = sAxis[1].sSpdLoop.DecMax2;
-	}
-	else if(alarm_levelBak == 1)
-	{
-		sAxis[0].sSpdLoop.SpdRef = 0; //???
-		sAxis[1].sSpdLoop.SpdRef = 0;
-	  sAxis[0].sSpdLoop.AccMax = 30.0f; //300r/min  300/60*0.14*3.14=2.2m/s
-		sAxis[0].sSpdLoop.DecMax = 100.0f;   //100/6 r/s  7m/s
-		sAxis[1].sSpdLoop.AccMax = 30.0f;
-		sAxis[1].sSpdLoop.DecMax = 100.0f;
-		if((fabs(sAxis[0].sSpdLoop.SpdFdb)>2.0f)||(fabs(sAxis[1].sSpdLoop.SpdFdb)>2.0f))
-		{
-			alarm_cnt = 0; // ??????????
-		}
-		else
-		{
-			if(alarm_cnt++>10000)//2s ?2s???????????,?????0.5m/s
-			{
-				alarm_levelBak =2;
-			}
-		}
-	}
-	else //== 2
-	{
-		sAxis[0].sSpdLoop.AccMax = sAxis[0].sSpdLoop.AccMax2; // ??
-		sAxis[0].sSpdLoop.DecMax = sAxis[0].sSpdLoop.DecMax2;
-		sAxis[1].sSpdLoop.AccMax = sAxis[1].sSpdLoop.AccMax2;
-		sAxis[1].sSpdLoop.DecMax = sAxis[1].sSpdLoop.DecMax2;
-		if(alarm_level == 0)
-		{
-			alarm_levelBak = 0;
-		}
-		
-		if(sAxis[0].sSpdLoop.SpdRef > 60)
-		{
-			sAxis[0].sSpdLoop.SpdRef= 60;
-		}
-		else if(sAxis[0].sSpdLoop.SpdRef < -60)
-		{
-			sAxis[0].sSpdLoop.SpdRef= -60;
-		}	
-		if(sAxis[1].sSpdLoop.SpdRef > 60)
-		{
-			sAxis[1].sSpdLoop.SpdRef= 60;
-		}
-		else if(sAxis[1].sSpdLoop.SpdRef < -60)
-		{
-			sAxis[1].sSpdLoop.SpdRef= -60;
-		}
-		
-	}
-	if((sAxis[0].PowerFlag == 0)||(sAxis[1].PowerFlag == 0))//??????????	
-	{
-		alarm_levelBak = 0;
-		alarm_cnt = 0;
-	}
+    if(alarm_levelBak == 0)
+    {
+        alarm_levelBak = alarm_level;
+    }
+
+    if(alarm_levelBak == 0)
+    {
+        alarm_cnt = 0;
+        sAxis[0].sSpdLoop.AccMax = sAxis[0].sSpdLoop.AccMax2; 
+        sAxis[0].sSpdLoop.DecMax = sAxis[0].sSpdLoop.DecMax2;
+        sAxis[1].sSpdLoop.AccMax = sAxis[1].sSpdLoop.AccMax2;
+        sAxis[1].sSpdLoop.DecMax = sAxis[1].sSpdLoop.DecMax2;
+    }
+    else if(alarm_levelBak == 1)
+    {
+        sAxis[0].sSpdLoop.SpdRef = 0; 
+        sAxis[1].sSpdLoop.SpdRef = 0;
+        sAxis[0].sSpdLoop.AccMax = 30.0f;    //300r/min   2.2m/s
+        sAxis[0].sSpdLoop.DecMax = 100.0f;   //100/6 r/s  7m/s
+        sAxis[1].sSpdLoop.AccMax = 30.0f;
+        sAxis[1].sSpdLoop.DecMax = 100.0f;
+        if((fabs(sAxis[0].sSpdLoop.SpdFdb)>2.0f)||(fabs(sAxis[1].sSpdLoop.SpdFdb)>2.0f))
+        {
+            alarm_cnt = 0;
+        }
+        else
+        {
+            if(alarm_cnt++>10000)//2s
+            {
+                alarm_levelBak =2;
+            }
+        }
+    }
+    else //== 2
+    {
+        sAxis[0].sSpdLoop.AccMax = sAxis[0].sSpdLoop.AccMax2;
+        sAxis[0].sSpdLoop.DecMax = sAxis[0].sSpdLoop.DecMax2;
+        sAxis[1].sSpdLoop.AccMax = sAxis[1].sSpdLoop.AccMax2;
+        sAxis[1].sSpdLoop.DecMax = sAxis[1].sSpdLoop.DecMax2;
+        if(alarm_level == 0)
+        {
+            alarm_levelBak = 0;
+        }
+
+        if(sAxis[0].sSpdLoop.SpdRef > 60)
+        {
+            sAxis[0].sSpdLoop.SpdRef= 60;
+        }
+        else if(sAxis[0].sSpdLoop.SpdRef < -60)
+        {
+            sAxis[0].sSpdLoop.SpdRef= -60;
+        }
+        if(sAxis[1].sSpdLoop.SpdRef > 60)
+        {
+            sAxis[1].sSpdLoop.SpdRef= 60;
+        }
+        else if(sAxis[1].sSpdLoop.SpdRef < -60)
+        {
+            sAxis[1].sSpdLoop.SpdRef= -60;
+        }
+
+    }
+    if((sAxis[0].PowerFlag == 0)||(sAxis[1].PowerFlag == 0))
+    {
+        alarm_levelBak = 0;
+        alarm_cnt = 0;
+    }
 }
 
 /***********************************************************************
@@ -177,216 +227,248 @@ PRIVATE void SpeedSetAvoidFalling(void)
  * RETURNS:
  *
 ***********************************************************************/
+PUBLIC void LOGO_PWM(void)
+{
+    static UINT16 S_Period = 100;
+	  static UINT16 S_DutyVal = 50;
+	  static UINT16 S_DutyCnt = 0;
+	  static UINT16 S_CntDir  = 0;
+	
+	  S_DutyCnt++;
+	  if(S_DutyCnt >= S_DutyVal)
+		{
+		    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
+		}
+		else
+		{
+		    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
+		}	  
+		
+		//故障状态 LOGO闪烁
+		if(S_DutyCnt == S_Period)
+		{
+				if(!(sAxis[0].sAlarm.ErrReg.all || sAxis[1].sAlarm.ErrReg.all))
+				{
+						S_DutyVal = 50;
+				}
+				else
+				{
+						if(S_DutyVal >= 90)
+						{
+							 S_CntDir = 0;
+						}
+						else if(S_DutyVal <= 10)
+						{
+							 S_CntDir = 1;
+						}
+						
+						if(S_CntDir)
+						{
+							 S_DutyVal++;
+						}
+						else
+						{
+							 S_DutyVal--;
+						}
+				}
+		}
+
+		S_DutyCnt = S_DutyCnt >= S_Period ? 0 : S_DutyCnt;
+}
+/***********************************************************************
+ * DESCRIPTION: main ISR 10khz
+ *
+ * RETURNS:
+ *
+***********************************************************************/
 PUBLIC void ControlRunExec(void)
 {
-	/* Read time stamp at the entrance of interrupt:
-            for calculate the elapsed time of interrupt*/
-	UINT32 IsrStartTime = ReadTimeStampTimer();
-    
-    static UINT16 Cnt_1ms = 0;
-    
-	/* Start phase current,DC current,DC voltage sample */
-	AdcSampleStart();
-    
-	/* Get encoder counter*/
-	GetEncoderPulse(&sAxis[0].sEncoder, AXIS_LEFT);
+    /* Read time stamp at the entrance of interrupt:
+     for calculate the elapsed time of interrupt*/
+    UINT32 IsrStartTime = ReadTimeStampTimer();
+
+    static UINT16 Cnt_1ms = 0; 
+    GetPhaseCurrentReal(&sAxis[0]);
+    GetPhaseCurrentReal(&sAxis[1]);
+
+    /* DC current,DC voltage sample */
+    AdcSample0Start();
+    TimeTamp_Cal();
+	  //LOGO PWM
+	  LOGO_PWM();
+	  //HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
+    /* Get encoder counter*/
+    GetEncoderPulse(&sAxis[0].sEncoder, AXIS_LEFT);
     GetEncoderPulse(&sAxis[1].sEncoder, AXIS_RIGHT);
-      
-	/* Encoder calculation: 
-             for electric angle,speed increment,position increment */
-	EncoderCalExec(&sAxis[0]);
+
+    /* Encoder calculation:
+    for electric angle,speed increment,position increment */
+    EncoderCalExec(&sAxis[0]);
     TransferToPartner(&sAxis[0], &sAxis[1]);
     EncoderCalExec(&sAxis[1]);
     TransferToPartner(&sAxis[1], &sAxis[0]);
-    
-	/* Alarm execute each cycle*/
-	AlarmExec(&sAxis[0]);
+
+    /* Alarm execute each cycle*/
+    AlarmExec(&sAxis[0]);
     AlarmExec(&sAxis[1]);
-    
+
     InnerCtrlExec(&sAxis[0]);
     InnerCtrlExec(&sAxis[1]);
-    
-	/* Execute every 5 cycles */
-	UINT16 Tick = sScheduler.SchNum%5;
-//*
+
+    /* Execute every 5 cycles */
+    UINT16 Tick = sScheduler.SchNum % 5;
     if(sScheduler.SchNum%2)
     {
         SpeedSetAvoidFalling();
         SpeedLoopExec(&sAxis[0]);
         SpeedLoopExec(&sAxis[1]);
-	}
-	else
-	{
+    }
+    else
+    {
         CiA402_MotionControl();
-	}
-//*/	
-	switch(Tick)
-	{
-		case 0:
-			/* Position loop calculation */
-			PositionLoopExec(&sAxis[0]);
-            PositionLoopExec(&sAxis[1]);
-        
-			/* Speed loop calculation */
-//			SpeedLoopExec(&sAxis[0]);
-//            SpeedLoopExec(&sAxis[1]);
-		break;
+    }
 
-		case 1:
-			/* Alarm execute every 5 cycles*/
-			AlarmExec_5(&sAxis[0]);
-		break;
+    switch(Tick)
+    {
+    case 0:
+        /* Position loop calculation */
+        PositionLoopExec(&sAxis[0]);
+        PositionLoopExec(&sAxis[1]);
+        break;
 
-		case 2:
-            /* Alarm execute every 5 cycles*/
-			AlarmExec_5(&sAxis[1]);
-		break;
+    case 1:
+        /* Alarm execute every 5 cycles*/
+        AlarmExec_5(&sAxis[0]);
+        break;
 
-		case 3:
-            //CiA402_MotionControl();
-		break;
+    case 2:
+        /* Alarm execute every 5 cycles*/
+        AlarmExec_5(&sAxis[1]);
+        break;
 
-		case 4:
-            if(Cnt_1ms++>=2)
-            {
-                Cnt_1ms = 0;
-                //timerForCan1MS();
-            }
-		break;
-	}
+    case 3:
+        //CiA402_MotionControl();
+        break;
 
-    /* wait for ADC to complete, then acknowledge flag	*/ 
-    AdcSampleClearFlag();
+    case 4:
+        if(Cnt_1ms++>=2)
+        {
+            Cnt_1ms = 0;
+        }
+        break;
+    }
 
-	/* Calculate phase current */
-	GetPhaseCurrent(AXIS_LEFT,  &sAxis[0].sCurLoop.Ia,  &sAxis[0].sCurLoop.Ib );
-    GetPhaseCurrent(AXIS_RIGHT, &sAxis[1].sCurLoop.Ia, &sAxis[1].sCurLoop.Ib);
-    
+    AdcSample0ClearFlag();
     GetDcVoltage(&sAxis[0].sCurLoop.Vdc);
     sAxis[1].sCurLoop.Vdc = sAxis[0].sCurLoop.Vdc;
-    
-	/* Current loop calculation */
-	CurrentLoopExec(&sAxis[0]);
+
+    /* Current loop calculation */
+    CurrentLoopExec(&sAxis[0]);
     CurrentLoopExec(&sAxis[1]);
-    
-	/* Update PWM compare value */
-    PwmUpdate(AXIS_LEFT, sAxis[0].PowerFlag, sAxis[0].sCurLoop.TaNumber, sAxis[0].sCurLoop.TbNumber, sAxis[0].sCurLoop.TcNumber);
-    PwmUpdate(AXIS_RIGHT, sAxis[1].PowerFlag, sAxis[1].sCurLoop.TaNumber, sAxis[1].sCurLoop.TbNumber, sAxis[1].sCurLoop.TcNumber);    
-	
+
+    sAxis[0].sCurLoop.TdNumber = 9960;
+    sAxis[1].sCurLoop.TdNumber = 9960;
+    /* Update PWM compare value */
+    PwmUpdate(AXIS_LEFT, sAxis[0].PowerFlag, sAxis[0].sCurLoop.TaNumber, sAxis[0].sCurLoop.TbNumber, sAxis[0].sCurLoop.TcNumber,sAxis[0].sCurLoop.TdNumber);
+    PwmUpdate(AXIS_RIGHT, sAxis[1].PowerFlag, sAxis[1].sCurLoop.TaNumber, sAxis[1].sCurLoop.TbNumber, sAxis[1].sCurLoop.TcNumber, sAxis[1].sCurLoop.TdNumber);
+
     /* PWM on/off judgment */
     PowerOnOffExec(&sAxis[0], sScheduler.TickCnt);
     PowerOnOffExec(&sAxis[1], sScheduler.TickCnt);
-    
+
     DataCollectingLoop(sScheduler.TickCnt);
-    
-	/* Data collect module  */
+
+    /* Data collect module  */
 //	data_collect_loop();
 
     sScheduler.SchNum++;
-	sScheduler.SchNum = sScheduler.SchNum%MAX_SCH_NUM;
-    
+    sScheduler.SchNum = sScheduler.SchNum%MAX_SCH_NUM;
+
     if(sScheduler.SchNum == 0)  // 1s
     {
         sScheduler.TimeStamp++;
         gParam[0].TimeStamp0x2500++;
     }
 
-	/* Main interrupt tick: add 1 at each cycle */
-	sScheduler.TickCnt++;
-    
-	/* Calculate the elapsed time of interrupt */
-    sScheduler.IsrElapsedTime = ReadTimeStampTimer() - IsrStartTime;
-    if((sAxis[0].sAlarm.ErrReg.all != 0)||(sAxis[1].sAlarm.ErrReg.all!= 0))//±¨¹ÊÕÏÁ¢¼´ÉÏ±¨Âß¼­£¬²»ÊÇ100ms²éÑ¯ÉÏ±¨£¬Ëõ¶ÌÉÏÎ»»úÏìÓ¦Ê±¼ä
-    {
-        if((sAxis[0].sAlarm.ErrReg.all != sAxis[0].sAlarm.ErrRegBak.all)||(sAxis[1].sAlarm.ErrReg.all != sAxis[1].sAlarm.ErrRegBak.all))
-        {
-            ErrCode_Send_Flag = 1;
-        }
-    }
-    sAxis[0].sAlarm.ErrRegBak.all = sAxis[0].sAlarm.ErrReg.all;
-    sAxis[1].sAlarm.ErrRegBak.all = sAxis[1].sAlarm.ErrReg.all;
+    /* Main interrupt tick: add 1 at each cycle */
+    sScheduler.TickCnt++;
 
+    /* Calculate the elapsed time of interrupt */
+    sScheduler.IsrElapsedTime = ReadTimeStampTimer() - IsrStartTime;
 }
 
+void led_bar_driver( void );
 /***********************************************************************
  * DESCRIPTION:general timer interrupt . 40HZ
  *
  * RETURNS:
  *
 ***********************************************************************/
+UINT16 KeyStateCnt=0;
 PUBLIC void TimerIsrExec(void)
-{   
+{
     UINT32 StartTime = ReadTimeStampTimer();
 
     CumulativeTimeCount();
-    
     //CanFdb motion control info
     CanFdbMcInfoExec();
-    
-    //Gyro task 
+
+    //Gyro task
     GyroExec();
-    
-    LedDriverExec();
-    led_bar_driver();
-    // StateMachine
+    CanSendTimeTamp(0xc8);
+    Send_Int_TimeTamp();
+
+//    LedDriverExec();
+//    led_bar_driver();
     CiA402_StateMachine();
-    
+
     //Parameter Reference update
     MotionParamUpdateExec();
-    
+
     //Parameter Feedback update
     ParamFdbUpdate();
-    
-    //Rgb task 
+
+    //Rgb task
     RgbExec();
 
     // CanApp task
     CanAppExec();
-    
-    // PowerManager task    
+
+    //PowerManager task
     //PowerManagerExec();
-	
+    SpeakerOnExec();
 //	VeneerAgingTest();
-    
+
     ClearCanBreakAlarm();
+
     MagXYZ_Exec();
+
     sScheduler.Tim7IsrTime = ReadTimeStampTimer() - StartTime;
-    
+
     if(sScheduler.Tim7IsrTime > MAX_TIMER_ISR_TIME) // 15ms
     {
         sAxis[0].sAlarm.ErrReg.bit.InnerErr = 1;
         sAxis[1].sAlarm.ErrReg.bit.InnerErr = 1;
     }
-    
+
 }
 
 /***********************************************************************
-* DESCRIPTION: // 40HZ
+* DESCRIPTION:  40HZ任务调度
 *
 *
 *
 ***********************************************************************/
 PUBLIC void VeneerAgingTest(void)
 {
-	static UINT16 Cnt_25ms = 0;
-	static UINT16 testFlg = 0;
-	static UINT16 testStateBak = 0;
-    static UINT16 first_cnt = 0;
+    static UINT16 Cnt_25ms = 0;
+    static UINT16 testFlg = 0;
+    static UINT16 testStateBak = 0;
 
-    if((gParam[0].RestoreDefaults0x2400 == 1)||(gParam[0].SaveParameter0x2401 == 1))
+    if(VeneerAgingTestState() == 2 && testStateBak == 2 && testFlg != 2)
     {
-        return;
-    }
-    if(first_cnt<80)
-    {
-        first_cnt++;
-        return;
-    }
-	if(VeneerAgingTestState() == 2 && testStateBak == 2 && testFlg != 2)
-	{
-		testFlg = 1;
-        if((gMachineInfo.motorVersion == 7)||(gMachineInfo.motorVersion == 2))
-            //if(gMachineInfo.motorVersion == 7)
+        testFlg = 1;
+        if(gMachineInfo.motorVersion == 7)
         {
             gParam[1].ProfileAcc0x6083 = gParam[1].ProfileDec0x6084 = 150000;
             gParam[0].ProfileAcc0x6083 = gParam[0].ProfileDec0x6084 = 150000;
@@ -459,12 +541,11 @@ PUBLIC void VeneerAgingTest(void)
         }
         Cnt_25ms++;
         testFlg = 2;
-#if 0 //µ¥¼ìµç»ú
-        if(Cnt_25ms > 40)//ÏÈ¼õËÙ£¬ÔÙÍ£»ú£¬·ñÔò¸ßËÙÖ±½ÓÉ²³µÕð¶¯´ó
+        if(Cnt_25ms > 40)
         {
             gParam[0].ControlWord0x6040 = 0x6;
             gParam[1].ControlWord0x6040 = 0x6;
-            if(Cnt_25ms>50)//ÑÓÊ±250ms¸øÐÂÃüÁî£¬·ñÔò»áÓÐàÔµÄÏìÉù
+            if(Cnt_25ms>50)//2??¨®¨º¡À¡ê?¨®?¨¤¡äD????¡¥?¨¹¨¢??¨¢¨¤??¨¬¨°?¨¦¨´¡ê?¨°a¡ã?¨ª¡ê?1¦Ì?¡¤a¨¨y?¨¤????100ms?¨®¨º¡À¦Ì?
             {
                 testFlg = 0;
                 Cnt_25ms = 0;
@@ -472,17 +553,6 @@ PUBLIC void VeneerAgingTest(void)
         }
         gParam[0].TargetVelocity0x60FF = 0;
         gParam[1].TargetVelocity0x60FF = 0;
-#else //ÀÏ»¯²âÊÔ ÈÝÒ×¹ýÑ¹Ö±½ÓÍ£
-        gParam[0].ControlWord0x6040 = 0x6;
-        gParam[1].ControlWord0x6040 = 0x6;
-        if(Cnt_25ms>10)//ÑÓÊ±250ms¸øÐÂÃüÁî£¬·ñÔò»áÓÐàÔµÄÏìÉù
-        {
-            testFlg = 0;
-            Cnt_25ms = 0;
-            gParam[0].TargetVelocity0x60FF = 0;
-            gParam[1].TargetVelocity0x60FF = 0;
-        }
-#endif
     }
     testStateBak = VeneerAgingTestState();
 
@@ -507,24 +577,24 @@ PUBLIC UINT32 GetIsrElapsedTime(void)
 ***********************************************************************/
 PRIVATE void CanFdbMcInfoExec(void)
 {
-    static UINT8 Tick = 0;    
+    static UINT8 Tick = 0;
     static INT16 LeftPulseOld = 0;
     static INT16 RightPulseOld = 0;
     volatile INT16 Tmp;
-    INT16 LeftInc ,RightInc;
-    
-	Tmp = GetIncEncoderPulse(0);
+    INT16 LeftInc,RightInc;
+
+    Tmp = GetIncEncoderPulse(0);
     LeftInc= -sAxis[0].sEncoder.MotorDirection*(Tmp - LeftPulseOld);
     LeftPulseOld = Tmp;
-    
+
     Tmp = GetIncEncoderPulse(1);
     RightInc= -sAxis[1].sEncoder.MotorDirection*(Tmp - RightPulseOld);
     RightPulseOld = Tmp;
 
     {
-        static unsigned long  RemainingMileage; 
+        static unsigned long  RemainingMileage;
         static unsigned char  OdometerRefreshPeriod;
-        
+
         UpdateWheelEncoderPlusCount( &WheelsMileage[AXIS_LEFT], LeftInc );
         UpdateWheelEncoderPlusCount( &WheelsMileage[AXIS_RIGHT], RightInc );
         OdometerRefreshPeriod++;
@@ -532,7 +602,7 @@ PRIVATE void CanFdbMcInfoExec(void)
         {
             unsigned long LeftWheel;
             unsigned long RightWheel;
-            
+
             OdometerRefreshPeriod = 0;
             CalculateWheelMileage( &WheelsMileage[AXIS_LEFT], gMachineInfo.machineWheelPerimeter, gParam[AXIS_LEFT].EncoderPPR0x2202 );
             CalculateWheelMileage( &WheelsMileage[AXIS_RIGHT], gMachineInfo.machineWheelPerimeter, gParam[AXIS_RIGHT].EncoderPPR0x2202 );
@@ -545,45 +615,44 @@ PRIVATE void CanFdbMcInfoExec(void)
             RemainingMileage &= 0x01;
         }
     }
-    
+
     CanSendSpdFdb(LeftInc, RightInc);
-    
+    CanSendTimeTamp(0xc7);
     //Fdb Error :10HZ
-    if((Tick == 0)||(ErrCode_Send_Flag == 1))
+    if(Tick == 0)
     {
-        ErrCode_Send_Flag = 0;
         CanSendErrorCode(sAxis[0].sAlarm.ErrReg.all, sAxis[1].sAlarm.ErrReg.all);
         CanSendErrorCodeHigh((sAxis[0].sAlarm.ErrReg.all>>16), (sAxis[1].sAlarm.ErrReg.all>>16));
     }
- 
-#if defined CAN_LOG_MODULE  
-    
+
+#if defined CAN_LOG_MODULE
+
     //Left Log :10HZ
     if(Tick == 1)
     {
-        CanSendLog1Left(sAxis[0].sSpdLoop.SpdRef, sAxis[0].sSpdLoop.SpdFdb, 
-                       sAxis[0].sCurLoop.IqRef*1000, sAxis[0].sAlarm.ErrReg.all);
-        
+        CanSendLog1Left(sAxis[0].sSpdLoop.SpdRef, sAxis[0].sSpdLoop.SpdFdb,
+                        sAxis[0].sCurLoop.IqRef*1000, sAxis[0].sAlarm.ErrReg.all);
+
         CanSendLog2Left(sAxis[0].sCurLoop.Idc*1000, sAxis[0].sCurLoop.IqFdb*1000, gParam[0].MosTemp0x230B, gParam[0].MotorTemp0x230C);
     }
-    
+
     //Right Log :10HZ
     if(Tick == 2)
     {
-        CanSendLog1Right(sAxis[1].sSpdLoop.SpdRef, sAxis[1].sSpdLoop.SpdFdb, 
-                        sAxis[1].sCurLoop.IqRef*1000, sAxis[1].sAlarm.ErrReg.all);
-        
+        CanSendLog1Right(sAxis[1].sSpdLoop.SpdRef, sAxis[1].sSpdLoop.SpdFdb,
+                         sAxis[1].sCurLoop.IqRef*1000, sAxis[1].sAlarm.ErrReg.all);
+
         CanSendLog2Right(sAxis[1].sCurLoop.Idc*1000, sAxis[1].sCurLoop.IqFdb*1000, gParam[1].MosTemp0x230B, gParam[1].MotorTemp0x230C);
     }
-    
+
     if(Tick == 3)
     {
 
     }
-    
+
     (Tick >= 3) ? (Tick = 0) : Tick++;
-    
-#endif   
+
+#endif
 }
 
 /***********************************************************************
@@ -602,7 +671,7 @@ PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime)
     {
         P->StarSealProtectEn = 1;
     }
-    
+
     /*Boot Strap Cap Charge Judge if OpenLoop switch to CloseLoop */
     if (1 == P->BootStrapCapChargeEn)
     {
@@ -619,7 +688,7 @@ PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime)
         else
         {
             /*Boot Strap Cap Charge*/
-            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0);
+            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0, 9999);
             if (0 == P->BootStrapCapChargeFlag)
             {
                 PwmEnable(P->AxisID);
@@ -647,14 +716,14 @@ PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime)
         else
         {
             /*Star Sealing Protection*/
-            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0);
+            PwmUpdate(P->AxisID, P->PowerFlag, 0, 0, 0, 9999);
             if (0 == P->StarSealProtectFlag)
             {
                 P->StarSealProtectFlag = 1;
             }
         }
     }
- }
+}
 
 
 /***********************************************************************
@@ -670,57 +739,55 @@ PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime)
 PRIVATE void MotionParamUpdateExec(void)
 {
     volatile float Tmp = 0;
-    
+
     Tmp = (float)gParam[0].ProfileAcc0x6083/(float)gParam[0].EncoderPPR0x2202;
     sAxis[0].sSpdLoop.AccMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
     if(gParam[0].QuickStopEn0x6086)
     {
         Tmp = (float)gParam[0].QuickStopDec0x6085/(float)gParam[0].EncoderPPR0x2202;
-		sAxis[0].sSpdLoop.AccMax = Tmp*6.0f;
     }
     else
     {
         Tmp = (float)gParam[0].ProfileDec0x6084/(float)gParam[0].EncoderPPR0x2202;
     }
     sAxis[0].sSpdLoop.DecMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
-		sAxis[0].sSpdLoop.AccMax2 = sAxis[0].sSpdLoop.AccMax;
-		sAxis[0].sSpdLoop.DecMax2 = sAxis[0].sSpdLoop.DecMax;
+    sAxis[0].sSpdLoop.AccMax2 = sAxis[0].sSpdLoop.AccMax;
+    sAxis[0].sSpdLoop.DecMax2 = sAxis[0].sSpdLoop.DecMax;
 
     Tmp = (float)gParam[1].ProfileAcc0x6083/(float)gParam[1].EncoderPPR0x2202;
     sAxis[1].sSpdLoop.AccMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
     if(gParam[1].QuickStopEn0x6086)
     {
         Tmp = (float)gParam[1].QuickStopDec0x6085/(float)gParam[1].EncoderPPR0x2202;
-		sAxis[1].sSpdLoop.AccMax = Tmp*6.0f;
     }
     else
     {
         Tmp = (float)gParam[1].ProfileDec0x6084/(float)gParam[1].EncoderPPR0x2202;
     }
     sAxis[1].sSpdLoop.DecMax = Tmp*6.0f;//Tmp*SPEED_PRD*60.0f;
-		sAxis[1].sSpdLoop.AccMax2 = sAxis[1].sSpdLoop.AccMax;
-		sAxis[1].sSpdLoop.DecMax2 = sAxis[1].sSpdLoop.DecMax;
+    sAxis[1].sSpdLoop.AccMax2 = sAxis[1].sSpdLoop.AccMax;
+    sAxis[1].sSpdLoop.DecMax2 = sAxis[1].sSpdLoop.DecMax;
 
     sAxis[0].sCurLoop.Cp = (float)gParam[0].CurrentLoopKp0x2103*CUR_KP_FACTOR;
     sAxis[0].sCurLoop.Ci = (float)gParam[0].CurrentLoopKi0x2104*CUR_KI_FACTOR;
-    
+
     sAxis[1].sCurLoop.Cp = (float)gParam[1].CurrentLoopKp0x2103*CUR_KP_FACTOR;
     sAxis[1].sCurLoop.Ci = (float)gParam[1].CurrentLoopKi0x2104*CUR_KI_FACTOR;
-    
+
     sAxis[0].sSpdLoop.Vp = (float)gParam[0].VelocityLoopKp0x2101*SPD_KP_FACTOR;
     sAxis[0].sSpdLoop.Vi = (float)gParam[0].VelocityLoopKi0x2102*SPD_KI_FACTOR;
-    
-    sAxis[1].sSpdLoop.Vp = (float)gParam[1].VelocityLoopKp0x2101*SPD_KP_FACTOR; 
+
+    sAxis[1].sSpdLoop.Vp = (float)gParam[1].VelocityLoopKp0x2101*SPD_KP_FACTOR;
     sAxis[1].sSpdLoop.Vi = (float)gParam[1].VelocityLoopKi0x2102*SPD_KI_FACTOR;
-    
+
 //    sAxis[0].sSpdLoop.Kpdff = (float)gParam[0].PositionLoopKp0x2100*0.01f;
 //    sAxis[1].sSpdLoop.Kpdff = sAxis[0].sSpdLoop.Kpdff;
-    
+
     sAxis[0].sSpdLoop.TorFFGain = (float)gParam[0].TorffGain0x210B*0.1f;
     sAxis[1].sSpdLoop.TorFFGain = (float)gParam[1].TorffGain0x210B*0.1f;
     sAxis[0].sSpdLoop.DisturGain = (float)gParam[0].DisturGainFc0x210D*0.01f;
     sAxis[1].sSpdLoop.DisturGain = (float)gParam[1].DisturGainFc0x210D*0.01f;
-    
+
     if(gParam[0].InnerCtrlEnable0x3004)
     {
         sAxis[0].sInnerCtrl.Type = gParam[0].InnerCtrlType0x3005;
@@ -729,7 +796,7 @@ PRIVATE void MotionParamUpdateExec(void)
         sAxis[0].sInnerCtrl.Amp = gParam[0].InnerCtrlAmp0x3008;
         sAxis[0].sInnerCtrl.Offset = gParam[0].InnerCtrlOffset0x3009;
         sAxis[0].sInnerCtrl.En = 1;
-        
+
         sAxis[1].sInnerCtrl.Type = gParam[0].InnerCtrlType0x3005;
         sAxis[1].sInnerCtrl.Cycle = gParam[0].InnerCtrlCycle0x3006;
         sAxis[1].sInnerCtrl.Period = gParam[0].InnerCtrlPeriod0x3007;
@@ -742,7 +809,7 @@ PRIVATE void MotionParamUpdateExec(void)
         sAxis[0].sInnerCtrl.En = 0;
         sAxis[1].sInnerCtrl.En = 0;
     }
-     
+
 }
 /***********************************************************************
  * DESCRIPTION: // 40HZ
@@ -753,7 +820,7 @@ PRIVATE void MotionParamUpdateExec(void)
 PRIVATE void ParamFdbUpdate(void)
 {
     static UINT32 Tick=0;
-     
+
     if(Tick == 0)
     {
         for(int i=0; i<MAX_AXIS_NUM; i++)
@@ -769,12 +836,12 @@ PRIVATE void ParamFdbUpdate(void)
             gParam[i].Ic0x2308    = sAxis[i].sCurLoop.Ic*1000.0f;
             gParam[i].Vdc0x2309   = sAxis[i].sCurLoop.Vdc*1000.0f;
             gParam[i].EncoderSingleTurn0x230A = sAxis[i].sEncoder.SingleTurn;
-        //    gParam[i].MotorTemp0x230C = 
+            //    gParam[i].MotorTemp0x230C =
             gParam[i].ErrorRegister0x230D = sAxis[i].sAlarm.ErrReg.all;
- 
+
             gParam[i].ActualVelocity0x606C = (float)sAxis[i].sEncoder.PulseMax*sAxis[i].sSpdLoop.SpdFdb/60.0f;
-            gParam[i].ActualCurrent0x6078 = sAxis[i].sCurLoop.IValidFdb*1000.0f;
-            
+            gParam[i].ActualCurrent0x6078 = sAxis[i].sCurLoop.IqFdb*1000.0f;
+
             gParam[i].ActualPosition0x6064 = sAxis[i].sPosLoop.PosFdb;
         }
     }
@@ -785,15 +852,15 @@ PRIVATE void ParamFdbUpdate(void)
     }
     else if(Tick == 2)
     {
-        
+
     }
     else if(Tick == 3)
     {
-        
+
     }
-    
+
     (Tick >= 3) ? (Tick = 0) : Tick++;
-    gSensorData.BatteryVoltage0x400A = 1000.0f * GetBatteryVoltage();;
+
 }
 
 /***********************************************************************
@@ -806,7 +873,7 @@ PUBLIC void MC_SetReference(struct McRefStruct *pRef, UINT16 AxisID)
 {
     if(AXIS_LEFT == AxisID)
     {
-        sAxis[0].PowerEn = pRef->PowerOn;     
+        sAxis[0].PowerEn = pRef->PowerOn;
         sAxis[0].CtrlMode = pRef->ModeRef;
         if(sAxis[0].CtrlMode == CUR_CTRL)
         {
@@ -819,12 +886,12 @@ PUBLIC void MC_SetReference(struct McRefStruct *pRef, UINT16 AxisID)
         else if(sAxis[0].CtrlMode == POS_CTRL)
         {
             sAxis[0].sPosLoop.PosRef = pRef->PosRef;
-        } 
-     
+        }
+
     }
     else if(AXIS_RIGHT == AxisID)
     {
-        sAxis[1].PowerEn = pRef->PowerOn;              
+        sAxis[1].PowerEn = pRef->PowerOn;
         sAxis[1].CtrlMode = pRef->ModeRef;
         if(sAxis[1].CtrlMode == CUR_CTRL)
         {
@@ -837,8 +904,8 @@ PUBLIC void MC_SetReference(struct McRefStruct *pRef, UINT16 AxisID)
         else if(sAxis[1].CtrlMode == POS_CTRL)
         {
             sAxis[1].sPosLoop.PosRef = pRef->PosRef;
-        } 
-    }   
+        }
+    }
 }
 
 /***********************************************************************
@@ -856,7 +923,7 @@ PUBLIC void MC_GetFeedback(struct McFdbStruct *pFdb, UINT16 AxisID)
     else if(AXIS_RIGHT == AxisID)
     {
 
-    }     
+    }
 }
 
 /***********************************************************************
@@ -885,125 +952,115 @@ PUBLIC INT32 DataCollectGetValue(UINT16 Index)
     INT32 res=0;
     switch(Index)
     {
-        case 0x2300 :
-            res = sAxis[0].sCurLoop.IdRef*1000;
-            break;
-        
-        case 0x2301 :
-            res = sAxis[0].sCurLoop.IqRef*1000;
-            break;
-        
-        case 0x2302 :
-            res = sAxis[0].sCurLoop.IdFdb*1000;//sAxis[0].sCurLoop.IValidFdb*1000;//
-            break;
-        
-        case 0x2303 :
-            res = sAxis[0].sCurLoop.IqFdb*1000;
-            break;
-        
-        case 0x2304 :
-            res = sAxis[0].sCurLoop.VdRef*1000;
-            break;
-        
-        case 0x2305 :
-            res = sAxis[0].sCurLoop.VqRef*1000;
-            break;
-        
-         case 0x2306 :
-            res = sAxis[0].sCurLoop.Ia*1000;
-            break;
-         
-        case 0x2307 :
-            res = sAxis[0].sCurLoop.Ib*1000;
-            break;
-        
-        case 0x2308 :
-            res = sAxis[0].sCurLoop.Ic*1000;
-            break;  
-        
-         case 0x2309 :
-            res = sAxis[0].sCurLoop.Vdc*1000;
-            break;
-         
-        case 0x230A :
-            res = sAxis[0].sEncoder.SingleTurn;
-            break;
-        
-        case 0x606C:
-            res = sAxis[0].sSpdLoop.SpdFdb*10;
-            break;    
+    case 0x2300 :
+        res = sAxis[0].sCurLoop.IdRef*1000;
+        break;
 
-        case 0x60FF:
-            res = sAxis[0].sSpdLoop.SpdRefLit*10;
-            break;         
-       
-        
-        case 0x2800 :
-            res = sAxis[1].sCurLoop.IdRef*1000;
-            break;
-        
-        case 0x2801 :
-            res = sAxis[1].sCurLoop.IqRef*1000;
-            break;
-        
-        case 0x2802 :
-            res = sAxis[1].sCurLoop.IdFdb*1000;
-            break;
-        
-        case 0x2803 :
-            res = sAxis[1].sCurLoop.IqFdb*1000;
-            break;
-        
-        case 0x2804 :
-            res = sAxis[1].sCurLoop.VdRef*1000;
-            break;
-        
-        case 0x2805 :
-            res = sAxis[1].sCurLoop.VqRef*1000;
-            break;
-        
-         case 0x2806 :
-            res = sAxis[1].sCurLoop.Ia*1000;
-            break;
-         
-        case 0x2807 :
-            res = sAxis[1].sCurLoop.Ib*1000;
-            break;
-        
-        case 0x2808 :
-            res = sAxis[1].sCurLoop.Ic*1000;
-            break;  
-        
-         case 0x2809 :
-            res = sAxis[1].sCurLoop.Vdc*1000;
-            break;
-         
-        case 0x280A :
-            res = sAxis[1].sEncoder.SingleTurn;
-            break;
-        
-        case 0x686C:
-            res = sAxis[1].sSpdLoop.SpdFdb*10;
-            break;    
+    case 0x2301 :
+        res = sAxis[0].sCurLoop.IqRef*1000;
+        break;
 
-        case 0x68FF:
-            res = sAxis[1].sSpdLoop.SpdRefLit*10;
-            break;  
-        
-        default :
-            break;
+    case 0x2302 :
+        res = sAxis[0].sCurLoop.IdFdb*1000;//sAxis[0].sCurLoop.IValidFdb*1000;//
+        break;
+
+    case 0x2303 :
+        res = sAxis[0].sCurLoop.IqFdb*1000;
+        break;
+
+    case 0x2304 :
+        res = sAxis[0].sCurLoop.VdRef*1000;
+        break;
+
+    case 0x2305 :
+        res = sAxis[0].sCurLoop.VqRef*1000;
+        break;
+
+    case 0x2306 :
+        res = sAxis[0].sCurLoop.Ia*1000;
+        break;
+
+    case 0x2307 :
+        res = sAxis[0].sCurLoop.Ib*1000;
+        break;
+
+    case 0x2308 :
+        res = sAxis[0].sCurLoop.Ic*1000;
+        break;
+
+    case 0x2309 :
+        res = sAxis[0].sCurLoop.Vdc*1000;
+        break;
+
+    case 0x230A :
+        res = sAxis[0].sEncoder.SingleTurn;
+        break;
+
+    case 0x606C:
+        res = sAxis[0].sSpdLoop.SpdFdb*10;
+        break;
+
+    case 0x60FF:
+        res = sAxis[0].sSpdLoop.SpdRefLit*10;
+        break;
+
+
+    case 0x2800 :
+        res = sAxis[1].sCurLoop.IdRef*1000;
+        break;
+
+    case 0x2801 :
+        res = sAxis[1].sCurLoop.IqRef*1000;
+        break;
+
+    case 0x2802 :
+        res = sAxis[1].sCurLoop.IdFdb*1000;
+        break;
+
+    case 0x2803 :
+        res = sAxis[1].sCurLoop.IqFdb*1000;
+        break;
+
+    case 0x2804 :
+        res = sAxis[1].sCurLoop.VdRef*1000;
+        break;
+
+    case 0x2805 :
+        res = sAxis[1].sCurLoop.VqRef*1000;
+        break;
+
+    case 0x2806 :
+        res = sAxis[1].sCurLoop.Ia*1000;
+        break;
+
+    case 0x2807 :
+        res = sAxis[1].sCurLoop.Ib*1000;
+        break;
+
+    case 0x2808 :
+        res = sAxis[1].sCurLoop.Ic*1000;
+        break;
+
+    case 0x2809 :
+        res = sAxis[1].sCurLoop.Vdc*1000;
+        break;
+
+    case 0x280A :
+        res = sAxis[1].sEncoder.SingleTurn;
+        break;
+
+    case 0x686C:
+        res = sAxis[1].sSpdLoop.SpdFdb*10;
+        break;
+
+    case 0x68FF:
+        res = sAxis[1].sSpdLoop.SpdRefLit*10;
+        break;
+
+    default :
+        break;
     }
-    
+
     return res;
 }
 
-PUBLIC void I_Bus_FO(void)
-{
-    //sAxis[0].sAlarm.ErrReg.bit.BusCurOver = 1;
-    //sAxis[1].sAlarm.ErrReg.bit.BusCurOver = 1;
-    //sAxis[0].PowerEn = 0;
-    //sAxis[1].PowerEn = 0;
-    //VbusDisable();
-    sAxis[0].sAlarm.I_Bus_FO_Cnt++;
-    sAxis[1].sAlarm.I_Bus_FO_Cnt = sAxis[0].sAlarm.I_Bus_FO_Cnt;
-}

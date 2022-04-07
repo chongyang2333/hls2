@@ -238,11 +238,10 @@ void TIMER4_IRQHandler(void)
         }
         sAxis[0].sEncoder.PwmoutAB_Cnt_old = sAxis[0].sEncoder.PwmoutAB_Cnt;       
         sAxis[0].sEncoder.PwmoutAB_Cnt = TIMER_CNT(TIMER3);  
-				sAxis[0].sEncoder.RisingCnt++;
+        sAxis[0].sEncoder.RisingCnt++;
         
         __enable_irq();
-        
-        
+               
     }
 }
 

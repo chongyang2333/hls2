@@ -47,10 +47,10 @@ PUBLIC void RgbExec(void)
 {
     static UINT16 Cnt = 0;
     GPIO_PinState PinState = GPIO_PIN_SET;
-    
+
     Cnt++;
     Cnt = Cnt%100;
-    
+
     if(Cnt < 50)
     {
         PinState = GPIO_PIN_SET;
@@ -59,10 +59,10 @@ PUBLIC void RgbExec(void)
     {
         PinState = GPIO_PIN_RESET;
     }
-    
+
 
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, PinState); // STM32 HEART BEAT
-    
+
     if(gParam[0].ErrorRegister0x230D)
     {
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, PinState);
@@ -71,7 +71,7 @@ PUBLIC void RgbExec(void)
     {
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_SET);
     }
-    
+
     if(gParam[1].ErrorRegister0x230D)
     {
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, PinState);
@@ -80,30 +80,30 @@ PUBLIC void RgbExec(void)
     {
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
     }
-    
-   
+
+
     return;
-    
+
     //led control
     switch(RgbMode)
     {
-        case 0:  //led off
-             RgbPwmUpdate(0);
+    case 0:  //led off
+        RgbPwmUpdate(0);
         break;
-        
-        case 1:  //led on
-            RgbPwmUpdate(50);
+
+    case 1:  //led on
+        RgbPwmUpdate(50);
         break;
-        
-        case 2:  //led breathe
-            {
-                if(Cnt <= 50)
-                    RgbPwmUpdate(Cnt+ 5);
-                else if(Cnt > 50)
-                    RgbPwmUpdate(100-Cnt+ 5);
-            }
-        break;
-            
+
+    case 2:  //led breathe
+    {
+        if(Cnt <= 50)
+            RgbPwmUpdate(Cnt+ 5);
+        else if(Cnt > 50)
+            RgbPwmUpdate(100-Cnt+ 5);
+    }
+    break;
+
     }
 
 }
@@ -128,6 +128,6 @@ PUBLIC void RgbSetMode(UINT16 mode)
 PRIVATE void RgbPwmUpdate(UINT8 PwmValue)
 {
     // TIM4->CCR1 = PwmValue;
-	// TIM4->CCR2 = PwmValue;
-	// TIM4->CCR3 = PwmValue;
+    // TIM4->CCR2 = PwmValue;
+    // TIM4->CCR3 = PwmValue;
 }

@@ -30,14 +30,14 @@ extern const REAL32 SinCTable[];
 PUBLIC void InnerCtrlExec(struct AxisCtrlStruct *P)
 {
     struct InnerCtrlStruct *pCtrl = &P->sInnerCtrl;
-    
+
     if(pCtrl->En)
     {
         pCtrl->Tick++;
         UINT32 tmp = pCtrl->Tick%pCtrl->Period;
-        
+
         if(pCtrl->Type == TYPE_SQUARE_WAVE)
-        {    
+        {
             if(tmp < (pCtrl->Period>>1))
             {
                 pCtrl->Output = pCtrl->Offset + pCtrl->Amp;
@@ -46,13 +46,13 @@ PUBLIC void InnerCtrlExec(struct AxisCtrlStruct *P)
             {
                 pCtrl->Output = pCtrl->Offset - pCtrl->Amp;
             }
-            
+
         }
         else if(pCtrl->Type == TYPE_SINE_WAVE)
         {
             REAL32 SinTheta = 0.0f;
             UINT32 angle = tmp*C_SinUint/pCtrl->Period;
-            
+
             if(angle > C_SinUint3D4)
             {
                 SinTheta = -SinCTable[C_SinUint - angle];
@@ -69,29 +69,29 @@ PUBLIC void InnerCtrlExec(struct AxisCtrlStruct *P)
             {
                 SinTheta = SinCTable[angle];
             }
-            
+
             pCtrl->Output = pCtrl->Offset + pCtrl->Amp*SinTheta;
-            
+
         }
         else
         {
             pCtrl->Output = 0.0f;
         }
-        
+
         if(pCtrl->Tick >= (pCtrl->Cycle*pCtrl->Period))
         {
             pCtrl->Output = 0.0f;
             pCtrl->En = 0;
-            pCtrl->Tick = 0; 
+            pCtrl->Tick = 0;
             gParam[0].InnerCtrlEnable0x3004 = 0;
         }
-        
+
     }
     else
     {
-        pCtrl->Tick = 0; 
+        pCtrl->Tick = 0;
         pCtrl->Output = 0.0f;
     }
-    
+
 }
 
