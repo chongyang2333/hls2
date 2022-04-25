@@ -101,20 +101,20 @@ PUBLIC void GyroExec(void)
     accel[0]  = 2*(short)((DataBuffer[0]<<8)+DataBuffer[1]);      //读取X轴加速度
 
 //  I2C_Gyro_BufferRead(DataBuffer, ACCEL_YOUT_H, 2);
-    accel[1]  = -2*(short)((DataBuffer[2]<<8)+DataBuffer[3]);     //读取Y轴加速度
+    accel[1]  = 2*(short)((DataBuffer[2]<<8)+DataBuffer[3]);     //读取Y轴加速度
 
 //  I2C_Gyro_BufferRead(DataBuffer, ACCEL_ZOUT_H, 2);
-    accel[2]  = -2*(short)((DataBuffer[4]<<8)+DataBuffer[5]);     //读取Z轴加速度
+    accel[2]  = 2*(short)((DataBuffer[4]<<8)+DataBuffer[5]);     //读取Z轴加速度
 
     /****************************角速度****************************************/
 //  I2C_Gyro_BufferRead(DataBuffer, GYRO_XOUT_H, 2);
     gyro[0] = (short)((DataBuffer[6]<<8)+DataBuffer[7]);          //读取X轴角速度
 
 //  I2C_Gyro_BufferRead(DataBuffer, GYRO_YOUT_H, 2);
-    gyro[1] = -(short)((DataBuffer[8]<<8)+DataBuffer[9]);         //读取Y轴角速度
+    gyro[1] = (short)((DataBuffer[8]<<8)+DataBuffer[9]);         //读取Y轴角速度
 
 //  I2C_Gyro_BufferRead(DataBuffer, GYRO_ZOUT_H, 2);
-    gyro[2] = -(short)((DataBuffer[10]<<8)+DataBuffer[11]);       //读取Z轴角速度
+    gyro[2] = (short)((DataBuffer[10]<<8)+DataBuffer[11]);       //读取Z轴角速度
 #endif
     CanSendGyro(gyro, accel);
 }

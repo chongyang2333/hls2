@@ -357,7 +357,7 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
                 //Init MechAngle
                 //if (!pEnc->InitPosDoneUsingPwmout)
                 //{
-                pEnc->MechAngle = Tmp+AngleCompensate;
+                pEnc->MechAngle = Tmp + AngleCompensate;
                 pEnc->PosCorrectEnUsingPwmout = 0;
                 pEnc->InitPosDoneUsingPwmout = 1;
                 //}
@@ -366,7 +366,7 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
 #define MT6701_Encoder_Shift        (32 - MT6701_Encoder_Resolution)
                 INT32 MechAngleErr = ((pEnc->MechAngle<<MT6701_Encoder_Shift) - (Tmp<<MT6701_Encoder_Shift)) >> MT6701_Encoder_Shift;
 
-                if ((MechAngleErr > 17) && (MechAngleErr<-17))
+                if ((MechAngleErr > 17) || (MechAngleErr<-17))
                 {
                     P->sAlarm.ErrReg.bit.EncCount = 1;
                 }
@@ -391,7 +391,7 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
 
             INT32 Tmp = pEnc->PwmoutPPW * 4119 / pEnc->PwmoutPd;
 
-            INT16 AngleCompensate = pEnc->PwmoutAB_Crt_Cnt-  pEnc->PwmoutAB_Cnt_old ;
+            INT16 AngleCompensate = pEnc->PwmoutAB_Crt_Cnt -  pEnc->PwmoutAB_Cnt_old;
 
             if (Tmp < 17)
             {
@@ -428,7 +428,7 @@ PUBLIC void EncoderCalExec(struct AxisCtrlStruct *P)
 #define MT6701_Encoder_Shift        (32 - MT6701_Encoder_Resolution)
             INT32 MechAngleErr = ((pEnc->MechAngle<<MT6701_Encoder_Shift) - (Tmp<<MT6701_Encoder_Shift)) >> MT6701_Encoder_Shift;
 
-            if ((MechAngleErr > 17) || (MechAngleErr<-17))
+            if ((MechAngleErr > 50) || (MechAngleErr < -50))
             {
                 P->sAlarm.ErrReg.bit.EncCount = 1;
             }

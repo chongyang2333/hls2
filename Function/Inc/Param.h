@@ -304,7 +304,7 @@ struct ParameterStruct
     
     UINT16  ErrorCode0x603F;
     UINT16  ControlWord0x6040;     
-	UINT16  StatusWord0x6041;        
+	  UINT16  StatusWord0x6041;        
     INT16   OperationModeDisplay0x6061; 
     INT32   ActualPosition0x6064;
     INT32   ActualVelocity0x606C;
@@ -678,6 +678,16 @@ const struct ParameterStruct gDefaultParam_Left[10] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0, 0, 0, 0, 0, 0, 0, 0, 0,                 // assist param
 0,0,0,0,0,0,0,0,0,0   
+},
+//Motor Type:9->Maxwell 5.5" 1024PRD 降本
+[9] = {0x80000000, 0x7FFFFFFF, 200, 10000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
+100, 80, 10, 215, 20, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
+300, 19, 4096, 2, 0, 1000, 500, 0, 0, 3000, 10000,   // motor param
+3, 6516, 6516, 9308,           // motion mode
+0,                                   // EepromCrc
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0, 0, 0, 0, 0, 0, 0, 0, 0,                 // assist param
+0,0,0,0,0,0,0,0,0,0   
 }
 };
 
@@ -755,18 +765,28 @@ const struct ParameterStruct gDefaultParam_Right[10] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0, 0, 0, 0, 0, 0, 0, 0, 0,                 // assist param
 0,0,0,0,0,0,0,0,0,0   
+},
+//Motor Type:9->Maxwell 5.5" 1024PRD 降本
+[9] = {0x80000000, 0x7FFFFFFF, 200, 10000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
+100, 80, 10, 215, 20, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
+300, 19, 4096, 2, 0, 1000, 500, 0, 1, 3000, 10000,   // motor param
+3, 6516, 6516, 9308,           // motion mode
+0,                                   // EepromCrc
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0, 0, 0, 0, 0, 0, 0, 0, 0,                 // assist param
+0,0,0,0,0,0,0,0,0,0   
 }
 };
 
 //Motor Data Saved In MachineInfo
 const struct MotorDataInMachineInfoStruct gMotor_basicData[10] = {
 //Motor Type:1->ZL 5.5" 1024PRD
-[1] = {0.14f, 0.439823f, 0.3855f,     // R, L, D
+[1] = {0.14f, 0.439823f, 0.4405f,     // R, L, D
 1024, 4, 1, 0       // Line, factor, ratio, inv
 },
 
 //Motor Type:2->ZL 5.5" 4096PRD
-[2] = {0.14f, 0.439823f, 0.386f,     // R, L, D
+[2] = {0.14f, 0.439823f, 0.4405f,     // R, L, D
 4096, 4, 1, 0       // Line, factor, ratio, inv
 },
 
@@ -775,7 +795,7 @@ const struct MotorDataInMachineInfoStruct gMotor_basicData[10] = {
 1024, 4, 1, 0       // Line, factor, ratio, inv
 },
 //Motor Type:4->Maxwell 5.5" 1024PRD
-[4] = {0.14f, 0.439823f, 0.3855f,     // R, L, D
+[4] = {0.14f, 0.439823f, 0.4425f,     // R, L, D
 1024, 4, 1, 0       // Line, factor, ratio, inv
 },
 //Motor Type:6->DXC 6.5" 1024PRD
@@ -791,11 +811,15 @@ const struct MotorDataInMachineInfoStruct gMotor_basicData[10] = {
 [8] = {0.173f, 0.534071f, 0.4003f,     // R, L, D
 4096, 4, 1, 0       // Line, factor, ratio, inv
 },
+//Motor Type:9->Maxwell 5.5" 1024PRD 降本
+[9] = {0.14f, 0.439823f, 0.4425,     // R, L, D
+1024, 4, 1, 0       // Line, factor, ratio, inv
+},
 };
 
 
 const struct MachineInfoStruct gDefaultMachineInfo = {
-0.14f, 0.439823f, 0.3855f,     // R, L, D
+0.14f, 0.439823f, 0.4425f,     // R, L, D
 1024, 4, 1, 0,                 // Line, factor, ratio, inv
 2, 3,   //Tag Pcb Version
 2, 4,   //Chassis Pcb Version

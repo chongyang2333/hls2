@@ -459,9 +459,14 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
     //Pwmout Break Alarm
     if (P->sEncoder.HallEnable == 2)
     {
-
-        pAlarm->PwmoutDisconnectCnt++;
-
+        if (P->sEncoder.PosCorrectEnUsingPwmout)
+        {
+            pAlarm->PwmoutDisconnectCnt++;
+        }
+        else
+        {
+            pAlarm->PwmoutDisconnectCnt = 0;
+        }
 #define MAX_PWMOUT_DISCONNECT   (1000)
         if (pAlarm->PwmoutDisconnectCnt >= MAX_PWMOUT_DISCONNECT)
         {

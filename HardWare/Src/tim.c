@@ -103,9 +103,9 @@ void MX_TIM0_Init(void)
     rcu_periph_clock_enable(RCU_TIMER0);
     rcu_timer_clock_prescaler_config(RCU_TIMER_PSC_MUL4);
 
-    nvic_irq_enable(TIMER0_UP_TIMER9_IRQn,0,0);
-    
-    timer_deinit(TIMER0);
+	nvic_irq_enable(TIMER0_UP_TIMER9_IRQn, 1, 0);
+
+	timer_deinit(TIMER0);
 
     /* TIMER0 configuration */
     timer_initpara.prescaler         = 0; // 200M

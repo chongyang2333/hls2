@@ -44,7 +44,7 @@ UINT32 MaxLoopTime = 0;
 void HardwareInit(void); 
 BootLoaderInfo bootloaderInfo={0};
 
-ST_VersionStruct NowSoftWareVersion = {0, 1, 5};
+ST_VersionStruct NowSoftWareVersion = {0, 1, 7};
 
 void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo);
 
@@ -133,8 +133,8 @@ void HardwareInit()
 		/* Initialize general timer interrupt  40Hz*/
 		MX_TIM11_Init();
         
-    MX_TIM4_Init();
-    MX_TIM8_Init();
+//	MX_TIM4_Init();
+//	MX_TIM8_Init();
 		/* Initialize usart3 module: for pc comm*/
 		MX_USART2_UART_Init();
          

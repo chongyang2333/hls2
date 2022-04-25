@@ -1289,7 +1289,7 @@ PRIVATE void can_tx(UINT8 *pData)
     UINT32 StartTime = ReadTimeStampTimer();
     while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
     {
-        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        if ((ReadTimeStampTimer() - StartTime) > 100*3000)  // 3ms
         {
             sMyCan.CanBreakErr = 1;
             break;
@@ -1330,7 +1330,7 @@ PRIVATE void can_tx_machineinfo(UINT8 *pData)
     UINT32 StartTime = ReadTimeStampTimer();
     while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
     {
-        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        if ((ReadTimeStampTimer() - StartTime) > 100*3000)  // 3ms
         {
             sMyCan.CanBreakErr = 1;
             break;
@@ -1403,7 +1403,7 @@ PRIVATE void can_tx_no_block(UINT8 *pData)
     UINT32 StartTime = ReadTimeStampTimer();
     while (can_message_transmit(CAN0, &transmit_message) == CAN_NOMAILBOX)
     {
-        if ((ReadTimeStampTimer() - StartTime) > 27*3000)  // 3ms
+        if ((ReadTimeStampTimer() - StartTime) > 100*3000)  // 3ms
         {
             sMyCan.CanBreakErr = 1;
             break;
