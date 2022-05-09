@@ -113,7 +113,7 @@ void MX_TIM0_Init(void)
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
     timer_initpara.period            = PWM_PERIOD_VALUE;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV2;  //Tds = fclk/2
-    timer_initpara.repetitioncounter = 1;
+    //timer_initpara.repetitioncounter = 0;
     timer_init(TIMER0,&timer_initpara);
 		
 		timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
@@ -166,6 +166,8 @@ void MX_TIM0_Init(void)
 
     /* TIMER0 counter enable */
     timer_enable(TIMER0);
+				TIMER_CREP(TIMER0) = 1;
+
 }
 
 /* TIM2 init function */
@@ -325,7 +327,7 @@ void MX_TIM7_Init(void)
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
     timer_initpara.period            = PWM_PERIOD_VALUE;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV2;  //Tds = fclk/2
-    timer_initpara.repetitioncounter = 1;
+    //timer_initpara.repetitioncounter = 1;
     timer_init(TIMER7,&timer_initpara);
 		
 		timer_ocintpara.outputstate  = TIMER_CCX_DISABLE;
@@ -377,7 +379,7 @@ void MX_TIM7_Init(void)
 
     /* TIMER7 counter enable */
     timer_enable(TIMER7);
-
+		TIMER_CREP(TIMER7) = 1;
 }
 
 /***********************************************************************

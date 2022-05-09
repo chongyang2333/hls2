@@ -288,8 +288,7 @@ PUBLIC void ControlRunExec(void)
     UINT32 IsrStartTime = ReadTimeStampTimer();
 
     static UINT16 Cnt_1ms = 0; 
-    GetPhaseCurrentReal(&sAxis[0]);
-    GetPhaseCurrentReal(&sAxis[1]);
+
 
     /* DC current,DC voltage sample */
     AdcSample0Start();
@@ -357,7 +356,8 @@ PUBLIC void ControlRunExec(void)
         }
         break;
     }
-
+    GetPhaseCurrentReal(&sAxis[0]);
+    GetPhaseCurrentReal(&sAxis[1]);
     AdcSample0ClearFlag();
     GetDcVoltage(&sAxis[0].sCurLoop.Vdc);
     sAxis[1].sCurLoop.Vdc = sAxis[0].sCurLoop.Vdc;

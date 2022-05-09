@@ -681,7 +681,7 @@ const struct ParameterStruct gDefaultParam_Left[10] = {
 },
 //Motor Type:9->Maxwell 5.5" 1024PRD 降本
 [9] = {0x80000000, 0x7FFFFFFF, 200, 10000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
-100, 80, 10, 215, 20, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
+100, 80, 10, 220, 12, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
 300, 19, 4096, 2, 0, 1000, 500, 0, 0, 3000, 10000,   // motor param
 3, 6516, 6516, 9308,           // motion mode
 0,                                   // EepromCrc
@@ -768,7 +768,7 @@ const struct ParameterStruct gDefaultParam_Right[10] = {
 },
 //Motor Type:9->Maxwell 5.5" 1024PRD 降本
 [9] = {0x80000000, 0x7FFFFFFF, 200, 10000, 36000, 15000, 80, 0xFFFFFFFF, 60, 400, 300, // Limit param
-100, 80, 10, 215, 20, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
+100, 80, 10, 220, 12, 0x0F, 100, 20, 30, 50, 200, 10, 10, 50,       // motion config
 300, 19, 4096, 2, 0, 1000, 500, 0, 1, 3000, 10000,   // motor param
 3, 6516, 6516, 9308,           // motion mode
 0,                                   // EepromCrc

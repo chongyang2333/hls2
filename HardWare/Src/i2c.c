@@ -320,6 +320,8 @@ int8_t i2c_mem_read (
     while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_ADDSEND)) {
         if (!time--) {
             i2c_stop_on_bus(i2c_periph);
+            /* enable acknowledge */
+            i2c_ack_config(i2c_periph, I2C_ACK_ENABLE);            
             return err;
         }
     }
@@ -336,6 +338,8 @@ int8_t i2c_mem_read (
         while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_RBNE)) {
             if (!time--) {
                 i2c_stop_on_bus(i2c_periph);
+                /* enable acknowledge */
+                i2c_ack_config(i2c_periph, I2C_ACK_ENABLE);
                 return err;
             }
         }
@@ -347,6 +351,8 @@ int8_t i2c_mem_read (
         while (I2C_CTL0(i2c_periph) & 0x0200) {
             if (!time--) {
                 i2c_stop_on_bus(i2c_periph);
+                /* enable acknowledge */
+                i2c_ack_config(i2c_periph, I2C_ACK_ENABLE);
                 return err;
             }
         }
@@ -361,6 +367,8 @@ int8_t i2c_mem_read (
             while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_BTC)) {
                 if (!time--) {
                     i2c_stop_on_bus(i2c_periph);
+                    /* enable acknowledge */
+                    i2c_ack_config(i2c_periph, I2C_ACK_ENABLE);
                     return err;
                 }
             }
@@ -373,6 +381,8 @@ int8_t i2c_mem_read (
                 time = timeout;
                 while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_BTC)) {
                     if (!time--) {
+                        /* enable acknowledge */
+                        i2c_ack_config(i2c_periph, I2C_ACK_ENABLE);
                         i2c_stop_on_bus(i2c_periph);
                         return err;
                     }
@@ -385,6 +395,8 @@ int8_t i2c_mem_read (
             while (SET != i2c_flag_get(i2c_periph, I2C_FLAG_RBNE)) {
                 if (!time--) {
                     i2c_stop_on_bus(i2c_periph);
+                    /* enable acknowledge */
+                    i2c_ack_config(i2c_periph, I2C_ACK_ENABLE);
                     return err;
                 }
             }
@@ -396,6 +408,8 @@ int8_t i2c_mem_read (
         time = timeout;
         while (I2C_CTL0(i2c_periph) & 0x0200) {
             if (!time--) {
+                /* enable acknowledge */
+                i2c_ack_config(i2c_periph, I2C_ACK_ENABLE);
                 return err;
             }
         }

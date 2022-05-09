@@ -44,7 +44,7 @@ UINT32 MaxLoopTime = 0;
 void HardwareInit(void); 
 BootLoaderInfo bootloaderInfo={0};
 
-ST_VersionStruct NowSoftWareVersion = {0, 1, 7};
+ST_VersionStruct NowSoftWareVersion = {0, 1, 8};
 
 void CAN_MesIAPResetTreatment(BootLoaderInfo* pstbootloaderInfo);
 
