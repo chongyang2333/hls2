@@ -76,6 +76,15 @@ struct SoftwareVersionStruct
 		UINT8  patchVer;
 };
 
+/*SN Data Type Definite*/
+struct SNDataStruct
+{
+    UINT8 CompareFlag;
+	  UINT8 RWFlag;
+    UINT8 SNDataRead[32];
+	  UINT8 SNDataWrite[32];
+};
+
 /* MachineInfo */
 #define MACHINE_INFO_NO_CMD   0
 #define MACHINE_INFO_WRITING  1
@@ -846,5 +855,5 @@ extern PUBLIC UINT8 GetResetType(void);
 extern PUBLIC void BKP_Init(void);
 extern PUBLIC void RTC_BKP_Write(UINT32 uiAddr0_19,UINT32 uiDataToWrite);
 extern PUBLIC UINT32 RTC_BKP_Read(UINT32 uiAddr0_19);
-
+extern PUBLIC void SNExecLoop(void);
 #endif  // _PARAM_H_

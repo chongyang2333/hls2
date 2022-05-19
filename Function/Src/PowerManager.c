@@ -43,7 +43,6 @@
 BatteryIICStruct sBatI2C;
 
 struct PowerManagerStruct sPowerManager = {0};
-
 PRIVATE void PowerInfoUpdate(void);
 PRIVATE void ChargeCurrentBiasCal(void);
 PRIVATE void ChargerPlugEventUpdate(struct ChargeManageStruct *chargeInfo);
@@ -82,7 +81,7 @@ PRIVATE void VbusSoftStartBlock(UINT8 ApplicationMode);
 
 extern PUBLIC UINT8 ApplicationMode;
 extern void HAL_I2C_Reset(uint32_t i2c_periph);
-
+extern PUBLIC void MutePowerAnswer(UINT8 Data);
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -2633,26 +2632,64 @@ PRIVATE float GetVbusVoltage(void)
 PUBLIC void SpeakerOnExec(void)
 {
     static UINT16 S_DelayCnt = 0;
-    S_DelayCnt++;
-    //上电后3S钟才打开音推使能，避免音响开机爆音问题
-    if (S_DelayCnt < 40)
-    {
-        return;
-    }
-    else if(S_DelayCnt < 2*40)
-    {
-        MusicPwEnable();
-    }
-    else if(S_DelayCnt < 3*40)
-    {
-        MuteDisable();
-    }
-    else
-    {
-        S_DelayCnt = 121;
-        MusicPwEnable();
-        MuteEnable();
-    }
+	  static UINT8  S_SpeakState = 0;
+	
+	switch (S_SpeakState)
+	{
+		case 0:
+		{
+			S_DelayCnt++;
+			//上电后20S才打开音推使能，避免音响开机爆音问题
+			if (S_DelayCnt < 40)
+			{
+					;
+			}
+			else if(S_DelayCnt < 2*40)
+			{
+					MusicPwEnable();
+			}
+			else if(S_DelayCnt < 3*40)
+			{
+					MuteDisable();
+			}
+			else if(S_DelayCnt >= 20*40)
+			{
+					S_DelayCnt = 0;
+					MusicPwEnable();
+					MuteEnable();
+				  sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = ON;
+				  S_SpeakState = 1;
+			}
+		}
+		break;
+		
+		case 1:
+		{
+		   	if(sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower != sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower)
+				{					
+					if(sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower)
+					{
+							 MusicPwEnable();
+						   S_DelayCnt++;
+						   if(S_DelayCnt >= 800)
+							 {
+							    MuteEnable(); 
+							    MutePowerAnswer(0x01);
+								  sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower;
+							 }
+					}
+					else
+					{
+						   S_DelayCnt = 0;
+							 MuteDisable();
+							 MusicPwDisable();		
+							 MutePowerAnswer(0x02);
+               sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower;						
+					}
+				}
+		}
+		break;
+	}
 }
 /***********************************************************************
  * DESCRIPTION:

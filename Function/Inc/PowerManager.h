@@ -342,6 +342,7 @@ struct PowerManagerStruct
     struct PowerAlarmStruct         sAlarm;
 };
 
+
 PUBLIC void PowerManagerInit(UINT8 AppMode);
 PUBLIC void PowerManagerExec(void);
 PUBLIC void BatteryInfoReadLoop(void);

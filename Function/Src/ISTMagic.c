@@ -36,24 +36,24 @@ extern struct CanAppStruct    sMyCan;
 PUBLIC void ISTMagic_init(void)
 {
     IST8310I2C_Init();
-	  ExtVEnable();//打开3.3V
-	  delay_us(300);
+//	  ExtVEnable();//打开3.3V
+//	  delay_us(300);
     IST8310I2C_WADDR = 0x18;
-    IST8310_Byte_Write(IST8310_REG_CNTRL2, 0x01); //soft-reset
+    IST8310_Byte_Write(IST8310_REG_CNTRL2, 0x01);         //soft-reset
     delay_ms(20);
-    IST8310_Byte_Write(IST8310_REG_AVGCNTL, 0x24); //average 16 times
+    IST8310_Byte_Write(IST8310_REG_AVGCNTL, 0x24);        //average 16 times
     IST8310_Byte_Write(IST8310_REG_PULSE_DURATION, 0xC0); //Pulse Duration Control
-    IST8310_Byte_Write(IST8310_REG_CNTRL1,0x1);// single - mode
+    IST8310_Byte_Write(IST8310_REG_CNTRL1,0x1);           //single - mode
     delay_ms(6);
 
     IST8310I2C_WADDR = 0x1C;
-    IST8310_Byte_Write(IST8310_REG_CNTRL2, 0x01); //soft-reset
+    IST8310_Byte_Write(IST8310_REG_CNTRL2, 0x01);         //soft-reset
     delay_ms(20);
-    IST8310_Byte_Write(IST8310_REG_AVGCNTL, 0x24); //average 16 times
+    IST8310_Byte_Write(IST8310_REG_AVGCNTL, 0x24);        //average 16 times
     IST8310_Byte_Write(IST8310_REG_PULSE_DURATION, 0xC0); //Pulse Duration Control
-    IST8310_Byte_Write(IST8310_REG_CNTRL1,0x1);// single - mode
+    IST8310_Byte_Write(IST8310_REG_CNTRL1,0x1);           //single - mode
     delay_ms(6);
-    ExtVDisable();//关闭3.3V
+//    ExtVDisable();//关闭3.3V
 }
 
 /***********************************************************************
@@ -73,12 +73,12 @@ PUBLIC void MagXYZ_Exec(void)
     if(sMyCan.Magic_Enable == 0)
     {
         alarm_level = 0;
-        ExtVDisable();//关闭3.3V
+//        ExtVDisable();//关闭3.3V
         return;
     }
     else if(sMyCan.Magic_Enable == 1)
     {
-        ExtVEnable();//打开3.3V
+//        ExtVEnable();//打开3.3V
     }
 
     IST8310I2C_WADDR = 0x18;

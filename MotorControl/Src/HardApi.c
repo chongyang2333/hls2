@@ -638,7 +638,8 @@ const UINT16 bldc_hall_tab[20][8]= { {0x7F, 0, 0, 0, 0, 0, 0, 0xFF},
     {0x7F, 0, 0, 0, 0, 0, 0, 0xFF}, //ZL 6.5" 4096PRD(), gMachineInfo.motorVersion = 5
     {0x7F, 6, 2, 1, 4, 5, 3, 0xFF}, //DongXingChang.Tech 6.5" 1024PRD(FDK10529B024-1), gMachineInfo.motorVersion = 6
     {0x7F, 2, 4, 3, 6, 1, 5, 0xFF},  //YaTeng.Tech 5.5" 4096PRD), gMachineInfo.motorVersion = 7
-    {0x7F, 4, 2, 3, 6, 5, 1, 0xFF} // YaTeng 6.5 4096 gMachineInfo.motorVersion = 8 add by hzy
+    {0x7F, 4, 2, 3, 6, 5, 1, 0xFF}, // YaTeng 6.5 4096 gMachineInfo.motorVersion = 8 add by hzy
+		{0x7F, 0, 0, 0, 0, 0, 0, 0xFF} // gMachineInfo.motorVersion = 9
 };
 PUBLIC UINT16 GetHallState(UINT16 AxisID, UINT32 MotorVersion)
 {

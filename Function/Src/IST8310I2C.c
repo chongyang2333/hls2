@@ -87,7 +87,7 @@ PUBLIC void IST8310I2C_Init(void)
         }
     }
 		delay_us(300);
-    ExtVDisable();//关闭3.3V
+//    ExtVDisable();//关闭3.3V
 }
 
 

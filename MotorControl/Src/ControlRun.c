@@ -289,7 +289,6 @@ PUBLIC void ControlRunExec(void)
 
     static UINT16 Cnt_1ms = 0; 
 
-
     /* DC current,DC voltage sample */
     AdcSample0Start();
     TimeTamp_Cal();

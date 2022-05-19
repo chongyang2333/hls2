@@ -36,6 +36,8 @@ extern const struct ParameterStruct gDefaultParam_Left[10];
 extern TimeTamp_Def TimeTamp;
 extern ST_VersionStruct NowSoftWareVersion;
 extern BootLoaderInfo bootloaderInfo;
+extern struct PowerManagerStruct sPowerManager;
+extern struct SNDataStruct sSnData;
 extern UINT16 IST8310_Cfg;
 struct CanAppStruct  sMyCan={0};
 
@@ -66,7 +68,10 @@ PRIVATE void CanSetAcc(UINT8 *pData);
 PRIVATE void SendIST8310_Cfg(void);
 PRIVATE void SetMagicThreshold(UINT8 *pData);
 PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage);
-
+PRIVATE void PowerOffHandle(UINT8 *pData);
+PRIVATE void MutePowerHandle(UINT8 *pData);
+PRIVATE void ReadSNinfo(UINT8 *pData);
+PRIVATE void WriteSNinfo(UINT8 *pData);
 void StorageMessage(CAN_RX_Message* pstCanRxMessage,BootLoaderInfo* pstBootLoaderInfo);
 /***********************************************************************
  * DESCRIPTION:
@@ -159,7 +164,7 @@ PUBLIC void CanAppDispatch(void)
     {
         case 0x00 :
             PcRequestHandle(CanRxMessage.RxData);
-        break;
+        break;				
         
         case 0x08 :
             RgbSetMode(CanRxMessage.RxData[1]);
@@ -261,6 +266,23 @@ PUBLIC void CanAppDispatch(void)
 			     }
 			     break;
 		    }
+								
+				case 0xB0:
+            PowerOffHandle(&CanRxMessage.RxData[0]);
+        break;
+				
+//				case 0xF2:  //读取SN码
+//            
+//        break;
+				
+				case 0xF3:  //写入SN码
+            WriteSNinfo(&CanRxMessage.RxData[0]);
+        break;
+				
+				case 0xE3:  //关闭音推，避免上位机复位音爆
+            MutePowerHandle(&CanRxMessage.RxData[0]);
+        break;
+								
         default:
             break;
     }
@@ -617,7 +639,7 @@ PRIVATE void CarpetModeSet(UINT8 *pData)
 {
     if (0x01 == pData[1])
     {
-				if(gMachineInfo.motorVersion == 4)
+				if((gMachineInfo.motorVersion == 4) || (gMachineInfo.motorVersion == 9))
 				{
 						gParam[0].MotorRatedCurrent0x2209 = 4000;
 						gParam[1].MotorRatedCurrent0x2209 = 4000;
@@ -654,7 +676,7 @@ PUBLIC void CanCarpetModeFdb(UINT16 MotorRatedCurrent0x2209)
     }
 		else
 		{
-				if((gMachineInfo.motorVersion == 4)&&(4000 == MotorRatedCurrent0x2209))
+				if(((gMachineInfo.motorVersion == 4) || (gMachineInfo.motorVersion == 9))&&(4000 == MotorRatedCurrent0x2209))
 				{
 						CarpetMode = 1;
 				}
@@ -1164,8 +1186,14 @@ PRIVATE void PcRequestHandle(UINT8 *pData)
                 CanSendMachineInfoWriteStatus();
             }
         break;
-            
-            
+                   
+        case 0xF2:
+            {
+                ReadSNinfo(pData);
+            }
+        break;
+
+						
         default:            
             break;         
     }
@@ -1824,4 +1852,117 @@ PUBLIC void CanSendTimeTamp(UINT8 CanID)
 	 datasend[6] = timetemp&0xff;
 	 datasend[7] = BCC_CheckSum(datasend,7);
 	 can_tx(datasend);
+}
+
+/***********************************************************************
+* DESCRIPTION:整机退电处理
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void PowerOffHandle(UINT8 *pData)
+{
+	 UINT8 PoweroffFlag = 0;
+   PoweroffFlag = pData[1];
+	 if(PoweroffFlag == 0x9)
+		 DrvPwDisable();
+}
+
+UINT8 G_SNArry[32] = {0};
+/***********************************************************************
+* DESCRIPTION:SN码读取
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void ReadSNinfo(UINT8 *pData)
+{
+	 UINT8 Number = 0;
+	 UINT8 datasend[8];
+   Number = pData[2];
+   
+	if(sSnData.RWFlag == 2)
+	{
+		 datasend[0] = 0xF2;
+		 datasend[1] = Number;
+		 datasend[2] = sSnData.SNDataRead[0+Number*4];
+		 datasend[3] = sSnData.SNDataRead[1+Number*4];
+		 datasend[4] = sSnData.SNDataRead[2+Number*4];
+		 datasend[5] = sSnData.SNDataRead[3+Number*4];
+		 datasend[6] = 0xd;
+		 datasend[7] = BCC_CheckSum(datasend,7);
+		 can_tx(datasend);
+	}	
+}
+
+/***********************************************************************
+* DESCRIPTION:SN码写入
+*
+* RETURNS:
+*
+***********************************************************************/
+PRIVATE void WriteSNinfo(UINT8 *pData)
+{
+	 UINT8 Number = 0;
+	 UINT8 datasend[8];
+	 UINT8 Index = 0;
+   Number = pData[1];
+//	 sSnData.SNDataWrite[0+Number*4] = pData[2];
+//	 sSnData.SNDataWrite[1+Number*4] = pData[3];
+//	 sSnData.SNDataWrite[2+Number*4] = pData[4];
+//   sSnData.SNDataWrite[3+Number*4] = pData[5];
+	
+	for(;Index < 4;Index++)
+	{
+	   if(pData[2+Index] != 0xFF)
+		 {
+		    sSnData.SNDataWrite[Index+Number*4] = pData[2+Index];
+		 }
+		 else
+		 {
+		    sSnData.RWFlag = 1;
+		 }
+	}
+	 
+	if(Number >= 8)
+	{
+	     sSnData.RWFlag = 1;
+	}
+}
+
+/***********************************************************************
+* DESCRIPTION:音推控制
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void MutePowerHandle(UINT8 *pData)
+{
+	 UINT8 PowerFlag = 0;
+   PowerFlag = pData[1];
+	 if(PowerFlag == 0x02)
+		 sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = 0;
+	 else if(PowerFlag == 0x01)
+		 sPowerManager.sBoardPowerInfo.PowerOnConfig.PowerOnOffReg.bit.SpeakerPower = 1;
+}
+
+/***********************************************************************
+* DESCRIPTION:音推控制答复报文
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PUBLIC void MutePowerAnswer(UINT8 Data)
+{
+	 UINT8 datasend[8];
+   
+	 datasend[0] = 0xE3;
+	 datasend[1] = Data;
+	 datasend[2] = 0;
+	 datasend[3] = 0;
+	 datasend[4] = 0;
+	 datasend[5] = 0;
+	 datasend[6] = 0;
+	 datasend[7] = 0;
+	 can_tx(datasend);			 
 }

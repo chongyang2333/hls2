@@ -32,12 +32,12 @@
 #define AXIS_Left_PARAM_EEPROM_ADDR   0
 #define AXIS_Right_PARAM_EEPROM_ADDR  256
 #define MACHINE_INFO_EEPROM_ADDR      512
-
+#define SNDATA_EEPROM_ADDR            3072   //SN码存储地址  长度32
 struct ParameterStruct    gParam[2];
 struct MachineInfoStruct  gMachineInfo;
 struct SoftwareVersionStruct gSoftVersion = {21,0,2};
 struct SensorDataStruct gSensorData = {0};
-
+struct SNDataStruct sSnData = {0};
 //RTC_HandleTypeDef 				hrtc1;
 UINT16 EepromErrorFlag=0;
 UINT8 MotorVersionParam = 0;
@@ -207,7 +207,7 @@ PUBLIC void ParamLoop(void)
     }
 
     MachineAddInfoProcess();
-    if((gMachineInfo.motorVersion != 4)&&(init_isr_flag == 0))//非maxwell电机，取消外部中断
+    if(((gMachineInfo.motorVersion != 4) && (gMachineInfo.motorVersion != 9))&&(init_isr_flag == 0))//非maxwell电机，取消外部中断
     {
         init_isr_flag = 1;
         nvic_irq_disable(EXTI3_IRQn);
@@ -489,3 +489,43 @@ PUBLIC UINT32 RTC_BKP_Read(UINT32 uiAddr0_19)
     return (*pAddr0_19);
 }
 
+/***********************************************************************
+* DESCRIPTION:SN码
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PUBLIC void SNExecLoop(void)
+{
+	 UINT16 Address = 3072;
+	 UINT8 Index = 0;
+	 static UINT8 S_Initial = 0;
+
+   if(S_Initial == 0)
+	 {
+			 S_Initial = 1;
+		 	 EEPROM_Serial_Read(Address, (UINT8*)&sSnData.SNDataRead, 32);
+		   sSnData.RWFlag = 2;
+	 }		 
+
+	
+   if(sSnData.RWFlag == 1)
+	 {
+		  for(Index = 0;Index < 32;Index++)
+		  {
+		     if(sSnData.SNDataRead[Index] != sSnData.SNDataWrite[Index])
+				 {
+				    sSnData.CompareFlag = 1;
+					  break;
+				 }
+		  }
+			
+			if(sSnData.CompareFlag)
+			{
+				 sSnData.CompareFlag = 0;
+			   EEPROM_Serial_Write(Address, (UINT8*)sSnData.SNDataWrite, 32);
+				 EEPROM_Serial_Read(Address, (UINT8*)&sSnData.SNDataRead, 32);
+			}
+			sSnData.RWFlag = 2;
+	 }		 
+}
