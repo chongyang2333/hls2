@@ -33,6 +33,9 @@ struct CanAppStruct
 		UINT16  MagicThreshold_left;
 		UINT16  MagicThreshold_Right;
 	
+	  UINT8   SafeLock;
+		UINT8   CanLockCmd;
+		UINT8   CanLockCnt;
 };
 
 typedef enum EN_CAN_CMD

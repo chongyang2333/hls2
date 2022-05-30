@@ -109,5 +109,3 @@ void LL_EXTI_DisableFallingTrig_0_31(exti_line_enum linex)
 
 
 
-
-

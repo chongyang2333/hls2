@@ -32,16 +32,16 @@
 #define AXIS_Left_PARAM_EEPROM_ADDR   0
 #define AXIS_Right_PARAM_EEPROM_ADDR  256
 #define MACHINE_INFO_EEPROM_ADDR      512
-#define SNDATA_EEPROM_ADDR            3072   //SN码存储地址  长度32
+#define SNDATA_ADDR            0x08010000   //SN码存储地址  长度32字节
 struct ParameterStruct    gParam[2];
 struct MachineInfoStruct  gMachineInfo;
 struct SoftwareVersionStruct gSoftVersion = {21,0,2};
 struct SensorDataStruct gSensorData = {0};
-struct SNDataStruct sSnData = {0};
 //RTC_HandleTypeDef 				hrtc1;
 UINT16 EepromErrorFlag=0;
 UINT8 MotorVersionParam = 0;
 UINT16 init_isr_flag = 0;
+UINT8 SNReadData[32] = {0};
 
 PRIVATE void LoadParamFromEeprom(UINT16 AxisID);
 PRIVATE void SaveParamToEeprom(UINT16 AxisID);
@@ -489,43 +489,30 @@ PUBLIC UINT32 RTC_BKP_Read(UINT32 uiAddr0_19)
     return (*pAddr0_19);
 }
 
+
 /***********************************************************************
-* DESCRIPTION:SN码
+* DESCRIPTION:SN码读取
  *
  * RETURNS:
  *
 ***********************************************************************/
-PUBLIC void SNExecLoop(void)
+PUBLIC void SNExecRead(void)
 {
-	 UINT16 Address = 3072;
-	 UINT8 Index = 0;
-	 static UINT8 S_Initial = 0;
+		UINT32 address;
+		UINT32 *pd;
+		UINT16 index;
+		address = SNDATA_ADDR; 
+		pd = (UINT32 *)(&SNReadData);
+	  static UINT8 S_Initial = 0;
 
    if(S_Initial == 0)
-	 {
-			 S_Initial = 1;
-		 	 EEPROM_Serial_Read(Address, (UINT8*)&sSnData.SNDataRead, 32);
-		   sSnData.RWFlag = 2;
-	 }		 
-
-	
-   if(sSnData.RWFlag == 1)
-	 {
-		  for(Index = 0;Index < 32;Index++)
-		  {
-		     if(sSnData.SNDataRead[Index] != sSnData.SNDataWrite[Index])
-				 {
-				    sSnData.CompareFlag = 1;
-					  break;
-				 }
-		  }
-			
-			if(sSnData.CompareFlag)
+	 {			
+			for(index = 0;index < sizeof(SNReadData) / 4; index++)
 			{
-				 sSnData.CompareFlag = 0;
-			   EEPROM_Serial_Write(Address, (UINT8*)sSnData.SNDataWrite, 32);
-				 EEPROM_Serial_Read(Address, (UINT8*)&sSnData.SNDataRead, 32);
+				 *pd = *((UINT32 *)address);
+				 address += 4;
+				 pd++;
 			}
-			sSnData.RWFlag = 2;
-	 }		 
+			S_Initial = 1;
+	 }		 	 
 }

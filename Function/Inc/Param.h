@@ -855,5 +855,5 @@ extern PUBLIC UINT8 GetResetType(void);
 extern PUBLIC void BKP_Init(void);
 extern PUBLIC void RTC_BKP_Write(UINT32 uiAddr0_19,UINT32 uiDataToWrite);
 extern PUBLIC UINT32 RTC_BKP_Read(UINT32 uiAddr0_19);
-extern PUBLIC void SNExecLoop(void);
+extern PUBLIC void SNExecRead(void);
 #endif  // _PARAM_H_

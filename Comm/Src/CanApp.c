@@ -22,6 +22,7 @@
 #include "BootloaderInfo.h"
 #include "gpio.h"
 #include "HardApi.h"
+#include "math.h"
 #include "LedDriver.h"
 #include "MachineAdditionalInfo.h"
 #include "gd_hal.h"
@@ -39,6 +40,7 @@ extern BootLoaderInfo bootloaderInfo;
 extern struct PowerManagerStruct sPowerManager;
 extern struct SNDataStruct sSnData;
 extern UINT16 IST8310_Cfg;
+extern UINT8 SNReadData[32];
 struct CanAppStruct  sMyCan={0};
 
 can_receive_message_struct receive_message;
@@ -71,8 +73,13 @@ PRIVATE void CAN_GetRxMessage(CAN_RX_Message* CanRxMessage);
 PRIVATE void PowerOffHandle(UINT8 *pData);
 PRIVATE void MutePowerHandle(UINT8 *pData);
 PRIVATE void ReadSNinfo(UINT8 *pData);
-PRIVATE void WriteSNinfo(UINT8 *pData);
 void StorageMessage(CAN_RX_Message* pstCanRxMessage,BootLoaderInfo* pstBootLoaderInfo);
+PRIVATE void LockMotorFlagSet(UINT8 cmd);
+PRIVATE void SendLockMotorStatus(UINT8 status);
+
+UINT16  LockCmd_Flag = 0;
+PRIVATE void SafeLockMotorFlagSet(UINT8 cmd);
+PRIVATE void SendSafeLockMotorStatus(UINT8 status);
 /***********************************************************************
  * DESCRIPTION:
  *
@@ -86,6 +93,10 @@ PUBLIC void CanAppInit(void)
     
     sMyCan.CanLostMaxNum = Tmp;
     sMyCan.CanRxTxState = 0;
+	  sMyCan.CanLockCmd = 0;
+    sMyCan.CanLockCnt = 0;
+	
+	  LockCmd_Flag = 0;
 	  sMyCan.Magic_Enable = 0;
 }
 
@@ -96,15 +107,100 @@ PUBLIC void CanAppInit(void)
  * RETURNS:
  *
 ***********************************************************************/
+UINT16 lock_cnt1 = 0;
+UINT16 lock_cnt2 = 0;
 PUBLIC void CanAppExec(void)
 {
     if(sMyCan.PcCloseLoopEn)
     {
         sMyCan.CanLostCnt++;
+				sMyCan.CanLockCmd = 0;
+        sMyCan.CanLockCnt = 0;
+				LockCmd_Flag = 0;
     }
     else
     {
         sMyCan.CanLostCnt = 0;
+				if((sAxis[0].sAlarm.ErrReg.all == 0)&&(sAxis[1].sAlarm.ErrReg.all == 0))
+        {
+						if(sMyCan.SafeLock == 1)
+						{
+								gParam[0].ControlWord0x6040 = 0xF;
+                gParam[1].ControlWord0x6040 = 0xF;
+                gParam[0].TargetVelocity0x60FF = 0;
+                gParam[1].TargetVelocity0x60FF = 0;
+						}
+            else if(sMyCan.CanLockCmd == 1)
+            {
+                if(sMyCan.CanLockCnt++>=5)//125ms 上锁
+                {
+                    gParam[0].ControlWord0x6040 = 0xF;
+                    gParam[1].ControlWord0x6040 = 0xF;
+                    gParam[0].TargetVelocity0x60FF = 0;
+                    gParam[1].TargetVelocity0x60FF = 0;
+                    sMyCan.CanLockCmd = 0;
+                    sMyCan.CanLockCnt = 0;
+									  LockCmd_Flag = 1;
+                }
+            }
+            else if(sMyCan.CanLockCmd == 2)//解锁
+            {
+                gParam[0].ControlWord0x6040 = 0x6;
+                gParam[1].ControlWord0x6040 = 0x6;
+                sMyCan.CanLockCmd = 0;
+                sMyCan.CanLockCnt = 0;
+							  LockCmd_Flag = 0;
+            }
+						else if(sMyCan.SafeLock == 2)
+            {
+                    gParam[0].ControlWord0x6040 = 0x6;
+                    gParam[1].ControlWord0x6040 = 0x6;
+                    sMyCan.SafeLock = 0;
+            }
+        }
+        else
+        {
+            sMyCan.CanLockCnt = 0;
+            sMyCan.CanLockCmd = 0;
+					  LockCmd_Flag = 0;
+        }
+				
+				if(LockCmd_Flag == 1)
+				{
+						if((sAxis[0].sCurLoop.IValidFdb <0.6)&&(sAxis[1].sCurLoop.IValidFdb <0.6))
+						{
+								lock_cnt1++;
+						}
+						else
+						{
+								lock_cnt1 = 0;
+						}
+						if(lock_cnt1>40)
+						{
+								gParam[0].ControlWord0x6040 = 0x6;
+                gParam[1].ControlWord0x6040 = 0x6;
+								lock_cnt1 = 0;
+						}
+						if((fabs(sAxis[0].sSpdLoop.SpdFdb)>8.0)||(fabs(sAxis[1].sSpdLoop.SpdFdb)>8.0))
+						{
+								lock_cnt2 ++;
+						}
+						else
+						{
+								lock_cnt2 = 0;
+						}
+						if(lock_cnt2>2)
+						{
+								gParam[0].ControlWord0x6040 = 0xF;
+                gParam[1].ControlWord0x6040 = 0xF;
+							  lock_cnt2 = 0;
+						}
+				}
+				else
+				{
+					lock_cnt1 = 0;	
+					lock_cnt2 = 0;
+				}
     }
     
     if(sMyCan.CanLostCnt > sMyCan.CanLostMaxNum && sMyCan.CanLostMaxNum !=0)  
@@ -271,18 +367,27 @@ PUBLIC void CanAppDispatch(void)
             PowerOffHandle(&CanRxMessage.RxData[0]);
         break;
 				
-//				case 0xF2:  //读取SN码
-//            
-//        break;
-				
-				case 0xF3:  //写入SN码
-            WriteSNinfo(&CanRxMessage.RxData[0]);
-        break;
-				
 				case 0xE3:  //关闭音推，避免上位机复位音爆
             MutePowerHandle(&CanRxMessage.RxData[0]);
         break;
-								
+				
+        case 0xA8: //lock motor
+						if(receive_message.rx_sfid!=0x7FF)
+						{
+								break;
+						}
+						LockMotorFlagSet(CanRxMessage.RxData[1]);
+						SendLockMotorStatus(CanRxMessage.RxData[1]);
+						break;
+						
+				case 0xAD:
+					  if(receive_message.rx_sfid!=0x7FF)
+						{
+								break;
+						}
+            SafeLockMotorFlagSet(CanRxMessage.RxData[1]);
+            SendSafeLockMotorStatus(CanRxMessage.RxData[1]);
+						break;
         default:
             break;
     }
@@ -1517,6 +1622,7 @@ PRIVATE void CanSetMotion(UINT8 *pData)
         sMyCan.PcCloseLoopEn = 1;
         gParam[0].ControlWord0x6040 = 0xF;
         gParam[1].ControlWord0x6040 = 0xF;
+			  LockCmd_Flag = 0;
     }
     else
     {
@@ -1881,53 +1987,15 @@ PRIVATE void ReadSNinfo(UINT8 *pData)
 	 UINT8 datasend[8];
    Number = pData[2];
    
-	if(sSnData.RWFlag == 2)
-	{
-		 datasend[0] = 0xF2;
-		 datasend[1] = Number;
-		 datasend[2] = sSnData.SNDataRead[0+Number*4];
-		 datasend[3] = sSnData.SNDataRead[1+Number*4];
-		 datasend[4] = sSnData.SNDataRead[2+Number*4];
-		 datasend[5] = sSnData.SNDataRead[3+Number*4];
-		 datasend[6] = 0xd;
-		 datasend[7] = BCC_CheckSum(datasend,7);
-		 can_tx(datasend);
-	}	
-}
-
-/***********************************************************************
-* DESCRIPTION:SN码写入
-*
-* RETURNS:
-*
-***********************************************************************/
-PRIVATE void WriteSNinfo(UINT8 *pData)
-{
-	 UINT8 Number = 0;
-	 UINT8 datasend[8];
-	 UINT8 Index = 0;
-   Number = pData[1];
-//	 sSnData.SNDataWrite[0+Number*4] = pData[2];
-//	 sSnData.SNDataWrite[1+Number*4] = pData[3];
-//	 sSnData.SNDataWrite[2+Number*4] = pData[4];
-//   sSnData.SNDataWrite[3+Number*4] = pData[5];
-	
-	for(;Index < 4;Index++)
-	{
-	   if(pData[2+Index] != 0xFF)
-		 {
-		    sSnData.SNDataWrite[Index+Number*4] = pData[2+Index];
-		 }
-		 else
-		 {
-		    sSnData.RWFlag = 1;
-		 }
-	}
-	 
-	if(Number >= 8)
-	{
-	     sSnData.RWFlag = 1;
-	}
+	 datasend[0] = 0xF2;
+	 datasend[1] = Number;
+	 datasend[2] = SNReadData[0+Number*4];
+	 datasend[3] = SNReadData[1+Number*4];
+	 datasend[4] = SNReadData[2+Number*4];
+	 datasend[5] = SNReadData[3+Number*4];
+	 datasend[6] = 0xd;
+	 datasend[7] = BCC_CheckSum(datasend,7);
+	 can_tx(datasend);	
 }
 
 /***********************************************************************
@@ -1965,4 +2033,90 @@ PUBLIC void MutePowerAnswer(UINT8 Data)
 	 datasend[6] = 0;
 	 datasend[7] = 0;
 	 can_tx(datasend);			 
+}
+/***********************************************************************
+* DESCRIPTION:锁电机标志设置
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void LockMotorFlagSet(UINT8 cmd)
+{
+    if(cmd == 1)
+    {
+        sMyCan.CanLockCmd = 1;
+    }
+    else
+    {
+        sMyCan.CanLockCmd = 2;
+    }
+}
+/***********************************************************************
+* DESCRIPTION:发送锁电机状态
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void SendLockMotorStatus(UINT8 status)
+{
+    UINT8 datasend[8];
+    if((status == 1)&&(sAxis[1].sAlarm.ErrReg.all==0)&&(sAxis[0].sAlarm.ErrReg.all==0))
+    {
+        datasend[1] = 1;
+    }
+    else
+    {
+        datasend[1] = 0;
+    }
+    datasend[0] = 0xA9;
+    datasend[2] = 0x0;
+    datasend[3] = 0x0;
+    datasend[4] = 0x0;
+    datasend[5] = 0x0;
+    datasend[6] = 0x0;
+    datasend[7] = BCC_CheckSum(datasend,7);
+    can_tx(datasend);
+}
+/***********************************************************************
+* DESCRIPTION:安全模式下锁电机标志设置
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void SafeLockMotorFlagSet(UINT8 cmd)
+{
+    if(cmd == 1)
+    {
+				sMyCan.SafeLock = 1;
+    }
+    else
+    {
+				sMyCan.SafeLock = 2;
+    }
+}
+/***********************************************************************
+* DESCRIPTION:安全模式下发送锁电机状态
+ *
+ * RETURNS:
+ *
+***********************************************************************/
+PRIVATE void SendSafeLockMotorStatus(UINT8 status)
+{
+    UINT8 datasend[8];
+    if((status == 1)&&(sAxis[1].sAlarm.ErrReg.all==0)&&(sAxis[0].sAlarm.ErrReg.all==0))
+    {
+        datasend[1] = 1;
+    }
+    else
+    {
+        datasend[1] = 0;
+    }
+    datasend[0] = 0xAE;
+    datasend[2] = 0x0;
+    datasend[3] = 0x0;
+    datasend[4] = 0x0;
+    datasend[5] = 0x0;
+    datasend[6] = 0x0;
+    datasend[7] = BCC_CheckSum(datasend,7);
+    can_tx(datasend);
 }

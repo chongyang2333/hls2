@@ -67,7 +67,7 @@ int main()
         ErrorLogExec(sAxis[0].sAlarm.ErrReg.all, sAxis[1].sAlarm.ErrReg.all);        // Error log task
         ParamLoop();
         TemperatureExec();
-			  SNExecLoop();
+			  SNExecRead();
         //BatteryInfoReadLoop();
         LoopElapsedTime = ReadTimeStampTimer() - LoopStartTime;
         if(MaxLoopTime < LoopElapsedTime)
