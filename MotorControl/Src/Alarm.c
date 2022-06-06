@@ -88,8 +88,8 @@ const UINT16 invCurLdTb[MTR_OV_LD_TB_END_ID+1]=
     1600, 	//160%
     1700, 	//170%
     1800, 	//180%
-    1900,	//190%
-    2000,	//200%
+    1900,	  //190%
+    2000,	  //200%
 };
 
 const UINT16 invUnCurLdTb[MTR_OV_LD_TB_END_ID+1]=
@@ -237,7 +237,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
     }
 
     // hall alarm judgement
-    if (P->sEncoder.HallEnable == 1)
+    if (P->sEncoder.HallEnable == 1)  //中菱电机
     {
         if(P->sEncoder.HallState > 6)
         {
@@ -254,7 +254,76 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
             pAlarm->ErrReg.bit.HallErr = 1;
             pAlarm->HallErrCnt = HALL_ALARM_MAX_CNT;
         }
-    }
+				
+				//电机匹配判断
+				if(P->AxisID)
+				{						
+						if(pAlarm->RisingCnt > 1000) // PWM电平变化
+						{
+									pAlarm->ErrReg.bit.MotorMatchErr = 1;
+									pAlarm->RisingCnt = 0;
+						}
+				}
+				else //left
+				{	
+						if(pAlarm->RisingCnt > 1000)// PWM电平变化
+						{
+								pAlarm->ErrReg.bit.MotorMatchErr = 1;
+								pAlarm->RisingCnt = 0;
+						}
+				}							
+		}			
+		else if (P->sEncoder.HallEnable == 2)
+		{
+				if(P->AxisID) //right
+				{
+						if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3))
+						{
+									pAlarm->PwmOnCnt++;
+									pAlarm->PwmOffCnt = 0;
+						}
+						else
+						{
+									pAlarm->PwmOffCnt++;
+									pAlarm->PwmOnCnt = 0;
+						}
+						if((pAlarm->PwmOffCnt>20000)||(pAlarm->PwmOnCnt>20000)) //2s PWM无任何电平变化
+						{
+								 	pAlarm->ErrReg.bit.PwmoutBreak = 1;
+									pAlarm->PwmOffCnt=0;
+									pAlarm->PwmOnCnt = 0;
+						}
+				}
+				else //left
+				{
+						if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
+						{
+									pAlarm->PwmOnCnt++;
+									pAlarm->PwmOffCnt = 0;
+						}
+						else
+						{
+									pAlarm->PwmOffCnt++;
+									pAlarm->PwmOnCnt = 0;
+						}
+						if((pAlarm->PwmOffCnt>20000)||(pAlarm->PwmOnCnt>20000))//2s PWM无任何电平变化
+						{
+								pAlarm->ErrReg.bit.PwmoutBreak = 1;
+								pAlarm->PwmOffCnt=0;
+								pAlarm->PwmOnCnt = 0;
+						}
+				}
+				if(P->sEncoder.PosCorrectEnUsingPwmout)
+				{
+						pAlarm->PwmOffCnt=0;
+						pAlarm->PwmOnCnt = 0;
+				}
+		}
+		else
+		{
+				pAlarm->PwmOnCnt = 0;
+				pAlarm->PwmOffCnt = 0;
+		}
 		
     Safe_IO = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14);
     if((Safe_IO == 0)&&(pAlarm->ErrReg.bit.StutterStop))

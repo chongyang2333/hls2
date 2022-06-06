@@ -62,16 +62,16 @@ TimeTamp_Def TimeTamp = {0};
 struct AxisCtrlStruct sAxis[MAX_AXIS_NUM];
 struct SchedulerStruct sScheduler;
 
-extern UINT8 alarm_level ;
-extern UINT8 alarm_levelBak;
-UINT16 alarm_cnt = 0;
+extern UINT8  alarm_level;
+extern UINT8  alarm_levelBak;
+extern UINT16 init_isr_time;
 
+UINT16 alarm_cnt = 0;
 PRIVATE void CanFdbMcInfoExec(void);
 PRIVATE void PowerOnOffExec(struct AxisCtrlStruct *P, UINT32 IsrTime);
 PRIVATE void MotionParamUpdateExec(void);
 PRIVATE void ParamFdbUpdate(void);
 PRIVATE void SpeedSetAvoidFalling(void);
-
 
 /***********************************************************************
  * DESCRIPTION:
@@ -419,6 +419,8 @@ PUBLIC void TimerIsrExec(void)
 
 //    LedDriverExec();
 //    led_bar_driver();
+	  init_isr_time++;
+	  init_isr_time = init_isr_time > 100 ? 100 : init_isr_time;
     CiA402_StateMachine();
 
     //Parameter Reference update

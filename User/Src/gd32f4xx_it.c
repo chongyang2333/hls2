@@ -195,6 +195,8 @@ void EXTI0_IRQHandler(void)
 {
   RecordEdgeInfo(&sAxis[0]);
   EXTI_PD = (uint32_t)EXTI_0;
+	sAxis[0].sAlarm.RisingCnt++;
+	sAxis[0].sAlarm.RisingCnt = sAxis[0].sAlarm.RisingCnt > 2000 ? 2000 : sAxis[0].sAlarm.RisingCnt;
 }
 
 /**
@@ -204,6 +206,8 @@ void EXTI3_IRQHandler(void)
 {
   RecordEdgeInfo(&sAxis[1]);
   EXTI_PD = (uint32_t)EXTI_3;
+	sAxis[1].sAlarm.RisingCnt++;
+	sAxis[1].sAlarm.RisingCnt = sAxis[1].sAlarm.RisingCnt > 2000 ? 2000 : sAxis[1].sAlarm.RisingCnt;
 }
 
 /*!

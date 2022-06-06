@@ -383,8 +383,8 @@ struct AxisCtrlStruct
 struct SchedulerStruct
 {
     UINT32 SchNum;
-	UINT32 TickCnt;
-	UINT32 IsrElapsedTime;
+	  UINT32 TickCnt;
+	  UINT32 IsrElapsedTime;
     UINT32 TimeStamp;
     UINT32 Tim7IsrTime;
 };

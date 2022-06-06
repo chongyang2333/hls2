@@ -41,6 +41,7 @@ struct SensorDataStruct gSensorData = {0};
 UINT16 EepromErrorFlag=0;
 UINT8 MotorVersionParam = 0;
 UINT16 init_isr_flag = 0;
+UINT16 init_isr_time = 0;
 UINT8 SNReadData[32] = {0};
 
 PRIVATE void LoadParamFromEeprom(UINT16 AxisID);
@@ -207,12 +208,22 @@ PUBLIC void ParamLoop(void)
     }
 
     MachineAddInfoProcess();
-    if(((gMachineInfo.motorVersion != 4) && (gMachineInfo.motorVersion != 9))&&(init_isr_flag == 0))//非maxwell电机，取消外部中断
+    if((gMachineInfo.motorVersion != 4) && (gMachineInfo.motorVersion != 9))//非maxwell电机，取消外部中断			 
     {
-        init_isr_flag = 1;
-        nvic_irq_disable(EXTI3_IRQn);
-        nvic_irq_disable(EXTI0_IRQn);
-    }
+			  if((init_isr_time >= 80) && (init_isr_flag == 1))
+				{
+						init_isr_time = 80;
+					  init_isr_flag = 2;
+						nvic_irq_disable(EXTI3_IRQn);
+						nvic_irq_disable(EXTI0_IRQn);
+				}
+				else if((init_isr_time < 80) && (init_isr_flag == 0))
+				{
+					  init_isr_flag = 1;
+				    LL_EXTI_EnableRisingTrig_0_31(EXTI_0);
+					  LL_EXTI_EnableRisingTrig_0_31(EXTI_3);
+				}
+    }		
 }
 
 /***********************************************************************

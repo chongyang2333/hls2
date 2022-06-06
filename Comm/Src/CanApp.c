@@ -367,9 +367,9 @@ PUBLIC void CanAppDispatch(void)
             PowerOffHandle(&CanRxMessage.RxData[0]);
         break;
 				
-				case 0xE3:  //关闭音推，避免上位机复位音爆
-            MutePowerHandle(&CanRxMessage.RxData[0]);
-        break;
+//				case 0xE3:  //关闭音推，避免上位机复位音爆
+//            MutePowerHandle(&CanRxMessage.RxData[0]);
+//        break;
 				
         case 0xA8: //lock motor
 						if(receive_message.rx_sfid!=0x7FF)
