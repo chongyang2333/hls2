@@ -2639,7 +2639,7 @@ PUBLIC void SpeakerOnExec(void)
 		case 0:
 		{
 			S_DelayCnt++;
-			//上电后20S才打开音推使能，避免音响开机爆音问题
+			//上电后30S才打开音推使能，避免音响开机爆音问题
 			if (S_DelayCnt < 40)
 			{
 					;
@@ -2652,14 +2652,14 @@ PUBLIC void SpeakerOnExec(void)
 			{
 					MuteDisable();
 			}
-			else if(S_DelayCnt >= 20*40)
+			else if(S_DelayCnt >= 30*40)
 			{
 					S_DelayCnt = 0;
 					MusicPwEnable();
 					MuteEnable();
 				  sPowerManager.sBoardPowerInfo.PowerOnState.PowerOnOffReg.bit.SpeakerPower = ON;
 				  S_SpeakState = 1;
-			}
+			} 
 		}
 		break;
 		

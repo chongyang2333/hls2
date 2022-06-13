@@ -373,7 +373,29 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
         }
     }
 		
-    if(GetIbusOverCurState(P->AxisID))
+		static UINT8 ASC711PWFlag = 0;
+		static UINT8 S_CheckDelayCnt = 0;
+		if((GetBatteryVoltage() >= 20.0f) && (ASC711PWFlag == 0))
+		{ 
+			 ASC711PWFlag = 1;
+		   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+		}
+		else if((GetBatteryVoltage() < 16.0f) && (ASC711PWFlag == 1))
+		{
+			 ASC711PWFlag = 0;
+		   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+		}
+		
+		if(ASC711PWFlag)
+		{
+		  S_CheckDelayCnt++;
+			if(S_CheckDelayCnt >= 20)
+				S_CheckDelayCnt = 20;
+		}
+		else
+			S_CheckDelayCnt = 0;
+		
+    if((GetIbusOverCurState(P->AxisID)) && (S_CheckDelayCnt >= 10)) 
     {
         pAlarm->ErrReg.bit.BusCurOver = 1;
     }

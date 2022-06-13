@@ -59,7 +59,7 @@ PUBLIC void GyroInit(void)
     delay_ms(10);
     I2C_Gyro_ByteWrite(ICM40609_GYRO_ACCEL_CONFIG0,0x77); //set bandwidth
     delay_ms(10);
-    I2C_Gyro_ByteWrite(ICM40609_GYRO_ACCEL_CONFIG0,0x01); //set CLKSEL
+    I2C_Gyro_ByteWrite(ICM40609_LowV_CLK_SEL,0x01); //set CLKSEL
     delay_ms(40);
 #endif
 }
