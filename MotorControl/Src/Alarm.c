@@ -287,7 +287,8 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 									pAlarm->PwmOffCnt++;
 									pAlarm->PwmOnCnt = 0;
 						}
-						if((pAlarm->PwmOffCnt>20000)||(pAlarm->PwmOnCnt>20000)) //2s PWM无任何电平变化
+						
+						if((pAlarm->PwmOffCnt > 40000)||(pAlarm->PwmOnCnt > 40000)) //4s PWM无任何电平变化 时间太短可能会误报
 						{
 								 	pAlarm->ErrReg.bit.PwmoutBreak = 1;
 									pAlarm->PwmOffCnt=0;
@@ -306,7 +307,7 @@ PUBLIC void AlarmExec(struct AxisCtrlStruct *P)
 									pAlarm->PwmOffCnt++;
 									pAlarm->PwmOnCnt = 0;
 						}
-						if((pAlarm->PwmOffCnt>20000)||(pAlarm->PwmOnCnt>20000))//2s PWM无任何电平变化
+						if((pAlarm->PwmOffCnt > 40000)||(pAlarm->PwmOnCnt > 40000))//4s PWM无任何电平变化 时间太短可能会误报
 						{
 								pAlarm->ErrReg.bit.PwmoutBreak = 1;
 								pAlarm->PwmOffCnt=0;
