@@ -145,7 +145,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>CMSIS_AGDI</Key>
-          <Name>-X"Any" -UAny -O206 -S9 -C0 -P00 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(0) -TO65554 -TC10000000 -TP20 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO15 -FD20000000 -FC1000 -FN1 -FF0GD32F4xx_1MB.FLM -FS08000000 -FL0100000 -FP0($$Device:GD32F450VG$Flash\GD32F4xx_1MB.FLM)</Name>
+          <Name>-X"Any" -UAny -O206 -S8 -C0 -P00000000 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(0) -TO65554 -TC10000000 -TT10000000 -TP20 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO15 -FD20000000 -FC1000 -FN1 -FF0GD32F4xx_1MB.FLM -FS08000000 -FL0100000 -FP0($$Device:GD32F450VG$Flash\GD32F4xx_1MB.FLM)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -158,154 +158,202 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)(0x40010000 + 0x20U))</ItemText>
+          <ItemText>sMyCan.Magic_Enable</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>(*(volatile uint32_t *)(uint32_t)(0x40010000 + 0x4U))</ItemText>
+          <ItemText>MagXYZ_L,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sMyCan.Magic_Enable</ItemText>
+          <ItemText>MagXYZ_R,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>MagXYZ_L,0x0A</ItemText>
+          <ItemText>accel,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>MagXYZ_R,0x0A</ItemText>
+          <ItemText>gyro,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>accel,0x0A</ItemText>
+          <ItemText>sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>gyro,0x0A</ItemText>
+          <ItemText>gParam,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0].sAlarm.ErrReg.bit.VbusSSMosOpenCircuitFailure</ItemText>
+          <ItemText>sPowerManager.sBoardPowerInfo.VbusSoftStartFlag</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>gParam,0x0A</ItemText>
+          <ItemText>GetBatteryVoltage,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sPowerManager.sBoardPowerInfo.VbusSoftStartFlag</ItemText>
+          <ItemText>pAlarm-&gt;ErrReg.bit.StutterStop</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>GetBatteryVoltage,0x0A</ItemText>
+          <ItemText>MagXYZ_L,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pAlarm-&gt;ErrReg.bit.StutterStop</ItemText>
+          <ItemText>MagXYZ_R,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>MagXYZ_L,0x0A</ItemText>
+          <ItemText>sMyCan.Magic_Enable,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>1</WinNumber>
-          <ItemText>MagXYZ_R,0x0A</ItemText>
+          <ItemText>sMyCan.MagicThreshold_left,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>14</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sMyCan.Magic_Enable,0x0A</ItemText>
+          <ItemText>sMyCan</ItemText>
         </Ww>
         <Ww>
           <count>15</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sMyCan.MagicThreshold_left,0x0A</ItemText>
+          <ItemText>sMyCan.MagicThreshold_Right,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>16</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sMyCan</ItemText>
+          <ItemText>alarm_level</ItemText>
         </Ww>
         <Ww>
           <count>17</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sMyCan.MagicThreshold_Right,0x0A</ItemText>
+          <ItemText>TimeTamp.Time_Tamp_Now,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>18</count>
           <WinNumber>1</WinNumber>
-          <ItemText>alarm_level</ItemText>
+          <ItemText>TimeTamp.Time_Tamp_record,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>19</count>
           <WinNumber>1</WinNumber>
-          <ItemText>TimeTamp.Time_Tamp_Now,0x0A</ItemText>
+          <ItemText>DEBUGDATA,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>20</count>
           <WinNumber>1</WinNumber>
-          <ItemText>TimeTamp.Time_Tamp_record,0x0A</ItemText>
+          <ItemText>CNTDATAT,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>21</count>
           <WinNumber>1</WinNumber>
-          <ItemText>DEBUGDATA,0x0A</ItemText>
+          <ItemText>DEBUGCUR,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>22</count>
           <WinNumber>1</WinNumber>
-          <ItemText>CNTDATAT,0x0A</ItemText>
+          <ItemText>gParam[1].ControlWord0x6040</ItemText>
         </Ww>
         <Ww>
           <count>23</count>
           <WinNumber>1</WinNumber>
-          <ItemText>DEBUGCUR,0x0A</ItemText>
+          <ItemText>SNReadData</ItemText>
         </Ww>
         <Ww>
           <count>24</count>
           <WinNumber>1</WinNumber>
-          <ItemText>gParam[1].ControlWord0x6040</ItemText>
+          <ItemText>flashOperationRet</ItemText>
         </Ww>
         <Ww>
           <count>25</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SNReadData</ItemText>
+          <ItemText>init_isr_time,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>26</count>
           <WinNumber>1</WinNumber>
-          <ItemText>flashOperationRet</ItemText>
+          <ItemText>g_CanTxEnable</ItemText>
         </Ww>
         <Ww>
           <count>27</count>
           <WinNumber>1</WinNumber>
-          <ItemText>init_isr_time,0x0A</ItemText>
+          <ItemText>debugaaa,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>28</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[0].sAlarm.RisingCnt,0x0A</ItemText>
+          <ItemText>Magic_Enable</ItemText>
         </Ww>
         <Ww>
           <count>29</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sAxis[1].sAlarm.RisingCnt,0x0A</ItemText>
+          <ItemText>sMyCan.Magic_Enable</ItemText>
+        </Ww>
+        <Ww>
+          <count>30</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>alarm_level</ItemText>
+        </Ww>
+        <Ww>
+          <count>31</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>alarm_levelBak</ItemText>
+        </Ww>
+        <Ww>
+          <count>32</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>debugaaa</ItemText>
+        </Ww>
+        <Ww>
+          <count>33</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>sAxis[1].sSpdLoop.SpdRef</ItemText>
+        </Ww>
+        <Ww>
+          <count>34</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>sAxis[0].sAlarm.ErrReg</ItemText>
+        </Ww>
+        <Ww>
+          <count>35</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>sAxis[1].sAlarm.ErrReg</ItemText>
+        </Ww>
+        <Ww>
+          <count>36</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>gParam[1].ControlWord0x6040</ItemText>
+        </Ww>
+        <Ww>
+          <count>37</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>debugaaa</ItemText>
         </Ww>
       </WatchWindow1>
+      <MemoryWindow1>
+        <Mm>
+          <WinNumber>1</WinNumber>
+          <SubType>0</SubType>
+          <ItemText>0x8020000</ItemText>
+          <AccSizeX>0</AccSizeX>
+        </Mm>
+      </MemoryWindow1>
       <Tracepoint>
         <THDelay>0</THDelay>
       </Tracepoint>
@@ -729,7 +777,7 @@
 
   <Group>
     <GroupName>HardWare</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

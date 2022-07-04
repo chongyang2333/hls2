@@ -230,7 +230,7 @@ PRIVATE void SpeedSetAvoidFalling(void)
 PUBLIC void LOGO_PWM(void)
 {
     static UINT16 S_Period = 100;
-	  static UINT16 S_DutyVal = 50;
+	  static UINT16 S_DutyVal = 30;
 	  static UINT16 S_DutyCnt = 0;
 	  static UINT16 S_CntDir  = 0;
 	
@@ -249,7 +249,7 @@ PUBLIC void LOGO_PWM(void)
 		{
 				if(!(sAxis[0].sAlarm.ErrReg.all || sAxis[1].sAlarm.ErrReg.all))
 				{
-						S_DutyVal = 50;
+						S_DutyVal = 30;
 				}
 				else
 				{
