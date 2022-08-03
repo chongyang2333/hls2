@@ -192,8 +192,8 @@ UINT8 MX_GPIO_Init(void)
     gpio_mode_set(GPIOD,GPIO_MODE_INPUT,GPIO_PUPD_NONE,GPIO_PIN_9);			 
 		 
     /*Configure GPIO pins : PA15 : RK3399 WEAK IO*/
-    gpio_mode_set(GPIOA,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_15);
-    gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);		 
+    gpio_mode_set(GPIOA,GPIO_MODE_INPUT,GPIO_PUPD_PULLDOWN,GPIO_PIN_15);
+//    gpio_output_options_set(GPIOA,GPIO_OTYPE_PP,GPIO_OSPEED_50MHZ,GPIO_PIN_15);		 
 		 
     /* PE7 ：RK3399_SYNC */
     gpio_mode_set(GPIOE,GPIO_MODE_OUTPUT,GPIO_PUPD_PULLUP,GPIO_PIN_7);
