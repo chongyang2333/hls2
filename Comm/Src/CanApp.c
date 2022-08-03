@@ -889,7 +889,7 @@ PUBLIC void CanSendLog1Left(INT16 LeftSpdRef, INT16 LeftSpdFdb, INT16 LeftPwmRef
     datasend[4] =  LeftSpdFdb & 0XFF;
     datasend[5] = (LeftPwmRef>>8) & 0XFF;
     datasend[6] = LeftPwmRef & 0XFF;
-    datasend[7] = LeftStatus;
+    datasend[7] = BCC_CheckSum(datasend,7);//LeftStatus;
     can_tx(datasend);    
 }
 
@@ -910,7 +910,7 @@ PUBLIC void CanSendLog1Right(INT16 RightSpdRef, INT16 RightSpdFdb, INT16 RightPw
     datasend[4] =  RightSpdFdb & 0XFF;
     datasend[5] = (RightPwmRef>>8) & 0XFF;
     datasend[6] = RightPwmRef & 0XFF;
-    datasend[7] = RightStatus;
+    datasend[7] = BCC_CheckSum(datasend,7);//RightStatus;
     can_tx(datasend);    
 }
 
@@ -942,7 +942,7 @@ PUBLIC void CanSendLog2Left(UINT16 LeftBusCurrent, INT16 LeftIq, INT16 LeftMosTe
     
     datasend[5] = LeftMosTemp;
     datasend[6] = LeftMotorTemp;
-    datasend[7] = 0x00;
+    datasend[7] = BCC_CheckSum(datasend,7);
     can_tx(datasend);    
 }
 
@@ -1055,7 +1055,7 @@ PUBLIC void CanSendLog2Right(UINT16 RightBusCurrent, INT16 RightIq, INT16 RightM
    
     datasend[5] = RightMosTemp;
     datasend[6] = RightMotorTemp;
-    datasend[7] = 0x00;
+    datasend[7] = BCC_CheckSum(datasend,7);
     can_tx(datasend);    
 }
 

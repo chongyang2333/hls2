@@ -80,7 +80,7 @@ const STRUCT_FIRMWARE_INFO FirmwareInfo      __attribute__( ( at( FIRMWARE_BASE_
 {
     .InfoSize = sizeof( STRUCT_FIRMWARE_INFO ),
     .Company = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "PuDu", .Value = 0 },
-    .Product = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "Robotic Dog", .Value = 0 },
+    .Product = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "HLS 2", .Value = 0 },
     .FirmwareVersion = { .ItemSize = sizeof( STRUCT_INFO_ITEM ), .Keyword = "Firmware", .Value = 0x001E0063 },
 };
 

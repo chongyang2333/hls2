@@ -717,18 +717,14 @@ PUBLIC void AlarmExec_5(struct AxisCtrlStruct *P)
         {
             // Speed Following Error judgement
             SpdErr_Threshold = gParam[P->AxisID].SpeedFollowErrWindow0x2008;
-            if(fabs(P->sSpdLoop.SpdErr) > SpdErr_Threshold)
-            {
-                pAlarm->SpdFollwCnt+=4;
-            }
-            else if(fabs(P->sSpdLoop.SpdErr) > (SpdErr_Threshold>>1))
-            {
-                pAlarm->SpdFollwCnt+=1;
-            }
-            else if(pAlarm->SpdFollwCnt>=4)
-            {
-                pAlarm->SpdFollwCnt-=4;
-            }
+			if(fabs(P->sSpdLoop.SpdErr) > SpdErr_Threshold)
+			{
+				pAlarm->SpdFollwCnt++;
+			}
+			else if(pAlarm->SpdFollwCnt)
+			{
+				pAlarm->SpdFollwCnt--;
+			}
 
             // Speed Following Error Alarm
             UINT16 SpdFollowTime = gParam[P->AxisID].SpeedFollowErrTime0x2009*20; //30r/min 400*20/2 = 4000ms   60r/min 1s
